@@ -1,168 +1,32 @@
-import React, { useState } from 'react';
-import { cn } from '@/lib/utils';
+
+import React from 'react';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Separator } from '@/components/ui/separator';
 import FormField from './FormField';
 import SubmitButton from './SubmitButton';
 import ResultDisplay from './ResultDisplay';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Slider } from '@/components/ui/slider';
-import { Separator } from '@/components/ui/separator';
-import { Switch } from '@/components/ui/switch';
-import { useToast } from '@/hooks/use-toast';
-import { CalendarIcon } from 'lucide-react';
-import { format } from 'date-fns';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Button } from '@/components/ui/button';
-
-interface FormData {
-  title: string;
-  textContent: string;
-  dimensions: number;
-  algorithm: string;
-  normalization: boolean;
-  weightFactor: number;
-  // New fields
-  municipality: string;
-  locality: string;
-  cycle: string;
-  epidemiologicalWeek: string;
-  startDate: Date | undefined;
-  endDate: Date | undefined;
-}
+import FormSection from './FormSection';
+import DatePickerField from './DatePickerField';
+import AlgorithmSettings from './AlgorithmSettings';
+import { useVectorForm } from '@/hooks/useVectorForm';
 
 const VectorSummarizerForm: React.FC = () => {
-  const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
-  const [showResults, setShowResults] = useState(false);
-  const [vectorData, setVectorData] = useState<any>(null);
-  const [summary, setSummary] = useState("");
-  const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
-  
-  const [formData, setFormData] = useState<FormData>({
-    title: '',
-    textContent: '',
-    dimensions: 100,
-    algorithm: 'tf-idf',
-    normalization: true,
-    weightFactor: 0.5,
-    // New fields initialization
-    municipality: '',
-    locality: '',
-    cycle: '',
-    epidemiologicalWeek: '',
-    startDate: undefined,
-    endDate: undefined,
-  });
-  
-  const handleInputChange = (field: keyof FormData, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    // Clear error when user types
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: undefined }));
-    }
-  };
-  
-  const validateForm = (): boolean => {
-    const newErrors: Partial<Record<keyof FormData, string>> = {};
-    
-    if (!formData.title.trim()) {
-      newErrors.title = 'Título é obrigatório';
-    }
-    
-    if (!formData.textContent.trim()) {
-      newErrors.textContent = 'Conteúdo é obrigatório';
-    } else if (formData.textContent.trim().length < 10) {
-      newErrors.textContent = 'O conteúdo deve ter pelo menos 10 caracteres';
-    }
-    
-    if (!formData.municipality.trim()) {
-      newErrors.municipality = 'Município é obrigatório';
-    }
-    
-    if (!formData.locality.trim()) {
-      newErrors.locality = 'Localidade é obrigatória';
-    }
-    
-    if (!formData.cycle.trim()) {
-      newErrors.cycle = 'Ciclo é obrigatório';
-    }
-    
-    if (!formData.epidemiologicalWeek.trim()) {
-      newErrors.epidemiologicalWeek = 'Semana Epidemiológica é obrigatória';
-    }
-    
-    if (!formData.startDate) {
-      newErrors.startDate = 'Data Inicial é obrigatória';
-    }
-    
-    if (!formData.endDate) {
-      newErrors.endDate = 'Data Final é obrigatória';
-    }
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-  
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!validateForm()) {
-      toast({
-        title: "Erro de Validação",
-        description: "Por favor, corrija os erros no formulário",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    setIsLoading(true);
-    
-    try {
-      // Simulate API call with timeout
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Simulate creating vector data - in a real app, this would be done by an API
-      const mockVectorData = {
-        dimensions: formData.dimensions,
-        algorithm: formData.algorithm,
-        normalized: formData.normalization,
-        vector: Array.from({ length: formData.dimensions }, () => (Math.random() * 2 - 1) * formData.weightFactor),
-        municipality: formData.municipality,
-        locality: formData.locality,
-        cycle: formData.cycle,
-        epidemiologicalWeek: formData.epidemiologicalWeek,
-        startDate: formData.startDate,
-        endDate: formData.endDate
-      };
-      
-      // Simulate summary - in a real app, this would be generated by an API
-      const mockSummary = `Esta é uma versão resumida de "${formData.title}" para ${formData.municipality}, ${formData.locality}, durante o ciclo ${formData.cycle} (semana epidemiológica ${formData.epidemiologicalWeek}). Período: ${formData.startDate ? format(formData.startDate, 'PP') : 'N/A'} a ${formData.endDate ? format(formData.endDate, 'PP') : 'N/A'}. O conteúdo foi processado usando o algoritmo ${formData.algorithm} com ${formData.dimensions} dimensões e normalização de vetor ${formData.normalization ? "ativada" : "desativada"}.`;
-      
-      setVectorData(mockVectorData);
-      setSummary(mockSummary);
-      setShowResults(true);
-      
-      toast({
-        title: "Processamento Concluído",
-        description: "A sumarização vetorial foi gerada com sucesso",
-      });
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Ocorreu um erro ao processar sua solicitação",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const {
+    formData,
+    handleInputChange,
+    errors,
+    isLoading,
+    handleSubmit,
+    showResults,
+    vectorData,
+    summary
+  } = useVectorForm();
   
   return (
     <div className="w-full max-w-4xl mx-auto">
       <form onSubmit={handleSubmit} className="glass-card rounded-xl p-6 sm:p-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <FormSection>
           <FormField
             id="municipality"
             label="Município"
@@ -194,9 +58,9 @@ const VectorSummarizerForm: React.FC = () => {
               className="w-full"
             />
           </FormField>
-        </div>
+        </FormSection>
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <FormSection>
           <FormField
             id="cycle"
             label="Ciclo"
@@ -228,73 +92,29 @@ const VectorSummarizerForm: React.FC = () => {
               className="w-full"
             />
           </FormField>
-        </div>
+        </FormSection>
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <FormField
+        <FormSection>
+          <DatePickerField
             id="startDate"
             label="Data Inicial"
+            date={formData.startDate}
+            onDateChange={(date) => handleInputChange('startDate', date)}
             required
             error={errors.startDate}
             animationDelay={250}
-          >
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !formData.startDate && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {formData.startDate ? format(formData.startDate, "PP") : <span>Selecionar data</span>}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={formData.startDate}
-                  onSelect={(date) => handleInputChange('startDate', date)}
-                  initialFocus
-                  className="pointer-events-auto"
-                />
-              </PopoverContent>
-            </Popover>
-          </FormField>
+          />
           
-          <FormField
+          <DatePickerField
             id="endDate"
             label="Data Final"
+            date={formData.endDate}
+            onDateChange={(date) => handleInputChange('endDate', date)}
             required
             error={errors.endDate}
             animationDelay={300}
-          >
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !formData.endDate && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {formData.endDate ? format(formData.endDate, "PP") : <span>Selecionar data</span>}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={formData.endDate}
-                  onSelect={(date) => handleInputChange('endDate', date)}
-                  initialFocus
-                  className="pointer-events-auto"
-                />
-              </PopoverContent>
-            </Popover>
-          </FormField>
-        </div>
+          />
+        </FormSection>
         
         <FormField
           id="title"
@@ -331,81 +151,16 @@ const VectorSummarizerForm: React.FC = () => {
         
         <Separator className="my-6" />
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <FormField
-            id="algorithm"
-            label="Algoritmo de Vetorização"
-            animationDelay={450}
-          >
-            <Select
-              value={formData.algorithm}
-              onValueChange={(value) => handleInputChange('algorithm', value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o algoritmo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="tf-idf">TF-IDF</SelectItem>
-                <SelectItem value="word2vec">Word2Vec</SelectItem>
-                <SelectItem value="glove">GloVe</SelectItem>
-                <SelectItem value="bert">BERT Embeddings</SelectItem>
-              </SelectContent>
-            </Select>
-          </FormField>
-          
-          <FormField
-            id="dimensions"
-            label={`Dimensões do Vetor: ${formData.dimensions}`}
-            animationDelay={500}
-          >
-            <Slider
-              id="dimensions"
-              value={[formData.dimensions]}
-              min={50}
-              max={300}
-              step={10}
-              onValueChange={([value]) => handleInputChange('dimensions', value)}
-              className="py-4"
-            />
-          </FormField>
-        </div>
-        
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
-          <FormField
-            id="normalization"
-            label="Normalização do Vetor"
-            description="Normalizar valores do vetor entre -1 e 1"
-            animationDelay={550}
-          >
-            <div className="flex items-center space-x-2 pt-2">
-              <Switch
-                id="normalization"
-                checked={formData.normalization}
-                onCheckedChange={(checked) => handleInputChange('normalization', checked)}
-              />
-              <label htmlFor="normalization" className="text-sm font-medium">
-                {formData.normalization ? 'Ativado' : 'Desativado'}
-              </label>
-            </div>
-          </FormField>
-          
-          <FormField
-            id="weightFactor"
-            label={`Fator de Peso: ${formData.weightFactor.toFixed(2)}`}
-            description="Ajuste o peso dos componentes vetoriais"
-            animationDelay={600}
-          >
-            <Slider
-              id="weightFactor"
-              value={[formData.weightFactor]}
-              min={0.1}
-              max={1}
-              step={0.01}
-              onValueChange={([value]) => handleInputChange('weightFactor', value)}
-              className="py-4"
-            />
-          </FormField>
-        </div>
+        <AlgorithmSettings
+          algorithm={formData.algorithm}
+          onAlgorithmChange={(value) => handleInputChange('algorithm', value)}
+          dimensions={formData.dimensions}
+          onDimensionsChange={(value) => handleInputChange('dimensions', value)}
+          normalization={formData.normalization}
+          onNormalizationChange={(value) => handleInputChange('normalization', value)}
+          weightFactor={formData.weightFactor}
+          onWeightFactorChange={(value) => handleInputChange('weightFactor', value)}
+        />
         
         <div className="flex justify-center sm:justify-end">
           <SubmitButton 
