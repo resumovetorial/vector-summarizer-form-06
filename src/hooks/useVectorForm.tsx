@@ -15,6 +15,13 @@ interface FormData {
   qt_pe: string;
   qt_outros: string;
   qt_total: string;
+  tratamento_focal: string;
+  tratamento_perifocal: string;
+  inspecionados: string;
+  amostras_coletadas: string;
+  recusa: string;
+  fechadas: string;
+  recuperadas: string;
 }
 
 interface ValidationErrors {
@@ -43,6 +50,13 @@ export const useVectorForm = () => {
     qt_pe: '',
     qt_outros: '',
     qt_total: '',
+    tratamento_focal: '',
+    tratamento_perifocal: '',
+    inspecionados: '',
+    amostras_coletadas: '',
+    recusa: '',
+    fechadas: '',
+    recuperadas: ''
   });
   
   const handleInputChange = (field: keyof FormData, value: any) => {
@@ -180,7 +194,14 @@ export const useVectorForm = () => {
           terrenoBaldio: formData.qt_terreno_baldio,
           pe: formData.qt_pe,
           outros: formData.qt_outros,
-          total: formData.qt_total
+          total: formData.qt_total,
+          tratamento_focal: formData.tratamento_focal,
+          tratamento_perifocal: formData.tratamento_perifocal,
+          inspecionados: formData.inspecionados,
+          amostras_coletadas: formData.amostras_coletadas,
+          recusa: formData.recusa,
+          fechadas: formData.fechadas,
+          recuperadas: formData.recuperadas
         }
       };
       

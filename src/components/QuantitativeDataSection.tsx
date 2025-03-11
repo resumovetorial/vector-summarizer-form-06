@@ -1,8 +1,8 @@
-
 import React, { useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import FormField from './FormField';
 import FormSection from './FormSection';
+import TreatmentInspectionSection from './TreatmentInspectionSection';
 
 interface QuantitativeDataSectionProps {
   formData: {
@@ -12,6 +12,13 @@ interface QuantitativeDataSectionProps {
     qt_pe: string;
     qt_outros: string;
     qt_total: string;
+    tratamento_focal: string;
+    tratamento_perifocal: string;
+    inspecionados: string;
+    amostras_coletadas: string;
+    recusa: string;
+    fechadas: string;
+    recuperadas: string;
   };
   handleInputChange: (field: string, value: any) => void;
   errors: {[key: string]: string};
@@ -144,6 +151,13 @@ const QuantitativeDataSection: React.FC<QuantitativeDataSectionProps> = ({
           />
         </FormField>
       </FormSection>
+
+      {/* New Treatment and Inspection Section */}
+      <TreatmentInspectionSection
+        formData={formData}
+        handleInputChange={handleInputChange}
+        errors={errors}
+      />
     </>
   );
 };
