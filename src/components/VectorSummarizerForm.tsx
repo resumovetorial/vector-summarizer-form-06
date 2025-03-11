@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import FormField from './FormField';
 import SubmitButton from './SubmitButton';
@@ -114,39 +113,6 @@ const VectorSummarizerForm: React.FC = () => {
             animationDelay={300}
           />
         </FormSection>
-        
-        <FormField
-          id="title"
-          label="Título do Documento"
-          required
-          error={errors.title}
-          animationDelay={350}
-        >
-          <Input
-            id="title"
-            value={formData.title}
-            onChange={(e) => handleInputChange('title', e.target.value)}
-            placeholder="Digite o título do documento"
-            className="w-full"
-          />
-        </FormField>
-        
-        <FormField
-          id="textContent"
-          label="Conteúdo do Texto"
-          required
-          error={errors.textContent}
-          description="Digite o texto que você deseja converter para formato vetorial e resumir"
-          animationDelay={400}
-        >
-          <Textarea
-            id="textContent"
-            value={formData.textContent}
-            onChange={(e) => handleInputChange('textContent', e.target.value)}
-            placeholder="Cole ou digite seu conteúdo aqui..."
-            className="w-full min-h-[150px]"
-          />
-        </FormField>
         
         <div className="flex justify-center sm:justify-end">
           <SubmitButton 
