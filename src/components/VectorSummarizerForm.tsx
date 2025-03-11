@@ -8,7 +8,6 @@ import SubmitButton from './SubmitButton';
 import ResultDisplay from './ResultDisplay';
 import FormSection from './FormSection';
 import DatePickerField from './DatePickerField';
-import AlgorithmSettings from './AlgorithmSettings';
 import { useVectorForm } from '@/hooks/useVectorForm';
 
 const VectorSummarizerForm: React.FC = () => {
@@ -148,19 +147,6 @@ const VectorSummarizerForm: React.FC = () => {
             className="w-full min-h-[150px]"
           />
         </FormField>
-        
-        <Separator className="my-6" />
-        
-        <AlgorithmSettings
-          algorithm={formData.algorithm}
-          onAlgorithmChange={(value) => handleInputChange('algorithm', value)}
-          dimensions={formData.dimensions}
-          onDimensionsChange={(value) => handleInputChange('dimensions', value)}
-          normalization={formData.normalization}
-          onNormalizationChange={(value) => handleInputChange('normalization', value)}
-          weightFactor={formData.weightFactor}
-          onWeightFactorChange={(value) => handleInputChange('weightFactor', value)}
-        />
         
         <div className="flex justify-center sm:justify-end">
           <SubmitButton 
