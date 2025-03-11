@@ -13,9 +13,9 @@ const Footer: React.FC<FooterProps> = ({ className }) => {
       "text-center text-sm text-muted-foreground",
       className
     )}>
-      <p>© {new Date().getFullYear()} VecSum. All rights reserved.</p>
+      <p>© {new Date().getFullYear()} Todos os direitos reservados.</p>
       <p className="mt-1 text-xs">
-        Crafted with precision for vector summarization.
+        Desenvolvido com precisão para sumarização de dados.
       </p>
     </footer>
   );
