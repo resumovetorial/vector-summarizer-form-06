@@ -33,16 +33,26 @@ const UserEditDialog: React.FC<UserEditDialogProps> = ({
   const [formLocalities, setFormLocalities] = React.useState<string[]>([]);
   const [isLoading, setIsLoading] = React.useState(false);
 
+  // Reset form data when dialog opens with a selected user
   useEffect(() => {
-    if (selectedUser) {
+    if (selectedUser && isOpen) {
       setFormName(selectedUser.name);
       setFormEmail(selectedUser.email);
       setFormRole(selectedUser.role);
       setFormAccessLevel(selectedUser.accessLevelId.toString());
       setFormActive(selectedUser.active);
       setFormLocalities(selectedUser.assignedLocalities);
+      
+      console.log("Form initialized with:", {
+        name: selectedUser.name,
+        email: selectedUser.email,
+        role: selectedUser.role,
+        accessLevelId: selectedUser.accessLevelId.toString(),
+        active: selectedUser.active,
+        localities: selectedUser.assignedLocalities
+      });
     }
-  }, [selectedUser]);
+  }, [selectedUser, isOpen]);
 
   const resetForm = () => {
     setFormName('');
@@ -51,7 +61,12 @@ const UserEditDialog: React.FC<UserEditDialogProps> = ({
     setFormAccessLevel('');
     setFormActive(true);
     setFormLocalities([]);
+  };
+
+  const handleCloseDialog = () => {
+    resetForm();
     setSelectedUser(null);
+    setIsOpen(false);
   };
 
   const handleEditUser = async () => {
@@ -72,19 +87,18 @@ const UserEditDialog: React.FC<UserEditDialogProps> = ({
       // For debugging purposes
       console.log("Selected user:", selectedUser);
       console.log("Selected access level:", selectedAccessLevel);
+      console.log("Form access level ID:", formAccessLevel);
       
       // Se o usuário tem um ID do Supabase, atualizar no banco de dados
       if (selectedUser.supabaseId) {
-        // Atualizar o perfil no Supabase
+        // Atualizar o perfil no Supabase - omitindo o access_level_id por enquanto
+        // pois ele requer um UUID e não um ID numérico
         const { error } = await supabase
           .from('profiles')
           .update({ 
             username: formName,
             role: formRole,
-            active: formActive,
-            // Do not use the numeric ID for access_level_id
-            // Instead, we need to find the UUID that corresponds to this access level
-            // This would require the access levels to be stored with their UUIDs
+            active: formActive
           })
           .eq('id', selectedUser.supabaseId);
           
@@ -94,22 +108,28 @@ const UserEditDialog: React.FC<UserEditDialogProps> = ({
         }
       }
       
-      // Atualizar usuários na interface
-      const updatedUsers = users.map(user => 
-        user.id === selectedUser.id ? {
-          ...user,
-          name: formName,
-          email: formEmail,
-          role: formRole,
-          accessLevelId: parseInt(formAccessLevel),
-          active: formActive,
-          assignedLocalities: formLocalities
-        } : user
-      );
+      // Atualizar usuários na interface localmente
+      const updatedUsers = users.map(user => {
+        if (user.id === selectedUser.id) {
+          const updatedUser = {
+            ...user,
+            name: formName,
+            email: formEmail,
+            role: formRole,
+            accessLevelId: parseInt(formAccessLevel),
+            active: formActive,
+            assignedLocalities: formLocalities
+          };
+          console.log("Updated user in local state:", updatedUser);
+          return updatedUser;
+        }
+        return user;
+      });
       
+      // Atualizar o estado global dos usuários
       setUsers(updatedUsers);
-      setIsOpen(false);
-      resetForm();
+      
+      handleCloseDialog();
       toast.success("Usuário atualizado com sucesso!");
     } catch (error: any) {
       toast.error(`Erro ao atualizar usuário: ${error.message}`);
@@ -120,7 +140,7 @@ const UserEditDialog: React.FC<UserEditDialogProps> = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={handleCloseDialog}>
       <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>Editar Usuário</DialogTitle>
@@ -142,7 +162,7 @@ const UserEditDialog: React.FC<UserEditDialogProps> = ({
           selectedLocalities={formLocalities}
           setSelectedLocalities={setFormLocalities}
           accessLevels={accessLevels}
-          onCancel={() => setIsOpen(false)}
+          onCancel={handleCloseDialog}
           onSubmit={handleEditUser}
           submitLabel="Salvar Alterações"
           isLoading={isLoading}

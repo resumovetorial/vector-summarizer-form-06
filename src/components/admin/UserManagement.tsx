@@ -7,57 +7,101 @@ import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import UserList from './UserList';
 import { User, AccessLevel } from '@/types/admin';
-import { mockUsers, mockAccessLevels } from '@/services/adminService';
+import { mockUsers, mockAccessLevels, fetchAccessLevels as fetchMockAccessLevels } from '@/services/adminService';
 import UserAddDialog from './UserAddDialog';
 import UserEditDialog from './UserEditDialog';
 import UserAccessDialog from './UserAccessDialog';
 import { supabase } from '@/lib/supabase';
+import { fetchAccessLevels } from '@/services/accessLevelService';
 
 const UserManagement: React.FC = () => {
-  const [users, setUsers] = useState<User[]>(mockUsers);
-  const [accessLevels] = useState<AccessLevel[]>(mockAccessLevels);
+  const [users, setUsers] = useState<User[]>([]);
+  const [accessLevels, setAccessLevels] = useState<AccessLevel[]>([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isAccessDialogOpen, setIsAccessDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   
-  // Adicionar usuários reais do Supabase
+  // Fetch users and access levels when component mounts
   useEffect(() => {
-    const fetchRealUsers = async () => {
+    const fetchData = async () => {
+      setIsLoading(true);
       try {
+        // Fetch access levels from Supabase if available
+        let fetchedAccessLevels: AccessLevel[] = [];
+        try {
+          fetchedAccessLevels = await fetchAccessLevels();
+          console.log("Fetched access levels:", fetchedAccessLevels);
+          setAccessLevels(fetchedAccessLevels);
+        } catch (error) {
+          console.error('Erro ao buscar níveis de acesso:', error);
+          // Fallback to mock data if Supabase fetch fails
+          const mockLevels = await fetchMockAccessLevels();
+          setAccessLevels(mockLevels);
+        }
+        
+        // Fetch users from Supabase
         const { data: profiles, error } = await supabase
           .from('profiles')
           .select('*');
         
         if (error) {
           console.error('Erro ao buscar perfis:', error);
+          // Fallback to mock data
+          setUsers(mockUsers);
           return;
         }
 
         if (profiles && profiles.length > 0) {
           // Converter perfis do Supabase para o formato User
-          const realUsers: User[] = profiles.map((profile, index) => ({
-            id: index + 1,
-            supabaseId: profile.id,
-            name: profile.username || `Usuário ${index + 1}`,
-            email: profile.username || `usuario${index + 1}@exemplo.com`,
-            role: profile.role || 'Usuário',
-            accessLevelId: profile.role === 'admin' ? 1 : profile.role === 'supervisor' ? 2 : 3,
-            active: profile.active ?? true,
-            assignedLocalities: []
-          }));
+          const realUsers: User[] = profiles.map((profile, index) => {
+            // Determine the access level ID based on profile or defaults
+            let accessLevelId = 3; // Default to lowest level
+            
+            if (profile.access_level_id) {
+              // If profile has a UUID access level ID, find the matching numeric ID
+              const matchingLevel = fetchedAccessLevels.find(
+                level => level.id.toString() === profile.access_level_id
+              );
+              if (matchingLevel) {
+                accessLevelId = matchingLevel.id;
+              }
+            } else if (profile.role === 'admin') {
+              accessLevelId = 1;
+            } else if (profile.role === 'supervisor') {
+              accessLevelId = 2;
+            }
+            
+            return {
+              id: index + 1,
+              supabaseId: profile.id,
+              name: profile.username || `Usuário ${index + 1}`,
+              email: profile.username || `usuario${index + 1}@exemplo.com`,
+              role: profile.role || 'Usuário',
+              accessLevelId: accessLevelId,
+              active: profile.active ?? true,
+              assignedLocalities: []
+            };
+          });
           
-          // Mesclar usuários reais com mock users (apenas para demonstração)
-          // Em produção, você provavelmente usaria apenas usuários reais
-          setUsers([...realUsers]);
+          console.log("Converted users:", realUsers);
+          setUsers(realUsers);
+        } else {
+          // Fallback to mock data if no profiles found
+          setUsers(mockUsers);
         }
       } catch (error) {
-        console.error('Erro ao buscar usuários:', error);
+        console.error('Erro ao buscar dados:', error);
+        // Fallback to mock data
+        setUsers(mockUsers);
+        setAccessLevels(mockAccessLevels);
+      } finally {
+        setIsLoading(false);
       }
     };
     
-    fetchRealUsers();
+    fetchData();
   }, []);
   
   const handleDeleteUser = async (userId: number, supabaseId?: string) => {
@@ -92,12 +136,17 @@ const UserManagement: React.FC = () => {
   };
   
   const openEditDialog = (user: User) => {
-    setSelectedUser(user);
+    // Create a copy of the user to avoid state reference issues
+    const userCopy = {...user};
+    console.log("Opening edit dialog with user:", userCopy);
+    setSelectedUser(userCopy);
     setIsEditDialogOpen(true);
   };
   
   const handleConfigureAccess = (user: User) => {
-    setSelectedUser(user);
+    // Create a copy of the user to avoid state reference issues
+    const userCopy = {...user};
+    setSelectedUser(userCopy);
     setIsAccessDialogOpen(true);
   };
 
