@@ -19,6 +19,7 @@ interface UseUserFormSubmitProps {
   };
   initialUser?: User | null;
   setIsLoading: (isLoading: boolean) => void;
+  setFormErrors: (errors: string | null) => void;
 }
 
 export const useUserFormSubmit = ({
@@ -29,13 +30,35 @@ export const useUserFormSubmit = ({
   isEditMode,
   formData,
   initialUser,
-  setIsLoading
+  setIsLoading,
+  setFormErrors
 }: UseUserFormSubmitProps) => {
   const validateForm = () => {
-    if (!formData.name || !formData.email || !formData.role || !formData.accessLevel) {
-      toast.error("Por favor, preencha todos os campos obrigatórios");
+    if (!formData.name.trim()) {
+      setFormErrors("O nome do usuário é obrigatório");
       return false;
     }
+    if (!formData.email.trim()) {
+      setFormErrors("O email do usuário é obrigatório");
+      return false;
+    }
+    if (!formData.role.trim()) {
+      setFormErrors("O cargo do usuário é obrigatório");
+      return false;
+    }
+    if (!formData.accessLevel) {
+      setFormErrors("O nível de acesso é obrigatório");
+      return false;
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email.trim())) {
+      setFormErrors("Por favor, insira um email válido");
+      return false;
+    }
+
+    setFormErrors(null);
     return true;
   };
 

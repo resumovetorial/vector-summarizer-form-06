@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { User } from '@/types/admin';
 
@@ -18,8 +17,8 @@ export const useUserFormState = ({
   const [formActive, setFormActive] = useState(true);
   const [formLocalities, setFormLocalities] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [formErrors, setFormErrors] = useState<string | null>(null);
 
-  // Initialize form when initialUser changes
   useEffect(() => {
     if (initialUser && isEditMode) {
       setFormName(initialUser.name);
@@ -38,7 +37,6 @@ export const useUserFormState = ({
         localities: initialUser.assignedLocalities
       });
     } else {
-      // Reset form for add mode or when dialog closes
       resetForm();
     }
   }, [initialUser, isEditMode]);
@@ -67,6 +65,8 @@ export const useUserFormState = ({
     setFormLocalities,
     isLoading,
     setIsLoading,
-    resetForm
+    resetForm,
+    formErrors,
+    setFormErrors
   };
 };

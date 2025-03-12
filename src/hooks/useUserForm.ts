@@ -35,7 +35,9 @@ export const useUserForm = ({
     setFormLocalities,
     isLoading,
     setIsLoading,
-    resetForm
+    resetForm,
+    formErrors,
+    setFormErrors
   } = useUserFormState({
     initialUser,
     isEditMode
@@ -56,7 +58,8 @@ export const useUserForm = ({
       localities: formLocalities
     },
     initialUser,
-    setIsLoading
+    setIsLoading,
+    setFormErrors
   });
 
   return {
@@ -74,6 +77,7 @@ export const useUserForm = ({
     setFormLocalities,
     isLoading,
     resetForm,
-    handleSubmit: submitForm
+    handleSubmit: submitForm,
+    formErrors
   };
 };
