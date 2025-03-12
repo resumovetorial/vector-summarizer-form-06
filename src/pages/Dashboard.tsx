@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -248,6 +249,10 @@ const Dashboard = () => {
                       <SelectValue placeholder="Ano" />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="2028">2028</SelectItem>
+                      <SelectItem value="2027">2027</SelectItem>
+                      <SelectItem value="2026">2026</SelectItem>
+                      <SelectItem value="2025">2025</SelectItem>
                       <SelectItem value="2024">2024</SelectItem>
                       <SelectItem value="2023">2023</SelectItem>
                       <SelectItem value="2022">2022</SelectItem>
