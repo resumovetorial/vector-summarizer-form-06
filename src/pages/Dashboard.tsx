@@ -11,20 +11,21 @@ import { LocalityData } from '@/types/dashboard';
 import DashboardHeader from '@/components/dashboard/DashboardHeader';
 import DashboardLocalitySection from '@/components/dashboard/DashboardLocalitySection';
 import { useDashboardExport } from '@/hooks/useDashboardExport';
+import { toast } from "sonner";
 
 const Dashboard = () => {
-  const { toast } = useToast();
+  const { toast: toastHook } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [view, setView] = useState<'week' | 'cycle'>('week');
   const [year, setYear] = useState<string>(new Date().getFullYear().toString());
-  const [dashboardData, setDashboardData] = useState(mockDashboardData);
+  const [dashboardData, setDashboardData] = useState<LocalityData[]>([]);
   const [selectedLocality, setSelectedLocality] = useState<string>('');
   const [localityData, setLocalityData] = useState<LocalityData | null>(null);
   const [localityHistoricalData, setLocalityHistoricalData] = useState<LocalityData[]>([]);
   const [isExporting, setIsExporting] = useState(false);
   const dashboardRef = useRef<HTMLDivElement>(null);
 
-  // Use the new hook for export functionality
+  // Use the hook for export functionality
   const { exportToExcel, exportToPDF } = useDashboardExport({
     dashboardRef,
     dashboardData,
@@ -35,25 +36,22 @@ const Dashboard = () => {
 
   const refreshData = async () => {
     setIsLoading(true);
-    toast({
-      title: "Atualizando dados",
-      description: "Os dados estão sendo atualizados...",
-    });
+    toast.info("Atualizando dados...");
 
     try {
       const data = await fetchDashboardData(year);
+      console.log("Dashboard data fetched:", data);
       setDashboardData(data);
       
-      toast({
-        title: "Dados atualizados",
-        description: "Os dados foram atualizados com sucesso!",
-      });
+      // Limpar a seleção de localidade
+      setSelectedLocality('');
+      setLocalityData(null);
+      setLocalityHistoricalData([]);
+      
+      toast.success("Dados atualizados com sucesso!");
     } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Ocorreu um erro ao atualizar os dados.",
-        variant: "destructive",
-      });
+      console.error("Error fetching dashboard data:", error);
+      toast.error("Erro ao atualizar os dados.");
     } finally {
       setIsLoading(false);
     }

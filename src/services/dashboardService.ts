@@ -413,15 +413,16 @@ export const fetchDashboardData = async (year: string = "2024"): Promise<Localit
   
   // Get data from localStorage first
   const savedData = getSavedVectorData();
+  console.log("Fetched saved data:", savedData);
   
-  // If there's saved data, combine it with mock data
-  const combinedData = [...savedData];
-  
-  // If no saved data is available, use mock data
-  if (combinedData.length === 0) {
-    combinedData.push(...mockDashboardData);
+  // If there's saved data, use it
+  if (savedData && savedData.length > 0) {
+    console.log("Using saved data:", savedData);
+    // Filter by year
+    return savedData.filter(data => data.startDate.startsWith(year));
   }
   
-  // Filter by year
-  return combinedData.filter(data => data.startDate.startsWith(year));
+  // If no saved data is available, use mock data
+  console.log("Using mock data");
+  return mockDashboardData.filter(data => data.startDate.startsWith(year));
 };

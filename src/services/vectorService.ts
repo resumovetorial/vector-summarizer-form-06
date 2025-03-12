@@ -22,6 +22,7 @@ export const getSavedVectorData = (): LocalityData[] => {
 export const saveVectorData = (data: LocalityData[]): boolean => {
   try {
     localStorage.setItem('vectorData', JSON.stringify(data));
+    console.log('Vector data saved successfully:', data);
     return true;
   } catch (error) {
     console.error('Error saving vector data:', error);
@@ -76,10 +77,12 @@ export const processVectorData = async (formData: FormData) => {
     total_dias_trabalhados: parseInt(formData.total_dias_trabalhados) || 0
   };
   
-  // Save vector data to localStorage
+  // Salve os dados no localStorage
   const existingData = getSavedVectorData();
   const updatedData = [...existingData, vectorData];
-  saveVectorData(updatedData);
+  
+  const saveSuccess = saveVectorData(updatedData);
+  console.log('Save success:', saveSuccess, 'Updated data:', updatedData);
   
   // Generate summary from vector data
   const summary = `Resumo para ${formData.municipality}, ${formData.locality}, durante o ciclo ${formData.cycle} (semana epidemiológica ${formData.epidemiologicalWeek}). Período: ${formData.startDate ? format(formData.startDate, 'dd/MM/yyyy') : 'N/A'} a ${formData.endDate ? format(formData.endDate, 'dd/MM/yyyy') : 'N/A'}. Total de imóveis: ${formData.qt_total}. Depósitos eliminados: ${formData.depositos_eliminados || 0}. Depósitos tratados: ${formData.quantidade_depositos_tratados || 0}. Supervisor: ${formData.nome_supervisor || 'N/A'}.`;

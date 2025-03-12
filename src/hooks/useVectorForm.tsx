@@ -5,9 +5,10 @@ import { FormData, ValidationErrors } from '@/types/vectorForm';
 import { calculateTotalQuantity } from '@/utils/formCalculations';
 import { validateStep, validateForm } from '@/utils/formValidation';
 import { processVectorData } from '@/services/vectorService';
+import { toast } from "sonner";
 
 export const useVectorForm = () => {
-  const { toast } = useToast();
+  const { toast: toastHook } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [vectorData, setVectorData] = useState<any>(null);
@@ -76,11 +77,7 @@ export const useVectorForm = () => {
     if (Object.keys(newErrors).length === 0) {
       setCurrentStep(currentStep + 1);
     } else {
-      toast({
-        title: "Erro de Validação",
-        description: "Por favor, corrija os erros no formulário",
-        variant: "destructive",
-      });
+      toast.error("Por favor, corrija os erros no formulário");
     }
   };
   
@@ -95,33 +92,26 @@ export const useVectorForm = () => {
     setErrors(newErrors);
     
     if (Object.keys(newErrors).length > 0) {
-      toast({
-        title: "Erro de Validação",
-        description: "Por favor, corrija os erros no formulário",
-        variant: "destructive",
-      });
+      toast.error("Por favor, corrija os erros no formulário");
       return;
     }
     
     setIsLoading(true);
+    toast.info("Processando dados...");
     
     try {
+      console.log("Enviando dados do formulário:", formData);
       const result = await processVectorData(formData);
       
+      console.log("Resultado do processamento:", result);
       setVectorData(result.vectorData);
       setSummary(result.summary);
       setShowResults(true);
       
-      toast({
-        title: "Processamento Concluído",
-        description: "A sumarização foi gerada com sucesso",
-      });
+      toast.success("A sumarização foi gerada com sucesso");
     } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Ocorreu um erro ao processar sua solicitação",
-        variant: "destructive",
-      });
+      console.error("Erro ao processar o formulário:", error);
+      toast.error("Ocorreu um erro ao processar sua solicitação");
     } finally {
       setIsLoading(false);
     }
