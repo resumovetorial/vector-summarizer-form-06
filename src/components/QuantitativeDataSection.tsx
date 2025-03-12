@@ -117,9 +117,7 @@ const QuantitativeDataSection: React.FC<QuantitativeDataSectionProps> = ({
             value={formData.qt_pe}
             onChange={(e) => handleInputChange('qt_pe', e.target.value)}
             placeholder="Quantidade de PE"
-            className="w-full"
             disabled={!isPEFieldActive}
-            // Make the background gray when disabled
             className={`w-full ${!isPEFieldActive ? 'bg-gray-100' : ''}`}
           />
         </FormField>
