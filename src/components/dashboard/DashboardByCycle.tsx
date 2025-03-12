@@ -22,8 +22,11 @@ const DashboardByCycle: React.FC<DashboardByCycleProps> = ({ data, year }) => {
   const cycleSummaries = prepareCycleSummaries(data);
   const modalities = getUniqueModalities(cycleSummaries);
   
-  // Get unique cycles from the data
-  const uniqueCycles = [...new Set(cycleSummaries.map(item => item.cycle))].sort();
+  // Get unique cycles from the data and sort them
+  const uniqueCycles = [...new Set(cycleSummaries.map(item => item.cycle))].sort((a, b) => {
+    // Ensure proper numerical sorting even with string format
+    return parseInt(a) - parseInt(b);
+  });
   
   // Set default selected cycle when data changes
   useEffect(() => {

@@ -20,6 +20,17 @@ const CycleSelectorDashboard: React.FC<CycleSelectorDashboardProps> = ({
   onChange,
   cycles
 }) => {
+  // Format cycle numbers to ensure they have leading zeros (e.g., "01", "02")
+  const formatCycleNumber = (cycle: string): string => {
+    // If cycle is already formatted or is "all", return as is
+    if (cycle === "all" || cycle.length === 2) {
+      return cycle;
+    }
+    
+    // Add leading zero for single digit cycles
+    return cycle.padStart(2, '0');
+  };
+
   return (
     <div className="w-full sm:w-64">
       <Select
@@ -34,7 +45,7 @@ const CycleSelectorDashboard: React.FC<CycleSelectorDashboardProps> = ({
           <SelectItem value="all">Todos os ciclos</SelectItem>
           {cycles.map((cycle) => (
             <SelectItem key={cycle} value={cycle}>
-              Ciclo {cycle}
+              Ciclo {formatCycleNumber(cycle)}
             </SelectItem>
           ))}
         </SelectContent>
