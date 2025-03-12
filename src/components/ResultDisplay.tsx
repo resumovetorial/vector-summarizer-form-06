@@ -24,15 +24,13 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text).then(() => {
       toast({
-        title: "Copied!",
-        description: `${label} copied to clipboard`,
+        title: "Copiado!",
+        description: `${label} copiado para a área de transferência`,
       });
     });
   };
   
   if (!visible) return null;
-  
-  const vectorString = vectorData ? JSON.stringify(vectorData, null, 2) : '';
   
   return (
     <div 
@@ -46,7 +44,7 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({
       <div className="p-6">
         <div className="flex items-center mb-4">
           <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
-          <h3 className="text-lg font-medium">Results</h3>
+          <h3 className="text-lg font-medium">Resultados</h3>
         </div>
         
         <Separator className="mb-4" />
@@ -55,39 +53,19 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({
           {summary && (
             <div>
               <div className="flex items-center justify-between mb-2">
-                <h4 className="text-sm font-medium text-muted-foreground">Summary</h4>
+                <h4 className="text-sm font-medium text-muted-foreground">Resumo</h4>
                 <Button 
                   variant="ghost" 
                   size="sm" 
                   className="h-8 px-2"
-                  onClick={() => copyToClipboard(summary, "Summary")}
+                  onClick={() => copyToClipboard(summary, "Resumo")}
                 >
                   <ClipboardCopy className="h-3.5 w-3.5 mr-1" />
-                  <span className="text-xs">Copy</span>
+                  <span className="text-xs">Copiar</span>
                 </Button>
               </div>
               <div className="bg-muted/50 rounded-lg p-4 text-sm">
                 {summary}
-              </div>
-            </div>
-          )}
-          
-          {vectorData && (
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="text-sm font-medium text-muted-foreground">Vector Representation</h4>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="h-8 px-2"
-                  onClick={() => copyToClipboard(vectorString, "Vector data")}
-                >
-                  <ClipboardCopy className="h-3.5 w-3.5 mr-1" />
-                  <span className="text-xs">Copy</span>
-                </Button>
-              </div>
-              <div className="bg-muted/50 rounded-lg p-4 overflow-auto max-h-60">
-                <pre className="text-xs whitespace-pre-wrap">{vectorString}</pre>
               </div>
             </div>
           )}

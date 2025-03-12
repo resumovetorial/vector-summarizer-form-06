@@ -1,7 +1,8 @@
 
 import { LocalityData } from "@/types/dashboard";
+import { getSavedVectorData } from "./vectorService";
 
-// Mock data for the dashboard
+// Mock data for the dashboard (fallback if no saved data)
 export const mockDashboardData: LocalityData[] = [
   {
     municipality: "Itabuna",
@@ -405,11 +406,22 @@ export const mockDashboardData: LocalityData[] = [
   }
 ];
 
-// Function to simulate fetching dashboard data
+// Function to fetch dashboard data
 export const fetchDashboardData = async (year: string = "2024"): Promise<LocalityData[]> => {
   // Simulate API call with timeout
   await new Promise(resolve => setTimeout(resolve, 1500));
   
-  // Filter by year (in a real implementation, this would be a database query)
-  return mockDashboardData.filter(data => data.startDate.startsWith(year));
+  // Get data from localStorage first
+  const savedData = getSavedVectorData();
+  
+  // If there's saved data, combine it with mock data
+  const combinedData = [...savedData];
+  
+  // If no saved data is available, use mock data
+  if (combinedData.length === 0) {
+    combinedData.push(...mockDashboardData);
+  }
+  
+  // Filter by year
+  return combinedData.filter(data => data.startDate.startsWith(year));
 };

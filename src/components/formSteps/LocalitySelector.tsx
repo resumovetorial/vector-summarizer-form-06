@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import FormField from '@/components/FormField';
 import { 
   Select,
@@ -8,7 +8,6 @@ import {
   SelectTrigger,
   SelectValue 
 } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
 import { MapPin } from 'lucide-react';
 import { getLocalities } from '@/services/localitiesService';
 
@@ -25,8 +24,13 @@ const LocalitySelector: React.FC<LocalitySelectorProps> = ({
   error,
   animationDelay = 100
 }) => {
-  // Get localities from service
-  const localities = getLocalities();
+  // Use state to store localities
+  const [localities, setLocalities] = useState<string[]>([]);
+  
+  // Fetch localities on component mount and when the component re-renders
+  useEffect(() => {
+    setLocalities(getLocalities());
+  }, []);
   
   return (
     <FormField
