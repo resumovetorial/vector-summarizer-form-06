@@ -1,10 +1,19 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { BarChart4, Home, ShieldAlert } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { BarChart4, Home, ShieldAlert, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/hooks/useAuth';
 
 const Header = () => {
+  const { isAuthenticated, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
   return (
     <header className="py-6">
       <div className="flex flex-col sm:flex-row justify-between items-center">
@@ -31,19 +40,28 @@ const Header = () => {
               </Link>
             </Button>
             
-            <Button variant="ghost" asChild>
-              <Link to="/dashboard">
-                <BarChart4 className="h-4 w-4 mr-2" />
-                Dashboard
-              </Link>
-            </Button>
-            
-            <Button variant="ghost" asChild>
-              <Link to="/admin">
-                <ShieldAlert className="h-4 w-4 mr-2" />
-                Admin
-              </Link>
-            </Button>
+            {isAuthenticated && (
+              <>
+                <Button variant="ghost" asChild>
+                  <Link to="/dashboard">
+                    <BarChart4 className="h-4 w-4 mr-2" />
+                    Dashboard
+                  </Link>
+                </Button>
+                
+                <Button variant="ghost" asChild>
+                  <Link to="/admin">
+                    <ShieldAlert className="h-4 w-4 mr-2" />
+                    Admin
+                  </Link>
+                </Button>
+
+                <Button variant="ghost" onClick={handleLogout}>
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Sair
+                </Button>
+              </>
+            )}
           </div>
         </nav>
       </div>
