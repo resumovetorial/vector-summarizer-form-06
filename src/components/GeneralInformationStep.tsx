@@ -12,7 +12,7 @@ import {
 import FormField from './FormField';
 import FormSection from './FormSection';
 import DatePickerField from './DatePickerField';
-import { ChevronRight, Briefcase } from 'lucide-react';
+import { ChevronRight, Briefcase, MapPin } from 'lucide-react';
 import { FormData, ValidationErrors } from '@/types/vectorForm';
 
 interface GeneralInformationStepProps {
@@ -21,6 +21,72 @@ interface GeneralInformationStepProps {
   errors: ValidationErrors;
   nextStep: () => void;
 }
+
+const localities = [
+  "Alemita",
+  "Alto Maron", 
+  "Antique",
+  "Bananeira",
+  "Banco Raso", 
+  "California", 
+  "Carlos Silva", 
+  "Castalia", 
+  "Centro",
+  "Centro Comercial",
+  "Conceicao",
+  "Corbiniano Freire",
+  "Daniel Gomes",
+  "Fatima",
+  "Fernando Gomes", 
+  "Ferradas",
+  "Fonseca", 
+  "Goes Calmon", 
+  "Horteiro",
+  "Itamaraca",
+  "Jacana",
+  "Jardim Brasil",
+  "Jardim Grapiuna",
+  "Jardim Primavera",
+  "Joao Soares",
+  "Jorge Amado",
+  "Lomanto",
+  "Mangabinha",
+  "Manoel Leão",
+  "Maria Matos",
+  "Maria Pinheiro",
+  "Monte Cristo",
+  "Mutuns",
+  "N S das Gracas", 
+  "Nova California",
+  "Nova Esperança",
+  "Nova Ferradas",
+  "Nova Itabuna", 
+  "Nova Fonseca", 
+  "Novo Horizonte",
+  "Novo S Caetano",
+  "Parque Boa Vista",
+  "Parque Verde",
+  "Pedro Geronimo",
+  "Pontalzinho",
+  "Roca do Povo",
+  "Santa Catarina",
+  "Santa Clara",
+  "Santa Ines",
+  "Santo Antonio",
+  "Sao Caetano",
+  "Sao Judas",
+  "Sao Lourenço",
+  "Sao Pedro",
+  "Sao Roque",
+  "Sarinha",
+  "Sinval Palmeira",
+  "Taverolandia",
+  "Urbis IV",
+  "Vila Analia",
+  "Vila Paloma",
+  "Zildolandia",
+  "Zizo"
+];
 
 const GeneralInformationStep: React.FC<GeneralInformationStepProps> = ({
   formData,
@@ -55,13 +121,22 @@ const GeneralInformationStep: React.FC<GeneralInformationStepProps> = ({
           error={errors.locality}
           animationDelay={100}
         >
-          <Input
-            id="locality"
+          <Select
             value={formData.locality}
-            onChange={(e) => handleInputChange('locality', e.target.value)}
-            placeholder="Digite a localidade"
-            className="w-full"
-          />
+            onValueChange={(value) => handleInputChange('locality', value)}
+          >
+            <SelectTrigger className="w-full">
+              <MapPin className="mr-2 h-4 w-4" />
+              <SelectValue placeholder="Selecione a localidade" />
+            </SelectTrigger>
+            <SelectContent className="max-h-80">
+              {localities.map((locality) => (
+                <SelectItem key={locality} value={locality}>
+                  {locality}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </FormField>
       </FormSection>
       
