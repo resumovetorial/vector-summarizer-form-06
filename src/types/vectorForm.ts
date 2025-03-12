@@ -6,6 +6,7 @@ export interface FormData {
   locality: string;
   cycle: string;
   epidemiologicalWeek: string;
+  workModality: string; // New field for work modality
   startDate: Date | undefined;
   endDate: Date | undefined;
   qt_residencias: string;

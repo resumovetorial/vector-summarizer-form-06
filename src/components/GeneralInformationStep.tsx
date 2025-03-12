@@ -2,10 +2,17 @@
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue 
+} from '@/components/ui/select';
 import FormField from './FormField';
 import FormSection from './FormSection';
 import DatePickerField from './DatePickerField';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Briefcase } from 'lucide-react';
 import { FormData, ValidationErrors } from '@/types/vectorForm';
 
 interface GeneralInformationStepProps {
@@ -93,7 +100,33 @@ const GeneralInformationStep: React.FC<GeneralInformationStepProps> = ({
       </FormSection>
       
       <FormSection>
-        <DatePickerField
+        <FormField
+          id="workModality"
+          label="Tipo de Modalidade de Trabalho"
+          required
+          error={errors.workModality}
+          animationDelay={225}
+        >
+          <Select
+            value={formData.workModality}
+            onValueChange={(value) => handleInputChange('workModality', value)}
+          >
+            <SelectTrigger className="w-full">
+              <Briefcase className="mr-2 h-4 w-4" />
+              <SelectValue placeholder="Selecione a modalidade" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="LI">LI</SelectItem>
+              <SelectItem value="LI + T">LI + T</SelectItem>
+              <SelectItem value="PE">PE</SelectItem>
+              <SelectItem value="TRATAMENTO">TRATAMENTO</SelectItem>
+              <SelectItem value="DF">DF</SelectItem>
+              <SelectItem value="PVE">PVE</SelectItem>
+            </SelectContent>
+          </Select>
+        </FormField>
+        
+        <FormField
           id="startDate"
           label="Data Inicial"
           date={formData.startDate}
@@ -102,8 +135,10 @@ const GeneralInformationStep: React.FC<GeneralInformationStepProps> = ({
           error={errors.startDate}
           animationDelay={250}
         />
-        
-        <DatePickerField
+      </FormSection>
+      
+      <FormSection>
+        <FormField
           id="endDate"
           label="Data Final"
           date={formData.endDate}
@@ -112,6 +147,8 @@ const GeneralInformationStep: React.FC<GeneralInformationStepProps> = ({
           error={errors.endDate}
           animationDelay={300}
         />
+        
+        <div className="mb-6"> {/* Empty div to balance the grid */}</div>
       </FormSection>
       
       <div className="flex justify-end mt-6">

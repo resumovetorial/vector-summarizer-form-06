@@ -20,6 +20,7 @@ export const useVectorForm = () => {
     locality: '',
     cycle: '',
     epidemiologicalWeek: '',
+    workModality: '', // Initialize the new field
     startDate: undefined,
     endDate: undefined,
     qt_residencias: '',

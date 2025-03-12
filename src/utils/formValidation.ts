@@ -21,6 +21,10 @@ export const validateStep = (step: number, formData: FormData): ValidationErrors
       errors.epidemiologicalWeek = 'Semana Epidemiológica é obrigatória';
     }
     
+    if (!formData.workModality) {
+      errors.workModality = 'Tipo de Modalidade de Trabalho é obrigatório';
+    }
+    
     if (!formData.startDate) {
       errors.startDate = 'Data Inicial é obrigatória';
     }
@@ -53,6 +57,10 @@ export const validateForm = (formData: FormData): ValidationErrors => {
   
   if (!formData.epidemiologicalWeek.trim()) {
     errors.epidemiologicalWeek = 'Semana Epidemiológica é obrigatória';
+  }
+  
+  if (!formData.workModality) {
+    errors.workModality = 'Tipo de Modalidade de Trabalho é obrigatório';
   }
   
   if (!formData.startDate) {
