@@ -30,6 +30,15 @@ export interface FormData {
   d2: string;
   e: string;
   depositos_eliminados: string;
+  // New fields for treated deposits
+  larvicida: string;
+  quantidade_larvicida: string;
+  quantidade_depositos_tratados: string;
+  adulticida: string;
+  quantidade_cargas: string;
+  total_tec_saude: string;
+  total_dias_trabalhados: string;
+  nome_supervisor: string;
 }
 
 export interface ValidationErrors {

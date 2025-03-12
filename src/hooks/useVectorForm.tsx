@@ -35,7 +35,7 @@ export const useVectorForm = () => {
     recusa: '',
     fechadas: '',
     recuperadas: '',
-    // Initialize new fields
+    // Deposits fields
     a1: '',
     a2: '',
     b: '',
@@ -43,7 +43,16 @@ export const useVectorForm = () => {
     d1: '',
     d2: '',
     e: '',
-    depositos_eliminados: ''
+    depositos_eliminados: '',
+    // New treated deposits fields
+    larvicida: '',
+    quantidade_larvicida: '',
+    quantidade_depositos_tratados: '',
+    adulticida: '',
+    quantidade_cargas: '',
+    total_tec_saude: '',
+    total_dias_trabalhados: '',
+    nome_supervisor: ''
   });
   
   const handleInputChange = (field: keyof FormData, value: any) => {

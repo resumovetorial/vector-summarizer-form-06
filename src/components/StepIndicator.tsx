@@ -18,6 +18,8 @@ const StepIndicator: React.FC<StepIndicatorProps> = ({
       case 1: return 'Informações Gerais';
       case 2: return 'Dados Quantitativos';
       case 3: return 'Depósitos Inspecionados';
+      case 4: return 'Depósitos Tratados';
+      case 5: return 'Finalizar';
       default: return `Passo ${stepNumber}`;
     }
   };
