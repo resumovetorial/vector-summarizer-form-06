@@ -74,25 +74,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .eq('id', session.user.id)
         .single();
       
-      if (profileError && profileError.code !== 'PGRST116') {
+      if (profileError) {
         console.error('Erro ao buscar perfil:', profileError);
+        // Se não conseguir buscar o perfil, ainda permitimos o login com dados básicos
+        const authUser: AuthUser = {
+          id: session.user.id,
+          username: session.user.email || session.user.id,
+          email: session.user.email,
+          role: 'user',
+          isAuthenticated: true,
+        };
+        
+        setUser(authUser);
+        return;
       }
-      
-      // Get user's role from profile or default to "user"
-      const role = profileData?.role || 'user';
       
       const authUser: AuthUser = {
         id: session.user.id,
         username: profileData?.username || session.user.email || session.user.id,
         email: session.user.email,
-        role: role,
+        role: profileData?.role || 'user',
         isAuthenticated: true,
       };
       
       setUser(authUser);
     } catch (error) {
       console.error('Error setting user data:', error);
-      setUser(null);
+      // Em caso de erro, ainda criamos um usuário básico
+      const authUser: AuthUser = {
+        id: session.user.id,
+        username: session.user.email || session.user.id,
+        email: session.user.email,
+        role: 'user',
+        isAuthenticated: true,
+      };
+      setUser(authUser);
     }
   };
 
@@ -123,7 +139,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       setIsLoading(true);
       
-      // Primeiro, criar o usuário no auth.users
+      // Criação do usuário no auth.users
+      // O trigger SQL criará automaticamente o perfil na tabela profiles
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -131,15 +148,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       if (error) throw error;
       
-      // O trigger criado no SQL se encarregará de inserir automaticamente o perfil
-      
       if (data.user) {
         toast.success("Cadastro realizado com sucesso! Você já pode fazer login.");
-        // Não redirecionamos para permitir que o usuário faça login manualmente
+        return;
       }
     } catch (error: any) {
-      toast.error(error.message || "Erro ao criar conta. Tente novamente.");
+      let mensagemErro = "Erro ao criar conta. Tente novamente.";
+      
+      // Melhorar as mensagens de erro
+      if (error.message.includes("already registered")) {
+        mensagemErro = "Este email já está cadastrado. Por favor, faça login.";
+      } else if (error.message.includes("password")) {
+        mensagemErro = "A senha deve ter pelo menos 6 caracteres.";
+      }
+      
+      toast.error(mensagemErro);
       console.error("Registration error:", error);
+      throw error; // Propagar o erro para que o componente saiba que houve falha
     } finally {
       setIsLoading(false);
     }

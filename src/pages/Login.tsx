@@ -51,7 +51,8 @@ const Login = () => {
       setConfirmPassword('');
       setActiveTab('login');
     } catch (error) {
-      console.error("Erro ao registrar:", error);
+      // O erro já foi tratado no hook useAuth, não precisamos fazer nada aqui
+      console.error("Erro capturado no componente:", error);
     }
   };
 
