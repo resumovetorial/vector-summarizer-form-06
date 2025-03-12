@@ -13,8 +13,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LocalityData } from '@/types/dashboard';
 import { format } from 'date-fns';
 import { Input } from '@/components/ui/input';
-import { Search, AlertCircle } from 'lucide-react';
+import { Search, AlertCircle, FileSpreadsheet, Printer } from 'lucide-react';
 import { getUserAccessibleLocalities } from '@/services/adminService';
+import { Button } from '@/components/ui/button';
+import * as XLSX from 'xlsx';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
+import { useToast } from '@/hooks/use-toast';
 
 interface LocalityDataTableProps {
   data: LocalityData[];
@@ -24,6 +29,9 @@ const LocalityDataTable: React.FC<LocalityDataTableProps> = ({ data }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [accessibleLocalities, setAccessibleLocalities] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isExporting, setIsExporting] = useState(false);
+  const { toast } = useToast();
+  const tableRef = React.useRef<HTMLDivElement>(null);
   
   // Mock current user ID - in a real app, this would come from authentication
   const currentUserId = 2; // Assuming this is a supervisor with limited access
@@ -44,6 +52,122 @@ const LocalityDataTable: React.FC<LocalityDataTableProps> = ({ data }) => {
     loadAccessControl();
   }, []);
   
+  // Export table data to Excel
+  const exportToExcel = () => {
+    if (!data || data.length === 0) return;
+    
+    setIsExporting(true);
+    toast({
+      title: "Exportando dados",
+      description: "Preparando arquivo Excel...",
+    });
+
+    try {
+      // Prepare data for export
+      const dataToExport = filteredData.map(item => ({
+        Localidade: item.locality,
+        Município: item.municipality,
+        'Semana Epidemiológica': item.epidemiologicalWeek,
+        Ciclo: item.cycle,
+        Modalidade: item.workModality,
+        'Início': format(new Date(item.startDate), 'dd/MM/yyyy'),
+        'Fim': format(new Date(item.endDate), 'dd/MM/yyyy'),
+        'Total Imóveis': item.totalProperties,
+        'Inspecionados': item.inspections,
+        'Depósitos Eliminados': item.depositsEliminated, 
+        'Depósitos Tratados': item.depositsTreated,
+        'A1': item.a1,
+        'A2': item.a2,
+        'B': item.b,
+        'C': item.c,
+        'D1': item.d1,
+        'D2': item.d2,
+        'E': item.e,
+        'Larvicida': item.larvicida || '-',
+        'Adulticida': item.adulticida || '-',
+        'Supervisor': item.supervisor,
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Dados");
+      
+      // Generate filename with date and locality
+      const date = new Date().toISOString().split('T')[0];
+      const filename = `${data[0].locality}_${date}.xlsx`;
+      
+      // Write and download the file
+      XLSX.writeFile(workbook, filename);
+      
+      toast({
+        title: "Exportação concluída",
+        description: "Os dados foram exportados com sucesso para Excel!",
+      });
+    } catch (error) {
+      console.error("Error exporting to Excel:", error);
+      toast({
+        title: "Erro na exportação",
+        description: "Ocorreu um erro ao exportar os dados para Excel.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  // Export table to PDF
+  const exportToPDF = async () => {
+    if (!tableRef.current) return;
+    
+    setIsExporting(true);
+    toast({
+      title: "Exportando dados",
+      description: "Preparando arquivo PDF...",
+    });
+
+    try {
+      const element = tableRef.current;
+      const canvas = await html2canvas(element, {
+        scale: 1,
+        useCORS: true,
+        allowTaint: true,
+        logging: false
+      });
+      
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'landscape',
+        unit: 'mm',
+        format: 'a4'
+      });
+      
+      const imgWidth = 280;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      
+      pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
+      
+      // Generate filename with date and locality
+      const date = new Date().toISOString().split('T')[0];
+      const filename = `${data[0].locality}_${date}.pdf`;
+      
+      pdf.save(filename);
+      
+      toast({
+        title: "Exportação concluída",
+        description: "Os dados foram exportados com sucesso para PDF!",
+      });
+    } catch (error) {
+      console.error("Error exporting to PDF:", error);
+      toast({
+        title: "Erro na exportação",
+        description: "Ocorreu um erro ao exportar os dados para PDF.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   if (isLoading) {
     return <div className="text-center py-4">Carregando dados...</div>;
   }
@@ -100,18 +224,38 @@ const LocalityDataTable: React.FC<LocalityDataTableProps> = ({ data }) => {
       <CardHeader>
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
           <CardTitle>Dados Históricos de {data[0].locality}</CardTitle>
-          <div className="w-full sm:w-64">
-            <Input 
-              placeholder="Buscar..." 
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full"
-            />
+          <div className="flex flex-wrap gap-2 items-center">
+            <div className="w-full sm:w-64">
+              <Input 
+                placeholder="Buscar..." 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full"
+              />
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={exportToExcel}
+              disabled={isExporting}
+            >
+              <FileSpreadsheet className="h-4 w-4 mr-2" />
+              Excel
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={exportToPDF}
+              disabled={isExporting}
+            >
+              <Printer className="h-4 w-4 mr-2" />
+              PDF
+            </Button>
           </div>
         </div>
       </CardHeader>
       <CardContent>
-        <div className="rounded-md border overflow-x-auto">
+        <div className="rounded-md border overflow-x-auto" ref={tableRef}>
           <Table>
             <TableCaption>
               Dados históricos de {data[0].locality} por semana e ciclo
