@@ -1,10 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LocalityData } from '@/types/dashboard';
 import { prepareCycleSummaries, getUniqueModalities } from '@/utils/dashboardDataUtils';
 import CycleSelectorDashboard from './CycleSelectorDashboard';
 import ModalityTabContent from './ModalityTabContent';
+import CycleSummaryCard from './CycleSummaryCard';
 
 interface DashboardByCycleProps {
   data: LocalityData[];
@@ -55,38 +57,95 @@ const DashboardByCycle: React.FC<DashboardByCycleProps> = ({ data, year }) => {
     }
   }, [filteredModalities, selectedModality]);
   
+  // Calculate cycle summary totals
+  const getTotalForCycle = () => {
+    if (!selectedCycle || selectedCycle === "all") {
+      return {
+        totalProperties: cycleSummaries.reduce((sum, item) => sum + item.totalProperties, 0),
+        totalInspections: cycleSummaries.reduce((sum, item) => sum + item.totalInspections, 0),
+        totalDepositsEliminated: cycleSummaries.reduce((sum, item) => sum + item.totalDepositsEliminated, 0),
+        totalDepositsTreated: cycleSummaries.reduce((sum, item) => sum + item.totalDepositsTreated, 0)
+      };
+    }
+    
+    const cycleData = cycleSummaries.filter(item => item.cycle === selectedCycle);
+    return {
+      totalProperties: cycleData.reduce((sum, item) => sum + item.totalProperties, 0),
+      totalInspections: cycleData.reduce((sum, item) => sum + item.totalInspections, 0),
+      totalDepositsEliminated: cycleData.reduce((sum, item) => sum + item.totalDepositsEliminated, 0),
+      totalDepositsTreated: cycleData.reduce((sum, item) => sum + item.totalDepositsTreated, 0)
+    };
+  };
+  
+  const cycleTotals = getTotalForCycle();
+  
   return (
     <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
-        <CycleSelectorDashboard 
-          value={selectedCycle} 
-          onChange={setSelectedCycle} 
-          cycles={uniqueCycles}
-          workModality={selectedModality} // Pass selected modality to filter cycles
-        />
-      </div>
+      <Card>
+        <CardHeader>
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <CardTitle>Resumo por Ciclo - {year}</CardTitle>
+            <div className="w-full md:w-64">
+              <CycleSelectorDashboard 
+                value={selectedCycle} 
+                onChange={setSelectedCycle} 
+                cycles={uniqueCycles}
+                workModality={selectedModality}
+              />
+            </div>
+          </div>
+        </CardHeader>
+      </Card>
       
-      <Tabs 
-        defaultValue={filteredModalities.length > 0 ? filteredModalities[0] : "LI"}
-        value={selectedModality}
-        onValueChange={handleModalityChange}
-      >
-        <TabsList className="flex flex-wrap mb-4">
-          {filteredModalities.map(modality => (
-            <TabsTrigger key={modality} value={modality}>
-              {modality}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-        
-        {filteredModalities.map(modality => (
-          <ModalityTabContent 
-            key={modality} 
-            modality={modality} 
-            cycleSummaries={filteredSummaries} 
-          />
-        ))}
-      </Tabs>
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            {selectedCycle === "all" ? "Todos os Ciclos" : `Ciclo ${selectedCycle}`}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <CycleSummaryCard 
+              title="Imóveis" 
+              value={cycleTotals.totalProperties} 
+            />
+            <CycleSummaryCard 
+              title="Inspecionados" 
+              value={cycleTotals.totalInspections} 
+            />
+            <CycleSummaryCard 
+              title="Depósitos Eliminados" 
+              value={cycleTotals.totalDepositsEliminated} 
+            />
+            <CycleSummaryCard 
+              title="Depósitos Tratados" 
+              value={cycleTotals.totalDepositsTreated} 
+            />
+          </div>
+          
+          <Tabs 
+            defaultValue={filteredModalities.length > 0 ? filteredModalities[0] : "LI"}
+            value={selectedModality}
+            onValueChange={handleModalityChange}
+          >
+            <TabsList className="flex flex-wrap mb-4">
+              {filteredModalities.map(modality => (
+                <TabsTrigger key={modality} value={modality}>
+                  {modality}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+            
+            {filteredModalities.map(modality => (
+              <ModalityTabContent 
+                key={modality} 
+                modality={modality} 
+                cycleSummaries={filteredSummaries} 
+              />
+            ))}
+          </Tabs>
+        </CardContent>
+      </Card>
     </div>
   );
 };
