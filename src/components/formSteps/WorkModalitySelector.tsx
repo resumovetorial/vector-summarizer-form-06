@@ -21,7 +21,7 @@ const WorkModalitySelector: React.FC<WorkModalitySelectorProps> = ({
   value,
   onChange,
   error,
-  animationDelay = 225
+  animationDelay = 150
 }) => {
   return (
     <FormField

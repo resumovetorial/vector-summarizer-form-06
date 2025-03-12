@@ -53,24 +53,27 @@ const GeneralInformationStep: React.FC<GeneralInformationStepProps> = ({
       </FormSection>
       
       <FormSection>
-        <CycleSelector
-          value={formData.cycle}
-          onChange={(value) => handleInputChange('cycle', value)}
-          error={errors.cycle}
-        />
-        
-        <EpidemiologicalWeekSelector
-          value={formData.epidemiologicalWeek}
-          onChange={(value) => handleInputChange('epidemiologicalWeek', value)}
-          error={errors.epidemiologicalWeek}
-        />
-      </FormSection>
-      
-      <FormSection>
         <WorkModalitySelector
           value={formData.workModality}
           onChange={(value) => handleInputChange('workModality', value)}
           error={errors.workModality}
+          animationDelay={150}
+        />
+        
+        <CycleSelector
+          value={formData.cycle}
+          onChange={(value) => handleInputChange('cycle', value)}
+          error={errors.cycle}
+          animationDelay={200}
+        />
+      </FormSection>
+      
+      <FormSection>
+        <EpidemiologicalWeekSelector
+          value={formData.epidemiologicalWeek}
+          onChange={(value) => handleInputChange('epidemiologicalWeek', value)}
+          error={errors.epidemiologicalWeek}
+          animationDelay={225}
         />
         
         <DatePickerField

@@ -23,7 +23,7 @@ const CycleSelector: React.FC<CycleSelectorProps> = ({
   value,
   onChange,
   error,
-  animationDelay = 150
+  animationDelay = 200
 }) => {
   return (
     <FormField
