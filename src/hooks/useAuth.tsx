@@ -26,6 +26,7 @@ export function useAuth() {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isInitialized, setIsInitialized] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -43,60 +44,75 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const authUser = await createAuthUser(session);
             setUser(authUser);
             
-            // If on login page and user is authenticated, redirect to home
+            // If on login page and user is authenticated, redirect to dashboard
             if (location.pathname === '/login') {
-              const from = (location.state as any)?.from?.pathname || '/';
-              navigate(from, { replace: true });
+              navigate('/dashboard', { replace: true });
             }
           } catch (error) {
             console.error('Error initializing auth:', error);
             setUser(null);
-          }
-        } else if (location.pathname !== '/login') {
-          // If no session and not on login page, redirect to login
-          navigate('/login', { replace: true });
-        }
-      } catch (error) {
-        console.error('Error checking session:', error);
-      } finally {
-        setIsLoading(false);
-      }
-      
-      // Listen for auth changes
-      const { data: { subscription } } = await supabase.auth.onAuthStateChange(
-        async (event, session) => {
-          if (session) {
-            try {
-              const authUser = await createAuthUser(session);
-              setUser(authUser);
-              
-              // If on login page and user is authenticated, redirect to home
-              if (location.pathname === '/login') {
-                const from = (location.state as any)?.from?.pathname || '/';
-                navigate(from, { replace: true });
-              }
-            } catch (error) {
-              console.error('Error updating auth state:', error);
-              setUser(null);
-            }
-          } else {
-            setUser(null);
             
-            // If not on login page and user is not authenticated, redirect to login
+            // Redirect to login if error occurs
             if (location.pathname !== '/login') {
               navigate('/login', { replace: true });
             }
           }
+        } else {
+          // No valid session, redirect to login if not already there
+          setUser(null);
+          if (location.pathname !== '/login') {
+            navigate('/login', { replace: true });
+          }
         }
-      );
-      
-      // Cleanup subscription on unmount
-      return () => {
-        subscription.unsubscribe();
-      };
+      } catch (error) {
+        console.error('Error checking session:', error);
+        if (location.pathname !== '/login') {
+          navigate('/login', { replace: true });
+        }
+      } finally {
+        setIsLoading(false);
+        setIsInitialized(true);
+      }
     };
 
     initializeAuth();
+    
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (session) {
+          try {
+            const authUser = await createAuthUser(session);
+            setUser(authUser);
+            
+            // If on login page and user is authenticated, redirect to dashboard
+            if (location.pathname === '/login') {
+              navigate('/dashboard', { replace: true });
+            }
+          } catch (error) {
+            console.error('Error updating auth state:', error);
+            setUser(null);
+            
+            // Redirect to login if error occurs
+            if (location.pathname !== '/login') {
+              navigate('/login', { replace: true });
+            }
+          }
+        } else {
+          setUser(null);
+          
+          // No valid session, redirect to login if not already there
+          if (location.pathname !== '/login') {
+            navigate('/login', { replace: true });
+          }
+        }
+      }
+    );
+    
+    // Cleanup subscription on unmount
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [navigate, location]);
 
   const login = async (email: string, password: string) => {
@@ -162,7 +178,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     register,
     logout,
     isAuthenticated: !!user,
-    isLoading
+    isLoading,
+    isInitialized
   };
 
   return (

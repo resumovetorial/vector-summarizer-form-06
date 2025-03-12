@@ -16,4 +16,5 @@ export interface AuthContextType {
   logout: () => Promise<void>;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isInitialized: boolean;
 }
