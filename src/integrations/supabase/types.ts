@@ -9,6 +9,33 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      access_levels: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          permissions: string[]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          permissions?: string[]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          permissions?: string[]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       localities: {
         Row: {
           active: boolean | null
@@ -68,6 +95,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          access_level_id: string | null
           active: boolean | null
           created_at: string
           id: string
@@ -76,6 +104,7 @@ export type Database = {
           username: string | null
         }
         Insert: {
+          access_level_id?: string | null
           active?: boolean | null
           created_at?: string
           id: string
@@ -84,6 +113,7 @@ export type Database = {
           username?: string | null
         }
         Update: {
+          access_level_id?: string | null
           active?: boolean | null
           created_at?: string
           id?: string
@@ -91,7 +121,15 @@ export type Database = {
           updated_at?: string
           username?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_access_level_id_fkey"
+            columns: ["access_level_id"]
+            isOneToOne: false
+            referencedRelation: "access_levels"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       vector_data: {
         Row: {

@@ -16,3 +16,13 @@ export interface AccessLevel {
   description: string;
   permissions: string[];
 }
+
+// Este é o tipo completo do banco de dados para níveis de acesso do Supabase
+export interface AccessLevelDB {
+  id: string; // UUID no Supabase
+  name: string;
+  description: string | null;
+  permissions: string[];
+  created_at: string;
+  updated_at: string;
+}
