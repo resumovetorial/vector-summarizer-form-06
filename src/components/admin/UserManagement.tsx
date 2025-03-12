@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -25,6 +25,7 @@ const UserManagement: React.FC = () => {
   const [formRole, setFormRole] = useState('');
   const [formAccessLevel, setFormAccessLevel] = useState('');
   const [formActive, setFormActive] = useState(true);
+  const [formLocalities, setFormLocalities] = useState<string[]>([]);
 
   const handleAddUser = () => {
     const newUser: User = {
@@ -34,7 +35,7 @@ const UserManagement: React.FC = () => {
       role: formRole,
       accessLevelId: parseInt(formAccessLevel),
       active: formActive,
-      assignedLocalities: []
+      assignedLocalities: formLocalities
     };
     
     setUsers([...users, newUser]);
@@ -53,7 +54,8 @@ const UserManagement: React.FC = () => {
         email: formEmail,
         role: formRole,
         accessLevelId: parseInt(formAccessLevel),
-        active: formActive
+        active: formActive,
+        assignedLocalities: formLocalities
       } : user
     );
     
@@ -81,6 +83,7 @@ const UserManagement: React.FC = () => {
     setFormRole('');
     setFormAccessLevel('');
     setFormActive(true);
+    setFormLocalities([]);
     setSelectedUser(null);
   };
   
@@ -91,6 +94,7 @@ const UserManagement: React.FC = () => {
     setFormRole(user.role);
     setFormAccessLevel(user.accessLevelId.toString());
     setFormActive(user.active);
+    setFormLocalities(user.assignedLocalities);
     setIsEditDialogOpen(true);
   };
   
@@ -114,7 +118,7 @@ const UserManagement: React.FC = () => {
               Novo Usuário
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-3xl">
             <DialogHeader>
               <DialogTitle>Adicionar Novo Usuário</DialogTitle>
             </DialogHeader>
@@ -129,6 +133,8 @@ const UserManagement: React.FC = () => {
               setAccessLevel={setFormAccessLevel}
               active={formActive}
               setActive={setFormActive}
+              selectedLocalities={formLocalities}
+              setSelectedLocalities={setFormLocalities}
               accessLevels={accessLevels}
               onCancel={() => setIsAddDialogOpen(false)}
               onSubmit={handleAddUser}
@@ -149,7 +155,7 @@ const UserManagement: React.FC = () => {
 
       {/* Edit User Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-3xl">
           <DialogHeader>
             <DialogTitle>Editar Usuário</DialogTitle>
           </DialogHeader>
@@ -164,6 +170,8 @@ const UserManagement: React.FC = () => {
             setAccessLevel={setFormAccessLevel}
             active={formActive}
             setActive={setFormActive}
+            selectedLocalities={formLocalities}
+            setSelectedLocalities={setFormLocalities}
             accessLevels={accessLevels}
             onCancel={() => setIsEditDialogOpen(false)}
             onSubmit={handleEditUser}
