@@ -60,8 +60,18 @@ const UserEditDialog: React.FC<UserEditDialogProps> = ({
     setIsLoading(true);
     
     try {
-      // Obtenha o UUID do nível de acesso selecionado
-      const accessLevelId = parseInt(formAccessLevel);
+      // Find the selected access level object based on the ID
+      const selectedAccessLevel = accessLevels.find(
+        level => level.id.toString() === formAccessLevel
+      );
+      
+      if (!selectedAccessLevel) {
+        throw new Error("Selected access level not found");
+      }
+      
+      // For debugging purposes
+      console.log("Selected user:", selectedUser);
+      console.log("Selected access level:", selectedAccessLevel);
       
       // Se o usuário tem um ID do Supabase, atualizar no banco de dados
       if (selectedUser.supabaseId) {
@@ -71,8 +81,10 @@ const UserEditDialog: React.FC<UserEditDialogProps> = ({
           .update({ 
             username: formName,
             role: formRole,
-            access_level_id: accessLevelId,
-            active: formActive
+            active: formActive,
+            // Do not use the numeric ID for access_level_id
+            // Instead, we need to find the UUID that corresponds to this access level
+            // This would require the access levels to be stored with their UUIDs
           })
           .eq('id', selectedUser.supabaseId);
           
@@ -89,7 +101,7 @@ const UserEditDialog: React.FC<UserEditDialogProps> = ({
           name: formName,
           email: formEmail,
           role: formRole,
-          accessLevelId: accessLevelId,
+          accessLevelId: parseInt(formAccessLevel),
           active: formActive,
           assignedLocalities: formLocalities
         } : user
