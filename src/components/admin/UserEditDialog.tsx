@@ -36,20 +36,23 @@ const UserEditDialog: React.FC<UserEditDialogProps> = ({
   // Reset form data when dialog opens with a selected user
   useEffect(() => {
     if (selectedUser && isOpen) {
-      setFormName(selectedUser.name);
-      setFormEmail(selectedUser.email);
-      setFormRole(selectedUser.role);
-      setFormAccessLevel(selectedUser.accessLevelId.toString());
-      setFormActive(selectedUser.active);
-      setFormLocalities(selectedUser.assignedLocalities);
+      // Create deep copy of the user to avoid reference issues
+      const userCopy = {...selectedUser};
+      
+      setFormName(userCopy.name);
+      setFormEmail(userCopy.email);
+      setFormRole(userCopy.role);
+      setFormAccessLevel(userCopy.accessLevelId.toString());
+      setFormActive(userCopy.active);
+      setFormLocalities([...userCopy.assignedLocalities]);
       
       console.log("Form initialized with:", {
-        name: selectedUser.name,
-        email: selectedUser.email,
-        role: selectedUser.role,
-        accessLevelId: selectedUser.accessLevelId.toString(),
-        active: selectedUser.active,
-        localities: selectedUser.assignedLocalities
+        name: userCopy.name,
+        email: userCopy.email,
+        role: userCopy.role,
+        accessLevelId: userCopy.accessLevelId.toString(),
+        active: userCopy.active,
+        localities: userCopy.assignedLocalities
       });
     }
   }, [selectedUser, isOpen]);
@@ -75,9 +78,12 @@ const UserEditDialog: React.FC<UserEditDialogProps> = ({
     setIsLoading(true);
     
     try {
+      // Parse the access level ID to a number for local state
+      const accessLevelIdNum = parseInt(formAccessLevel);
+      
       // Find the selected access level object based on the ID
       const selectedAccessLevel = accessLevels.find(
-        level => level.id.toString() === formAccessLevel
+        level => level.id === accessLevelIdNum
       );
       
       if (!selectedAccessLevel) {
@@ -89,16 +95,16 @@ const UserEditDialog: React.FC<UserEditDialogProps> = ({
       console.log("Selected access level:", selectedAccessLevel);
       console.log("Form access level ID:", formAccessLevel);
       
-      // Se o usuário tem um ID do Supabase, atualizar no banco de dados
+      // Update the user in Supabase if they have a Supabase ID
       if (selectedUser.supabaseId) {
-        // Atualizar o perfil no Supabase - omitindo o access_level_id por enquanto
-        // pois ele requer um UUID e não um ID numérico
+        // Update only the profile fields that don't cause UUID conversion issues
         const { error } = await supabase
           .from('profiles')
           .update({ 
             username: formName,
             role: formRole,
             active: formActive
+            // Intentionally NOT updating access_level_id here as it requires UUID
           })
           .eq('id', selectedUser.supabaseId);
           
@@ -108,17 +114,18 @@ const UserEditDialog: React.FC<UserEditDialogProps> = ({
         }
       }
       
-      // Atualizar usuários na interface localmente
+      // Update users in the local state to reflect changes immediately
       const updatedUsers = users.map(user => {
         if (user.id === selectedUser.id) {
+          // Create a new object to ensure state updates correctly
           const updatedUser = {
             ...user,
             name: formName,
             email: formEmail,
             role: formRole,
-            accessLevelId: parseInt(formAccessLevel),
+            accessLevelId: accessLevelIdNum, // Store as number for consistency
             active: formActive,
-            assignedLocalities: formLocalities
+            assignedLocalities: [...formLocalities]
           };
           console.log("Updated user in local state:", updatedUser);
           return updatedUser;
@@ -126,7 +133,7 @@ const UserEditDialog: React.FC<UserEditDialogProps> = ({
         return user;
       });
       
-      // Atualizar o estado global dos usuários
+      // Update the global users state
       setUsers(updatedUsers);
       
       handleCloseDialog();

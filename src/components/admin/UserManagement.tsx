@@ -54,7 +54,7 @@ const UserManagement: React.FC = () => {
         }
 
         if (profiles && profiles.length > 0) {
-          // Converter perfis do Supabase para o formato User
+          // Convert Supabase profiles to User format
           const realUsers: User[] = profiles.map((profile, index) => {
             // Determine the access level ID based on profile or defaults
             let accessLevelId = 3; // Default to lowest level
@@ -106,7 +106,7 @@ const UserManagement: React.FC = () => {
   
   const handleDeleteUser = async (userId: number, supabaseId?: string) => {
     if (!supabaseId) {
-      // Para usuários mock sem ID do Supabase
+      // For mock users without Supabase ID
       setUsers(users.filter(user => user.id !== userId));
       toast.success("Usuário removido com sucesso!");
       return;
@@ -115,7 +115,7 @@ const UserManagement: React.FC = () => {
     setIsLoading(true);
     
     try {
-      // Chamar a função RPC que criamos para excluir o usuário e seu perfil
+      // Call the RPC function we created to delete both user and profile
       const { error } = await supabase.rpc('delete_user_and_profile', {
         user_id: supabaseId
       });
@@ -124,7 +124,7 @@ const UserManagement: React.FC = () => {
         throw error;
       }
       
-      // Atualizar a lista de usuários na interface
+      // Update the user list in the UI
       setUsers(users.filter(user => user.id !== userId));
       toast.success("Usuário excluído com sucesso!");
     } catch (error: any) {
@@ -136,16 +136,16 @@ const UserManagement: React.FC = () => {
   };
   
   const openEditDialog = (user: User) => {
-    // Create a copy of the user to avoid state reference issues
-    const userCopy = {...user};
+    // Create a deep copy of the user to avoid reference issues
+    const userCopy = JSON.parse(JSON.stringify(user));
     console.log("Opening edit dialog with user:", userCopy);
     setSelectedUser(userCopy);
     setIsEditDialogOpen(true);
   };
   
   const handleConfigureAccess = (user: User) => {
-    // Create a copy of the user to avoid state reference issues
-    const userCopy = {...user};
+    // Create a deep copy of the user to avoid reference issues
+    const userCopy = JSON.parse(JSON.stringify(user));
     setSelectedUser(userCopy);
     setIsAccessDialogOpen(true);
   };
