@@ -37,7 +37,7 @@ const UserEditDialog: React.FC<UserEditDialogProps> = ({
   useEffect(() => {
     if (selectedUser && isOpen) {
       // Create deep copy of the user to avoid reference issues
-      const userCopy = {...selectedUser};
+      const userCopy = JSON.parse(JSON.stringify(selectedUser));
       
       setFormName(userCopy.name);
       setFormEmail(userCopy.email);
@@ -90,7 +90,6 @@ const UserEditDialog: React.FC<UserEditDialogProps> = ({
         throw new Error("Selected access level not found");
       }
       
-      // For debugging purposes
       console.log("Selected user:", selectedUser);
       console.log("Selected access level:", selectedAccessLevel);
       console.log("Form access level ID:", formAccessLevel);
@@ -118,17 +117,15 @@ const UserEditDialog: React.FC<UserEditDialogProps> = ({
       const updatedUsers = users.map(user => {
         if (user.id === selectedUser.id) {
           // Create a new object to ensure state updates correctly
-          const updatedUser = {
+          return {
             ...user,
             name: formName,
             email: formEmail,
             role: formRole,
-            accessLevelId: accessLevelIdNum, // Store as number for consistency
+            accessLevelId: accessLevelIdNum,
             active: formActive,
             assignedLocalities: [...formLocalities]
           };
-          console.log("Updated user in local state:", updatedUser);
-          return updatedUser;
         }
         return user;
       });
