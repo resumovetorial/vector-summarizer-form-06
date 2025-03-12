@@ -24,13 +24,21 @@ export function useAuthActions(
       setIsLoading(true);
       setError(null);
       
-      const { session } = await loginWithSupabase(email, password);
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
       
-      if (!session) {
+      if (error) throw error;
+      
+      if (data?.user) {
+        const authUser = await createAuthUser(data.session);
+        setUser(authUser);
+        toast.success("Login realizado com sucesso!");
+        navigate('/dashboard', { replace: true });
+      } else {
         throw new Error("Erro na autenticação");
       }
-
-      toast.success("Login realizado com sucesso!");
       
     } catch (error: any) {
       const errorMessage = formatAuthError(error);
@@ -63,7 +71,7 @@ export function useAuthActions(
       setIsLoading(true);
       await logoutWithSupabase();
       setUser(null);
-      navigate('/login');
+      navigate('/login', { replace: true });
       toast.success("Logout realizado com sucesso");
     } catch (error: any) {
       setError(error.message);

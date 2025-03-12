@@ -20,7 +20,7 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
   });
 
   // Aguardar inicialização
-  if (!isInitialized || isLoading) {
+  if (!isInitialized) {
     console.log('ProtectedRoute - Aguardando inicialização...');
     return (
       <div className="min-h-screen flex items-center justify-center background-gradient">

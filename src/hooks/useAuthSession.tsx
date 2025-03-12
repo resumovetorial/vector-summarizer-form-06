@@ -50,7 +50,7 @@ export function useAuthSession() {
 
       if (!mounted) return;
 
-      // Prevent unnecessary updates - only update state if there's a real change
+      // Apenas atualize o estado se houver uma mudança real
       if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'USER_UPDATED') {
         setIsLoading(true);
 
