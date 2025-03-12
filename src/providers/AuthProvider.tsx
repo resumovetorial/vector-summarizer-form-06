@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { AuthUser, AuthContextType } from '@/types/auth';
 import AuthContext from '@/contexts/AuthContext';
@@ -8,6 +8,9 @@ import { useAuthActions } from '@/hooks/useAuthActions';
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+  
   const { 
     user, 
     setUser, 
@@ -22,6 +25,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setError,
     setIsLoading
   );
+
+  // Effect para redirecionamento após login bem-sucedido
+  useEffect(() => {
+    if (user && isInitialized && !isSessionLoading && location.pathname === '/login') {
+      const from = (location.state as any)?.from?.pathname || '/';
+      console.log('AuthProvider - Redirecionando usuário autenticado para:', from);
+      navigate(from, { replace: true });
+    }
+  }, [user, isInitialized, isSessionLoading, location, navigate]);
 
   const value: AuthContextType = {
     user,
@@ -38,6 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     isAuthenticated: !!user,
     isLoading: isLoading || isSessionLoading,
     isInitialized,
+    pathname: location.pathname,
     user: user ? { email: user.email, role: user.role } : null
   });
 

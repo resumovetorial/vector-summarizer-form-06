@@ -21,14 +21,20 @@ export function useAuthActions(
     try {
       setIsLoading(true);
       setError(null);
-      await loginWithSupabase(email, password);
+      
+      // Primeiro verifica a autenticação antes de redirecionar
+      const { session } = await loginWithSupabase(email, password);
+      
+      // Não redirecionamos aqui - deixamos o useAuthSession fazer isso quando detectar a mudança de sessão
+      console.log('Login bem-sucedido, session:', session?.user?.email);
+      toast.success("Login realizado com sucesso!");
+      
     } catch (error: any) {
       const errorMessage = formatAuthError(error);
       setError(errorMessage);
       toast.error(errorMessage);
-      throw error;
-    } finally {
       setIsLoading(false);
+      throw error;
     }
   };
 

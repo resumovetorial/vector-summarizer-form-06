@@ -1,6 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,17 +13,8 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [activeTab, setActiveTab] = useState('login');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { login, register, isLoading, isAuthenticated } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  // If user is already authenticated, redirect to home or the page they were trying to access
-  useEffect(() => {
-    if (isAuthenticated) {
-      const from = (location.state as any)?.from?.pathname || '/';
-      navigate(from, { replace: true });
-    }
-  }, [isAuthenticated, navigate, location]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,7 +24,17 @@ const Login = () => {
       return;
     }
     
-    await login(email, password);
+    if (isSubmitting) return;
+    
+    setIsSubmitting(true);
+    try {
+      await login(email, password);
+      // O redirecionamento agora é gerenciado pelo AuthProvider
+    } catch (error) {
+      console.error("Erro no login:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleRegister = async (e: React.FormEvent) => {
@@ -55,6 +55,9 @@ const Login = () => {
       return;
     }
     
+    if (isSubmitting) return;
+    
+    setIsSubmitting(true);
     try {
       await register(email, password);
       setEmail('');
@@ -62,11 +65,13 @@ const Login = () => {
       setConfirmPassword('');
       setActiveTab('login');
     } catch (error) {
-      // O erro já foi tratado no hook useAuth, não precisamos fazer nada aqui
-      console.error("Erro capturado no componente:", error);
+      console.error("Erro no cadastro:", error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
+  // Resto do código do componente permanece igual
   return (
     <div className="min-h-screen flex items-center justify-center background-gradient p-4">
       <Card className="w-full max-w-md shadow-lg bg-[#D3E4FD]">
@@ -122,9 +127,9 @@ const Login = () => {
                 <Button 
                   type="submit" 
                   className="w-full bg-blue-600 hover:bg-blue-700"
-                  disabled={isLoading}
+                  disabled={isLoading || isSubmitting}
                 >
-                  {isLoading ? (
+                  {(isLoading || isSubmitting) ? (
                     <span className="flex items-center">
                       <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -185,9 +190,9 @@ const Login = () => {
                 <Button 
                   type="submit" 
                   className="w-full bg-blue-600 hover:bg-blue-700"
-                  disabled={isLoading}
+                  disabled={isLoading || isSubmitting}
                 >
-                  {isLoading ? (
+                  {(isLoading || isSubmitting) ? (
                     <span className="flex items-center">
                       <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>

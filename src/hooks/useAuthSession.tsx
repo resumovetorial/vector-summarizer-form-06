@@ -56,12 +56,15 @@ export function useAuthSession() {
           const authUser = await createAuthUser(session);
           console.log('useAuthSession - Usuário atualizado:', authUser);
           setUser(authUser);
+          setIsLoading(false);
         } else {
           console.log('useAuthSession - Usuário deslogado');
           setUser(null);
+          setIsLoading(false);
         }
       } catch (error) {
         console.error('useAuthSession - Erro ao atualizar usuário:', error);
+        setIsLoading(false);
       }
     });
 
