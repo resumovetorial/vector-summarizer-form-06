@@ -17,4 +17,5 @@ export interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   isInitialized: boolean;
+  error?: string | null;
 }

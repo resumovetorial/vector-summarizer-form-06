@@ -11,7 +11,7 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
   const { isAuthenticated, isLoading, isInitialized, user } = useAuth();
   const location = useLocation();
 
-  // Show loading state while checking authentication
+  // Se ainda estiver inicializando ou carregando, mostrar o spinner
   if (isLoading || !isInitialized) {
     return (
       <div className="min-h-screen flex items-center justify-center background-gradient">
@@ -20,7 +20,7 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
     );
   }
 
-  // Redirect to login if not authenticated
+  // Se não estiver autenticado, redirecionar para o login
   if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
@@ -29,16 +29,19 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
   const isAdmin = user?.role === 'admin' || 
                   (user?.email && ['resumovetorial@gmail.com', 'admin@example.com'].includes(user.email));
   
-  // Para rotas de admin, verificar se o usuário é admin
+  // Verificar se o usuário tem acesso à rota solicitada
   if (requiredRole === 'admin' && !isAdmin) {
+    console.log('Usuário não tem permissão de admin:', user);
     return <Navigate to="/unauthorized" replace />;
   }
 
-  // Para dashboard e outras rotas, verificar se o usuário está aprovado ou é admin
+  // Para dashboard e outras rotas protegidas, verificar se o usuário é admin ou está aprovado
   if (!isAdmin && location.pathname !== '/unauthorized') {
+    console.log('Usuário não aprovado/admin para acessar:', location.pathname, user);
     return <Navigate to="/unauthorized" replace />;
   }
 
+  // Se passou por todas as verificações, renderizar o conteúdo
   return <>{children}</>;
 };
 

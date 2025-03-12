@@ -14,7 +14,15 @@ import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import Unauthorized from "./pages/Unauthorized";
 
-const queryClient = new QueryClient();
+// Criar um novo QueryClient
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -24,9 +32,14 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <Routes>
+            {/* Rotas públicas */}
             <Route path="/login" element={<Login />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
+            
+            {/* Redirecionar raiz para dashboard */}
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            
+            {/* Rotas protegidas */}
             <Route 
               path="/dashboard" 
               element={
@@ -43,7 +56,8 @@ const App = () => (
                 </ProtectedRoute>
               } 
             />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            
+            {/* Rota para 404 */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
