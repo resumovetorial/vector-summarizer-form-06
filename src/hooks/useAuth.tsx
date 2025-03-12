@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useContext } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
@@ -13,7 +12,6 @@ import {
   formatAuthError
 } from '@/utils/authUtils';
 
-// Hook to use the auth context
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
@@ -22,7 +20,6 @@ export function useAuth() {
   return context;
 }
 
-// Provider component that wraps the app
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -31,210 +28,125 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Initialize the auth state from Supabase session
   useEffect(() => {
-    console.log('Inicializando autenticação...');
-    let isMounted = true;
-    
+    let mounted = true;
+    console.log('AuthProvider - Iniciando inicialização');
+
     const initializeAuth = async () => {
-      if (!isMounted) return;
-      
-      setIsLoading(true);
-      setError(null);
-      
       try {
-        console.log('Verificando sessão...');
-        // Check for existing session
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError) {
-          console.error('Erro ao obter sessão:', sessionError);
-          setError(sessionError.message);
-          setUser(null);
-          setIsInitialized(true);
-          setIsLoading(false);
-          return;
-        }
-        
-        if (session) {
-          console.log('Sessão encontrada, criando usuário...');
-          try {
-            const authUser = await createAuthUser(session);
-            console.log('Usuário autenticado:', authUser);
-            
-            if (isMounted) {
-              setUser(authUser);
-              setIsInitialized(true);
-              setIsLoading(false);
-            }
-          } catch (error: any) {
-            console.error('Erro ao inicializar autenticação:', error);
-            if (isMounted) {
-              setError(error.message || 'Erro ao inicializar autenticação');
-              setUser(null);
-              setIsInitialized(true);
-              setIsLoading(false);
-            }
-          }
+        console.log('AuthProvider - Verificando sessão existente');
+        const { data: { session } } = await supabase.auth.getSession();
+
+        if (!mounted) return;
+
+        if (session?.user) {
+          console.log('AuthProvider - Sessão encontrada, criando usuário', session.user.email);
+          const authUser = await createAuthUser(session);
+          console.log('AuthProvider - Usuário criado:', authUser);
+          setUser(authUser);
         } else {
-          console.log('Nenhuma sessão encontrada');
-          if (isMounted) {
-            setUser(null);
-            setIsInitialized(true);
-            setIsLoading(false);
-          }
-        }
-      } catch (error: any) {
-        console.error('Erro ao verificar sessão:', error);
-        if (isMounted) {
-          setError(error.message || 'Erro ao verificar sessão');
+          console.log('AuthProvider - Nenhuma sessão encontrada');
           setUser(null);
+        }
+      } catch (error) {
+        console.error('AuthProvider - Erro na inicialização:', error);
+        setError(error instanceof Error ? error.message : 'Erro na inicialização');
+      } finally {
+        if (mounted) {
           setIsInitialized(true);
           setIsLoading(false);
+          console.log('AuthProvider - Inicialização completa');
         }
       }
     };
 
     initializeAuth();
-    
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('Auth state changed:', event);
-        
-        if (!isMounted) return;
-        
-        if (session) {
-          try {
-            console.log('Sessão atualizada, criando usuário...');
-            const authUser = await createAuthUser(session);
-            console.log('Usuário atualizado:', authUser);
-            
-            if (isMounted) {
-              setUser(authUser);
-              setError(null);
-            }
-          } catch (error: any) {
-            console.error('Erro ao atualizar estado da autenticação:', error);
-            if (isMounted) {
-              setError(error.message || 'Erro ao atualizar estado da autenticação');
-              setUser(null);
-            }
-          }
+
+    const { data: subscription } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('AuthProvider - Mudança no estado de autenticação:', event);
+
+      if (!mounted) return;
+
+      try {
+        if (session?.user) {
+          const authUser = await createAuthUser(session);
+          console.log('AuthProvider - Usuário atualizado:', authUser);
+          setUser(authUser);
         } else {
-          console.log('Sessão encerrada');
-          if (isMounted) {
-            setUser(null);
-          }
+          console.log('AuthProvider - Usuário deslogado');
+          setUser(null);
         }
-        
-        // Garantir que o estado de loading e inicialização estejam corretos
-        if (isMounted) {
-          setIsInitialized(true);
-          setIsLoading(false);
-        }
+      } catch (error) {
+        console.error('AuthProvider - Erro ao atualizar usuário:', error);
       }
-    );
-    
-    // Cleanup subscription on unmount
+    });
+
     return () => {
-      isMounted = false;
-      subscription.unsubscribe();
+      mounted = false;
+      subscription.subscription.unsubscribe();
     };
   }, []);
 
-  // Função de login
-  const login = async (email: string, password: string) => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      
-      console.log('Tentando login com:', email);
-      const data = await loginWithSupabase(email, password);
-      
-      if (data.user) {
-        console.log('Login bem-sucedido:', data.user);
-        toast.success("Login bem-sucedido!");
-        const from = (location.state as any)?.from?.pathname || '/dashboard';
-        navigate(from, { replace: true });
-      }
-    } catch (error: any) {
-      const errorMessage = formatAuthError(error);
-      console.error("Erro de login:", error);
-      setError(errorMessage);
-      toast.error(errorMessage);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Função de registro
-  const register = async (email: string, password: string) => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      
-      console.log('Tentando registrar:', email);
-      const data = await registerWithSupabase(email, password);
-      
-      if (data.user) {
-        console.log('Registro bem-sucedido:', data.user);
-        toast.success("Cadastro realizado com sucesso! Você já pode fazer login.");
-        return;
-      }
-    } catch (error: any) {
-      const errorMessage = formatAuthError(error);
-      console.error("Erro de registro:", error);
-      setError(errorMessage);
-      toast.error(errorMessage);
-      throw error; // Propagate error
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Função de logout
-  const logout = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      
-      console.log('Realizando logout...');
-      await logoutWithSupabase();
-      
-      setUser(null);
-      navigate('/login');
-      toast.success("Logout realizado com sucesso");
-    } catch (error: any) {
-      console.error("Erro ao fazer logout:", error);
-      setError(error.message || "Erro ao fazer logout");
-      toast.error(error.message || "Erro ao fazer logout");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Criar valor do contexto de autenticação
-  const authContextValue: AuthContextType = {
+  const value: AuthContextType = {
     user,
-    login,
-    register,
-    logout,
+    login: async (email: string, password: string) => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        await loginWithSupabase(email, password);
+      } catch (error: any) {
+        const errorMessage = formatAuthError(error);
+        setError(errorMessage);
+        toast.error(errorMessage);
+        throw error;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    register: async (email: string, password: string) => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        await registerWithSupabase(email, password);
+        toast.success("Cadastro realizado com sucesso!");
+      } catch (error: any) {
+        const errorMessage = formatAuthError(error);
+        setError(errorMessage);
+        toast.error(errorMessage);
+        throw error;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    logout: async () => {
+      try {
+        setIsLoading(true);
+        await logoutWithSupabase();
+        setUser(null);
+        navigate('/login');
+        toast.success("Logout realizado com sucesso");
+      } catch (error: any) {
+        setError(error.message);
+        toast.error(error.message);
+      } finally {
+        setIsLoading(false);
+      }
+    },
     isAuthenticated: !!user,
     isLoading,
     isInitialized,
     error
   };
 
-  console.log('Estado atual da autenticação:', {
+  console.log('AuthProvider - Estado atual:', {
     isAuthenticated: !!user,
     isLoading,
     isInitialized,
-    user: user ? { ...user, id: '[REDACTED]' } : null
+    user: user ? { email: user.email, role: user.role } : null
   });
 
   return (
-    <AuthContextProvider value={authContextValue}>
+    <AuthContextProvider value={value}>
       {children}
     </AuthContextProvider>
   );

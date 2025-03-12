@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -14,20 +13,17 @@ import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import Unauthorized from "./pages/Unauthorized";
 
-// Criar um novo QueryClient com configurações otimizadas
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 1,
       refetchOnWindowFocus: false,
-      staleTime: 5 * 60 * 1000, // 5 minutos
+      staleTime: 5 * 60 * 1000,
     },
   },
 });
 
 const App = () => {
-  console.log('Renderizando App');
-  
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
@@ -40,8 +36,8 @@ const App = () => {
               <Route path="/login" element={<Login />} />
               <Route path="/unauthorized" element={<Unauthorized />} />
               
-              {/* Redirecionar raiz para dashboard */}
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              {/* Rota inicial */}
+              <Route path="/" element={<Index />} />
               
               {/* Rotas protegidas */}
               <Route 
@@ -61,7 +57,7 @@ const App = () => {
                 } 
               />
               
-              {/* Rota para 404 */}
+              {/* Rota 404 */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AuthProvider>

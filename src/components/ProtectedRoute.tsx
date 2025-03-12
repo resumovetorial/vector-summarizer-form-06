@@ -8,19 +8,18 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
-  const { isAuthenticated, isLoading, isInitialized, user, error } = useAuth();
+  const { isAuthenticated, isLoading, isInitialized, user } = useAuth();
   const location = useLocation();
 
-  console.log('ProtectedRoute - Estado atual:', { 
+  console.log('ProtectedRoute - Estado:', { 
     isAuthenticated, 
     isLoading, 
     isInitialized,
     pathname: location.pathname,
-    user: user ? { role: user.role, email: user.email } : null,
-    error
+    user: user ? { role: user.role, email: user.email } : null
   });
 
-  // Se ainda estiver inicializando ou carregando, mostrar o spinner
+  // Aguardar inicialização
   if (!isInitialized || isLoading) {
     console.log('ProtectedRoute - Aguardando inicialização...');
     return (
@@ -30,32 +29,31 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
     );
   }
 
-  // Se não estiver autenticado, redirecionar para o login
+  // Verificar autenticação
   if (!isAuthenticated) {
-    console.log('ProtectedRoute - Não autenticado, redirecionando para login');
+    console.log('ProtectedRoute - Redirecionando para login');
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Verificar o papel do usuário e aprovar automaticamente o admin pelo email
+  // Verificar permissões de administrador
   const isAdmin = user?.role === 'admin' || 
-                  (user?.email && ['resumovetorial@gmail.com', 'admin@example.com'].includes(user.email));
-  
+                 ['resumovetorial@gmail.com', 'admin@example.com'].includes(user?.email || '');
+
   console.log('ProtectedRoute - Verificação de admin:', { isAdmin, role: user?.role, email: user?.email });
-  
-  // Verificar se o usuário tem acesso à rota solicitada
+
+  // Verificar permissões específicas
   if (requiredRole === 'admin' && !isAdmin) {
-    console.log('ProtectedRoute - Usuário não tem permissão de admin:', user);
+    console.log('ProtectedRoute - Acesso negado: requer admin');
     return <Navigate to="/unauthorized" replace />;
   }
 
-  // Para dashboard e outras rotas protegidas, verificar se o usuário é admin ou está aprovado
-  if (!isAdmin && location.pathname !== '/unauthorized') {
-    console.log('ProtectedRoute - Usuário não aprovado/admin para acessar:', location.pathname, user);
+  if (!isAdmin && location.pathname.startsWith('/admin')) {
+    console.log('ProtectedRoute - Acesso negado: rota de admin');
     return <Navigate to="/unauthorized" replace />;
   }
 
-  // Se passou por todas as verificações, renderizar o conteúdo
-  console.log('ProtectedRoute - Acesso permitido:', location.pathname);
+  // Acesso permitido
+  console.log('ProtectedRoute - Acesso permitido');
   return <>{children}</>;
 };
 
