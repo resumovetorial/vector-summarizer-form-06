@@ -9,6 +9,7 @@ import DatePickerField from './DatePickerField';
 import LocalitySelector from './formSteps/LocalitySelector';
 import CycleSelector from './formSteps/CycleSelector';
 import WorkModalitySelector from './formSteps/WorkModalitySelector';
+import EpidemiologicalWeekSelector from './formSteps/EpidemiologicalWeekSelector';
 import { FormData, ValidationErrors } from '@/types/vectorForm';
 
 interface GeneralInformationStepProps {
@@ -58,21 +59,11 @@ const GeneralInformationStep: React.FC<GeneralInformationStepProps> = ({
           error={errors.cycle}
         />
         
-        <FormField
-          id="epidemiologicalWeek"
-          label="Semana Epidemiológica"
-          required
+        <EpidemiologicalWeekSelector
+          value={formData.epidemiologicalWeek}
+          onChange={(value) => handleInputChange('epidemiologicalWeek', value)}
           error={errors.epidemiologicalWeek}
-          animationDelay={200}
-        >
-          <Input
-            id="epidemiologicalWeek"
-            value={formData.epidemiologicalWeek}
-            onChange={(e) => handleInputChange('epidemiologicalWeek', e.target.value)}
-            placeholder="Digite a semana epidemiológica"
-            className="w-full"
-          />
-        </FormField>
+        />
       </FormSection>
       
       <FormSection>
