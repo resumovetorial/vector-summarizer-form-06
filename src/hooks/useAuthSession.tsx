@@ -10,6 +10,7 @@ export function useAuthSession() {
   const [isInitialized, setIsInitialized] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const initializationAttempted = useRef(false);
+  const authChangeSubscribed = useRef(false);
 
   useEffect(() => {
     let mounted = true;
@@ -54,34 +55,43 @@ export function useAuthSession() {
 
     initializeAuth();
 
-    const { data: subscription } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('useAuthSession - Mudança no estado de autenticação:', event);
-
-      if (!mounted) return;
-
-      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'USER_UPDATED') {
-        setIsLoading(true);
-
-        try {
-          if (session?.user) {
-            console.log('useAuthSession - Usuário autenticado:', session.user.email);
-            const authUser = await createAuthUser(session);
-            setUser(authUser);
-          } else {
-            console.log('useAuthSession - Usuário deslogado');
-            setUser(null);
+    // Configurar o listener de mudança de estado de autenticação apenas uma vez
+    if (!authChangeSubscribed.current) {
+      authChangeSubscribed.current = true;
+      
+      const { data: subscription } = supabase.auth.onAuthStateChange(async (event, session) => {
+        console.log('useAuthSession - Mudança no estado de autenticação:', event);
+        
+        if (!mounted) return;
+        
+        if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
+          setIsLoading(true);
+          
+          try {
+            if (session?.user) {
+              console.log('useAuthSession - Usuário autenticado:', session.user.email);
+              const authUser = await createAuthUser(session);
+              setUser(authUser);
+            }
+          } catch (error) {
+            console.error('useAuthSession - Erro ao processar mudança de estado:', error);
+          } finally {
+            setIsLoading(false);
           }
-        } catch (error) {
-          console.error('useAuthSession - Erro ao processar mudança de estado:', error);
-        } finally {
-          setIsLoading(false);
+        } else if (event === 'SIGNED_OUT') {
+          console.log('useAuthSession - Usuário deslogado');
+          setUser(null);
         }
-      }
-    });
-
+      });
+      
+      return () => {
+        mounted = false;
+        subscription.subscription.unsubscribe();
+      };
+    }
+    
     return () => {
       mounted = false;
-      subscription.subscription.unsubscribe();
     };
   }, []);
 
