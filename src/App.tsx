@@ -12,6 +12,7 @@ import Dashboard from "./pages/Dashboard";
 import Admin from "./pages/Admin";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
+import Unauthorized from "./pages/Unauthorized";
 
 const queryClient = new QueryClient();
 
@@ -24,6 +25,7 @@ const App = () => (
         <AuthProvider>
           <Routes>
             <Route path="/login" element={<Login />} />
+            <Route path="/unauthorized" element={<Unauthorized />} />
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route 
               path="/dashboard" 
@@ -36,7 +38,7 @@ const App = () => (
             <Route 
               path="/admin" 
               element={
-                <ProtectedRoute>
+                <ProtectedRoute requiredRole="admin">
                   <Admin />
                 </ProtectedRoute>
               } 

@@ -4,10 +4,11 @@ import { useAuth } from '@/hooks/useAuth';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
+  requiredRole?: string;
 }
 
-const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  const { isAuthenticated, isLoading, isInitialized } = useAuth();
+const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
+  const { isAuthenticated, isLoading, isInitialized, user } = useAuth();
   const location = useLocation();
 
   // Show loading state while checking authentication
@@ -19,9 +20,23 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     );
   }
 
+  // Redirect to login if not authenticated
   if (!isAuthenticated) {
-    // Redirect to login page but save the current location they were trying to access
     return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  // Check if the user has been approved by an admin
+  // By default, only users with role 'admin' are considered approved
+  const isApproved = user?.role === 'admin';
+
+  // For the admin route, strictly check for admin role
+  if (requiredRole === 'admin' && user?.role !== 'admin') {
+    return <Navigate to="/unauthorized" replace />;
+  }
+
+  // For dashboard and other routes, check if user is approved
+  if (!isApproved && location.pathname !== '/unauthorized') {
+    return <Navigate to="/unauthorized" replace />;
   }
 
   return <>{children}</>;
