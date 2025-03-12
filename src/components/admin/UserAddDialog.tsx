@@ -50,6 +50,7 @@ const UserAddDialog: React.FC<UserAddDialogProps> = ({
           <DialogTitle>Adicionar Novo Usuário</DialogTitle>
           <DialogDescription>
             Preencha os dados do novo usuário. Todos os campos marcados com * são obrigatórios.
+            Em um ambiente de produção, o usuário receberá um email de convite para definir sua senha.
           </DialogDescription>
         </DialogHeader>
         <UserForm

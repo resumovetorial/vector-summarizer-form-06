@@ -122,16 +122,18 @@ export const useUsers = () => {
     setIsLoading(true);
     
     try {
-      // Call the RPC function to delete both user and profile
-      const { error } = await supabase.rpc('delete_user_and_profile', {
-        user_id: supabaseId
-      });
-      
-      if (error) {
-        throw error;
+      // First try to delete the user's profile directly
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', supabaseId);
+        
+      if (profileError) {
+        console.error('Erro ao excluir perfil:', profileError);
+        throw profileError;
       }
       
-      // Update the user list in the UI
+      // If successful, update the UI
       setUsers(users.filter(user => user.id !== userId));
       return true;
     } catch (error: any) {

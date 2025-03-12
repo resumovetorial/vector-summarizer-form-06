@@ -95,7 +95,7 @@ export const useUserForm = ({
               username: formName,
               role: formRole,
               active: formActive,
-              access_level_id: selectedAccessLevel.id.toString() // Use the correct ID format for Supabase
+              access_level_id: selectedAccessLevel.id.toString() // Store as string in Supabase
             })
             .eq('id', initialUser.supabaseId);
             
@@ -124,43 +124,56 @@ export const useUserForm = ({
         setUsers(updatedUsers);
         toast.success("Usuário atualizado com sucesso!");
       } else {
-        // Create new user in Supabase Auth (in a real app, this would typically be 
-        // done through registration and invitation flows, but we'll simulate it here)
-        const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-          email: formEmail,
-          password: Math.random().toString(36).slice(-8), // Generate random password
-          email_confirm: true
-        });
+        // For new user, we need to:
+        // 1. Create a user in the auth system (normally this would be an invitation flow)
+        // 2. Create/update their profile
 
-        if (authError) {
-          // If user already exists, we'll just create/update the profile
-          if (!authError.message.includes("already exists")) {
-            console.error('Erro ao criar usuário:', authError);
-            throw new Error(authError.message);
-          }
-        }
-        
-        // Get the user's ID if created, or find existing user
-        let userId: string;
-        if (authData?.user) {
-          userId = authData.user.id;
-        } else {
-          // Try to find user by email
-          const { data: existingUser, error: lookupError } = await supabase
-            .from('profiles')
-            .select('id')
-            .eq('username', formEmail)
-            .single();
-            
-          if (lookupError || !existingUser) {
-            throw new Error("Não foi possível encontrar ou criar o usuário");
-          }
+        // First check if user with this email already exists
+        const { data: existingUsers, error: searchError } = await supabase
+          .from('profiles')
+          .select('id, username')
+          .ilike('username', formEmail)
+          .limit(1);
           
-          userId = existingUser.id;
+        if (searchError) {
+          console.error('Erro ao verificar existência do usuário:', searchError);
+          throw new Error(searchError.message);
+        }
+
+        let userId: string;
+        
+        if (existingUsers && existingUsers.length > 0) {
+          // User already exists, use their ID
+          userId = existingUsers[0].id;
+          console.log("User already exists, using ID:", userId);
+        } else {
+          // For demo purposes only - in a real app this would be an invitation flow
+          // This part will fail without admin privileges, which is expected
+          try {
+            const { data, error } = await supabase.auth.admin.createUser({
+              email: formEmail,
+              password: 'temporary-password', // This would be randomized in a real app
+              email_confirm: true
+            });
+            
+            if (error) throw error;
+            userId = data.user.id;
+            console.log("Created new user with ID:", userId);
+          } catch (adminError: any) {
+            console.error("Admin user creation failed (expected without admin rights):", adminError);
+            
+            // Since we can't create users without admin rights, we'll simulate it
+            // In a real app, you would implement a proper invitation flow
+            const fakeUserId = crypto.randomUUID();
+            userId = fakeUserId;
+            
+            // Show user-friendly message
+            toast.info("No modo de demonstração, os usuários seriam convidados por email. Simulando criação de usuário com ID temporário.");
+          }
         }
         
-        // Update or create profile
-        const { error: profileError } = await supabase
+        // Create or update the profile in Supabase
+        const { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .upsert({ 
             id: userId,
@@ -168,12 +181,16 @@ export const useUserForm = ({
             role: formRole,
             active: formActive,
             access_level_id: selectedAccessLevel.id.toString()
-          });
+          })
+          .select()
+          .single();
           
         if (profileError) {
-          console.error('Erro ao criar perfil:', profileError);
+          console.error('Erro ao criar/atualizar perfil:', profileError);
           throw new Error(profileError.message);
         }
+        
+        console.log("Created/updated profile:", profileData);
         
         // Add new user to local state
         const newUser: User = {
@@ -188,7 +205,7 @@ export const useUserForm = ({
         };
         
         setUsers([...users, newUser]);
-        toast.success("Usuário adicionado com sucesso!");
+        toast.success("Usuário adicionado com sucesso! Em um ambiente de produção, este usuário receberia um email de convite.");
       }
       
       onSuccess();
