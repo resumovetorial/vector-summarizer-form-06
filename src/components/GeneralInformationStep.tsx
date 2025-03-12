@@ -12,7 +12,7 @@ import {
 import FormField from './FormField';
 import FormSection from './FormSection';
 import DatePickerField from './DatePickerField';
-import { ChevronRight, Briefcase, MapPin } from 'lucide-react';
+import { ChevronRight, Briefcase, MapPin, Calendar } from 'lucide-react';
 import { FormData, ValidationErrors } from '@/types/vectorForm';
 
 interface GeneralInformationStepProps {
@@ -88,6 +88,8 @@ const localities = [
   "Zizo"
 ];
 
+const cycles = ["01", "02", "03", "04", "05", "06"];
+
 const GeneralInformationStep: React.FC<GeneralInformationStepProps> = ({
   formData,
   handleInputChange,
@@ -148,13 +150,22 @@ const GeneralInformationStep: React.FC<GeneralInformationStepProps> = ({
           error={errors.cycle}
           animationDelay={150}
         >
-          <Input
-            id="cycle"
+          <Select
             value={formData.cycle}
-            onChange={(e) => handleInputChange('cycle', e.target.value)}
-            placeholder="Digite o ciclo"
-            className="w-full"
-          />
+            onValueChange={(value) => handleInputChange('cycle', value)}
+          >
+            <SelectTrigger className="w-full">
+              <Calendar className="mr-2 h-4 w-4" />
+              <SelectValue placeholder="Selecione o ciclo" />
+            </SelectTrigger>
+            <SelectContent>
+              {cycles.map((cycle) => (
+                <SelectItem key={cycle} value={cycle}>
+                  {cycle}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </FormField>
         
         <FormField
