@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import UserList from './UserList';
 import { User, AccessLevel } from '@/types/admin';
@@ -41,6 +41,14 @@ const UserManagement: React.FC = () => {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Gerenciar Usuários</CardTitle>
+        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="ml-auto">
+              <Plus className="h-4 w-4 mr-2" />
+              Novo Usuário
+            </Button>
+          </DialogTrigger>
+        </Dialog>
         <UserAddDialog 
           isOpen={isAddDialogOpen}
           setIsOpen={setIsAddDialogOpen}
@@ -48,12 +56,6 @@ const UserManagement: React.FC = () => {
           setUsers={setUsers}
           accessLevels={accessLevels}
         />
-        <DialogTrigger asChild onClick={() => setIsAddDialogOpen(true)}>
-          <Button className="ml-auto">
-            <Plus className="h-4 w-4 mr-2" />
-            Novo Usuário
-          </Button>
-        </DialogTrigger>
       </CardHeader>
       <CardContent>
         <UserList 
