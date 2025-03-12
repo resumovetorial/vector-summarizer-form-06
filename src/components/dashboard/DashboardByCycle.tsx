@@ -16,7 +16,7 @@ interface DashboardByCycleProps {
 
 const DashboardByCycle: React.FC<DashboardByCycleProps> = ({ data, year }) => {
   const [showChart, setShowChart] = useState(true);
-  const [selectedCycle, setSelectedCycle] = useState<string>("");
+  const [selectedCycle, setSelectedCycle] = useState<string>("all");
   
   // Process data using utility functions
   const cycleSummaries = prepareCycleSummaries(data);
@@ -27,13 +27,13 @@ const DashboardByCycle: React.FC<DashboardByCycleProps> = ({ data, year }) => {
   
   // Set default selected cycle when data changes
   useEffect(() => {
-    if (uniqueCycles.length > 0 && !selectedCycle) {
+    if (uniqueCycles.length > 0 && selectedCycle === "") {
       setSelectedCycle(uniqueCycles[0]);
     }
   }, [uniqueCycles, selectedCycle]);
   
   // Filter data by selected cycle
-  const filteredSummaries = selectedCycle 
+  const filteredSummaries = selectedCycle && selectedCycle !== "all"
     ? cycleSummaries.filter(item => item.cycle === selectedCycle)
     : cycleSummaries;
   
@@ -60,7 +60,7 @@ const DashboardByCycle: React.FC<DashboardByCycleProps> = ({ data, year }) => {
       </div>
       
       {showChart && <CycleSummaryChart 
-        cycleSummaries={selectedCycle ? filteredSummaries : cycleSummaries} 
+        cycleSummaries={filteredSummaries} 
         year={year} 
       />}
       

@@ -31,7 +31,7 @@ const CycleSelectorDashboard: React.FC<CycleSelectorDashboardProps> = ({
           <SelectValue placeholder="Selecione o ciclo" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">Todos os ciclos</SelectItem>
+          <SelectItem value="all">Todos os ciclos</SelectItem>
           {cycles.map((cycle) => (
             <SelectItem key={cycle} value={cycle}>
               Ciclo {cycle}
