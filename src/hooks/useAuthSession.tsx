@@ -24,7 +24,6 @@ export function useAuthSession() {
         if (session?.user) {
           console.log('useAuthSession - Sessão encontrada, criando usuário', session.user.email);
           const authUser = await createAuthUser(session);
-          console.log('useAuthSession - Usuário criado:', authUser);
           setUser(authUser);
         } else {
           console.log('useAuthSession - Nenhuma sessão encontrada');
@@ -51,20 +50,24 @@ export function useAuthSession() {
 
       if (!mounted) return;
 
-      try {
-        if (session?.user) {
-          const authUser = await createAuthUser(session);
-          console.log('useAuthSession - Usuário atualizado:', authUser);
-          setUser(authUser);
-          setIsLoading(false);
-        } else {
-          console.log('useAuthSession - Usuário deslogado');
-          setUser(null);
+      // Prevent unnecessary updates - only update state if there's a real change
+      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'USER_UPDATED') {
+        setIsLoading(true);
+
+        try {
+          if (session?.user) {
+            const authUser = await createAuthUser(session);
+            console.log('useAuthSession - Usuário atualizado:', authUser);
+            setUser(authUser);
+          } else {
+            console.log('useAuthSession - Usuário deslogado');
+            setUser(null);
+          }
+        } catch (error) {
+          console.error('useAuthSession - Erro ao atualizar usuário:', error);
+        } finally {
           setIsLoading(false);
         }
-      } catch (error) {
-        console.error('useAuthSession - Erro ao atualizar usuário:', error);
-        setIsLoading(false);
       }
     });
 

@@ -1,11 +1,14 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { supabase } from '@/lib/supabase';
 import { 
   loginWithSupabase, 
   registerWithSupabase, 
   logoutWithSupabase,
-  formatAuthError
+  formatAuthError,
+  createAuthUser
 } from '@/utils/authUtils';
 import { AuthUser } from '@/types/auth';
 

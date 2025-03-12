@@ -26,11 +26,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading
   );
 
-  // Effect para redirecionamento após login bem-sucedido
+  // Effect to handle redirection only after proper initialization
   useEffect(() => {
-    if (user && isInitialized && !isSessionLoading && location.pathname === '/login') {
-      const from = (location.state as any)?.from?.pathname || '/';
-      console.log('AuthProvider - Redirecionando usuário autenticado para:', from);
+    if (!isInitialized || isSessionLoading) {
+      return; // Don't do anything until auth is fully initialized
+    }
+
+    const path = location.pathname;
+    
+    // Only redirect if we're on login page and already authenticated
+    if (user && path === '/login') {
+      const from = location.state?.from?.pathname || '/';
+      console.log('AuthProvider - Redirecting authenticated user to:', from);
       navigate(from, { replace: true });
     }
   }, [user, isInitialized, isSessionLoading, location, navigate]);
@@ -45,14 +52,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     isInitialized,
     error
   };
-
-  console.log('AuthProvider - Estado atual:', {
-    isAuthenticated: !!user,
-    isLoading: isLoading || isSessionLoading,
-    isInitialized,
-    pathname: location.pathname,
-    user: user ? { email: user.email, role: user.role } : null
-  });
 
   return (
     <AuthContext.Provider value={value}>

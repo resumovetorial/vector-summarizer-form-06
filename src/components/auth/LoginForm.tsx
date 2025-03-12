@@ -30,6 +30,8 @@ const LoginForm: React.FC<LoginFormProps> = ({
       return;
     }
     
+    if (isSubmitting || isLoading) return;
+    
     try {
       setIsSubmitting(true);
       await login(email, password);
