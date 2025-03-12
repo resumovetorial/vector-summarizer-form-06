@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -45,7 +46,7 @@ const DatePickerField: React.FC<DatePickerFieldProps> = ({
             )}
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
-            {date ? format(date, "PP") : <span>Selecionar data</span>}
+            {date ? format(date, "PP", { locale: ptBR }) : <span>Selecionar data</span>}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
@@ -53,6 +54,7 @@ const DatePickerField: React.FC<DatePickerFieldProps> = ({
             mode="single"
             selected={date}
             onSelect={onDateChange}
+            locale={ptBR}
             initialFocus
             className="pointer-events-auto"
           />
