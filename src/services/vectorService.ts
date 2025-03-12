@@ -18,15 +18,39 @@ export const getSavedVectorData = (): LocalityData[] => {
   }
 };
 
-// Save vector data to localStorage
+// Improved save vector data function with validation and error handling
 export const saveVectorData = (data: LocalityData[]): boolean => {
   try {
-    localStorage.setItem('vectorData', JSON.stringify(data));
+    // Validate data before saving
+    if (!Array.isArray(data)) {
+      console.error('Invalid data format: expected array');
+      toast.error('Erro ao salvar os dados: formato inválido');
+      return false;
+    }
+    
+    // Check if there are any items in the array
+    if (data.length === 0) {
+      console.warn('Saving empty data array');
+    }
+    
+    // Compress data if it's very large
+    const dataString = JSON.stringify(data);
+    if (dataString.length > 5000000) { // ~5MB
+      console.warn('Large data size detected. Consider implementing pagination or data pruning.');
+    }
+    
+    localStorage.setItem('vectorData', dataString);
     console.log('Vector data saved successfully:', data);
     return true;
   } catch (error) {
     console.error('Error saving vector data:', error);
-    toast.error('Erro ao salvar os dados');
+    
+    if (error instanceof DOMException && error.name === 'QuotaExceededError') {
+      toast.error('Não foi possível salvar os dados: espaço de armazenamento excedido');
+    } else {
+      toast.error('Erro ao salvar os dados');
+    }
+    
     return false;
   }
 };
@@ -77,10 +101,26 @@ export const processVectorData = async (formData: FormData) => {
     total_dias_trabalhados: parseInt(formData.total_dias_trabalhados) || 0
   };
   
-  // Salve os dados no localStorage
+  // Get existing data
   const existingData = getSavedVectorData();
+  
+  // Check for duplicates (same locality, cycle, date range)
+  const isDuplicate = existingData.some(item => 
+    item.locality === vectorData.locality && 
+    item.cycle === vectorData.cycle &&
+    item.startDate === vectorData.startDate &&
+    item.endDate === vectorData.endDate
+  );
+  
+  if (isDuplicate) {
+    console.warn('Duplicate data detected');
+    toast.warning('Atenção: Dados similares já existem no sistema');
+  }
+  
+  // Add new data to existing data
   const updatedData = [...existingData, vectorData];
   
+  // Save the updated data
   const saveSuccess = saveVectorData(updatedData);
   console.log('Save success:', saveSuccess, 'Updated data:', updatedData);
   
@@ -89,3 +129,4 @@ export const processVectorData = async (formData: FormData) => {
   
   return { vectorData, summary };
 };
+
