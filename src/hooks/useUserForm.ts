@@ -1,8 +1,7 @@
 
-import { useState, useEffect } from 'react';
 import { User, AccessLevel } from '@/types/admin';
-import { toast } from 'sonner';
-import { supabase } from '@/lib/supabase';
+import { useUserFormState } from './useUserFormState';
+import { useUserFormSubmit } from './useUserFormSubmit';
 
 interface UseUserFormProps {
   initialUser?: User | null;
@@ -21,201 +20,44 @@ export const useUserForm = ({
   onSuccess,
   isEditMode
 }: UseUserFormProps) => {
-  const [formName, setFormName] = useState('');
-  const [formEmail, setFormEmail] = useState('');
-  const [formRole, setFormRole] = useState('');
-  const [formAccessLevel, setFormAccessLevel] = useState('');
-  const [formActive, setFormActive] = useState(true);
-  const [formLocalities, setFormLocalities] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const {
+    formName,
+    setFormName,
+    formEmail,
+    setFormEmail,
+    formRole,
+    setFormRole,
+    formAccessLevel,
+    setFormAccessLevel,
+    formActive,
+    setFormActive,
+    formLocalities,
+    setFormLocalities,
+    isLoading,
+    setIsLoading,
+    resetForm
+  } = useUserFormState({
+    initialUser,
+    isEditMode
+  });
 
-  // Initialize form when initialUser changes
-  useEffect(() => {
-    if (initialUser && isEditMode) {
-      setFormName(initialUser.name);
-      setFormEmail(initialUser.email);
-      setFormRole(initialUser.role);
-      setFormAccessLevel(initialUser.accessLevelId.toString());
-      setFormActive(initialUser.active);
-      setFormLocalities([...initialUser.assignedLocalities]);
-      
-      console.log("Form initialized with:", {
-        name: initialUser.name,
-        email: initialUser.email,
-        role: initialUser.role,
-        accessLevelId: initialUser.accessLevelId.toString(),
-        active: initialUser.active,
-        localities: initialUser.assignedLocalities
-      });
-    } else {
-      // Reset form for add mode or when dialog closes
-      resetForm();
-    }
-  }, [initialUser, isEditMode]);
-
-  const resetForm = () => {
-    setFormName('');
-    setFormEmail('');
-    setFormRole('');
-    setFormAccessLevel('');
-    setFormActive(true);
-    setFormLocalities([]);
-  };
-
-  const handleSubmit = async () => {
-    if (!formName || !formEmail || !formRole || !formAccessLevel) {
-      toast.error("Por favor, preencha todos os campos obrigatórios");
-      return;
-    }
-
-    setIsLoading(true);
-    
-    try {
-      // Parse the access level ID to a number
-      const accessLevelIdNum = parseInt(formAccessLevel);
-      
-      // Find the actual access level object by ID
-      const selectedAccessLevel = accessLevels.find(level => level.id === accessLevelIdNum);
-      
-      if (!selectedAccessLevel) {
-        throw new Error("Nível de acesso selecionado não é válido");
-      }
-      
-      console.log("Selected user:", initialUser);
-      console.log("Selected access level:", selectedAccessLevel);
-      console.log("Form access level ID:", accessLevelIdNum);
-      
-      if (isEditMode && initialUser) {
-        // Update existing user
-        if (initialUser.supabaseId) {
-          // Update the profile in Supabase
-          const { error } = await supabase
-            .from('profiles')
-            .update({ 
-              username: formName,
-              role: formRole,
-              active: formActive,
-              access_level_id: selectedAccessLevel.id.toString() // Store as string in Supabase
-            })
-            .eq('id', initialUser.supabaseId);
-            
-          if (error) {
-            console.error('Erro ao atualizar usuário:', error);
-            throw new Error(error.message);
-          }
-        }
-        
-        // Update users in the local state
-        const updatedUsers = users.map(user => {
-          if (user.id === initialUser.id) {
-            return {
-              ...user,
-              name: formName,
-              email: formEmail,
-              role: formRole,
-              accessLevelId: accessLevelIdNum,
-              active: formActive,
-              assignedLocalities: [...formLocalities]
-            };
-          }
-          return user;
-        });
-        
-        setUsers(updatedUsers);
-        toast.success("Usuário atualizado com sucesso!");
-      } else {
-        // For new user, we need to:
-        // 1. Create a user in the auth system (normally this would be an invitation flow)
-        // 2. Create/update their profile
-
-        // First check if user with this email already exists
-        const { data: existingUsers, error: searchError } = await supabase
-          .from('profiles')
-          .select('id, username')
-          .ilike('username', formEmail)
-          .limit(1);
-          
-        if (searchError) {
-          console.error('Erro ao verificar existência do usuário:', searchError);
-          throw new Error(searchError.message);
-        }
-
-        let userId: string;
-        
-        if (existingUsers && existingUsers.length > 0) {
-          // User already exists, use their ID
-          userId = existingUsers[0].id;
-          console.log("User already exists, using ID:", userId);
-        } else {
-          // For demo purposes only - in a real app this would be an invitation flow
-          // This part will fail without admin privileges, which is expected
-          try {
-            const { data, error } = await supabase.auth.admin.createUser({
-              email: formEmail,
-              password: 'temporary-password', // This would be randomized in a real app
-              email_confirm: true
-            });
-            
-            if (error) throw error;
-            userId = data.user.id;
-            console.log("Created new user with ID:", userId);
-          } catch (adminError: any) {
-            console.error("Admin user creation failed (expected without admin rights):", adminError);
-            
-            // Since we can't create users without admin rights, we'll simulate it
-            // In a real app, you would implement a proper invitation flow
-            const fakeUserId = crypto.randomUUID();
-            userId = fakeUserId;
-            
-            // Show user-friendly message
-            toast.info("No modo de demonstração, os usuários seriam convidados por email. Simulando criação de usuário com ID temporário.");
-          }
-        }
-        
-        // Create or update the profile in Supabase
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .upsert({ 
-            id: userId,
-            username: formName,
-            role: formRole,
-            active: formActive,
-            access_level_id: selectedAccessLevel.id.toString()
-          })
-          .select()
-          .single();
-          
-        if (profileError) {
-          console.error('Erro ao criar/atualizar perfil:', profileError);
-          throw new Error(profileError.message);
-        }
-        
-        console.log("Created/updated profile:", profileData);
-        
-        // Add new user to local state
-        const newUser: User = {
-          id: users.length > 0 ? Math.max(...users.map(u => u.id)) + 1 : 1,
-          supabaseId: userId,
-          name: formName,
-          email: formEmail,
-          role: formRole,
-          accessLevelId: accessLevelIdNum,
-          active: formActive,
-          assignedLocalities: formLocalities
-        };
-        
-        setUsers([...users, newUser]);
-        toast.success("Usuário adicionado com sucesso! Em um ambiente de produção, este usuário receberia um email de convite.");
-      }
-      
-      onSuccess();
-    } catch (error: any) {
-      toast.error(`Erro ao ${isEditMode ? 'atualizar' : 'adicionar'} usuário: ${error.message}`);
-      console.error(`Erro na ${isEditMode ? 'atualização' : 'adição'}:`, error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const { handleSubmit: submitForm } = useUserFormSubmit({
+    users,
+    setUsers,
+    accessLevels,
+    onSuccess,
+    isEditMode,
+    formData: {
+      name: formName,
+      email: formEmail,
+      role: formRole,
+      accessLevel: formAccessLevel,
+      active: formActive,
+      localities: formLocalities
+    },
+    initialUser,
+    setIsLoading
+  });
 
   return {
     formName,
@@ -232,6 +74,6 @@ export const useUserForm = ({
     setFormLocalities,
     isLoading,
     resetForm,
-    handleSubmit
+    handleSubmit: submitForm
   };
 };
