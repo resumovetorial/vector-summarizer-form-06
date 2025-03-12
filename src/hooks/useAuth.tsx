@@ -16,6 +16,7 @@ interface AuthUser {
 interface AuthContextType {
   user: AuthUser | null;
   login: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
   isLoading: boolean;
@@ -66,13 +67,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!session.user) return;
     
     try {
-      // Get user's role from user_metadata or from a database query
-      // For now, we'll default to "user" role if not specified
-      const role = session.user.user_metadata.role || 'user';
+      // Buscar dados do perfil do usuário
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', session.user.id)
+        .single();
+      
+      if (profileError && profileError.code !== 'PGRST116') {
+        console.error('Erro ao buscar perfil:', profileError);
+      }
+      
+      // Get user's role from profile or default to "user"
+      const role = profileData?.role || 'user';
       
       const authUser: AuthUser = {
         id: session.user.id,
-        username: session.user.email || session.user.id,
+        username: profileData?.username || session.user.email || session.user.id,
         email: session.user.email,
         role: role,
         isAuthenticated: true,
@@ -108,6 +119,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const register = async (email: string, password: string) => {
+    try {
+      setIsLoading(true);
+      
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: window.location.origin,
+        },
+      });
+      
+      if (error) throw error;
+      
+      if (data.user) {
+        toast.success("Cadastro realizado com sucesso! Você já pode fazer login.");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Erro ao criar conta. Tente novamente.");
+      console.error("Registration error:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const logout = async () => {
     try {
       setIsLoading(true);
@@ -129,6 +165,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     <AuthContext.Provider value={{ 
       user, 
       login, 
+      register,
       logout, 
       isAuthenticated: !!user,
       isLoading 
