@@ -1,11 +1,10 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import { LocalityData, CycleSummary } from '@/types/dashboard';
-import { Table2, FilePieChart2 } from 'lucide-react';
+import { Table2, FilePieChart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface DashboardByCycleProps {
@@ -68,7 +67,7 @@ const DashboardByCycle: React.FC<DashboardByCycleProps> = ({ data, year }) => {
           onClick={() => setShowChart(!showChart)}
           className="mr-2"
         >
-          <FilePieChart2 className="h-4 w-4 mr-2" />
+          <FilePieChart className="h-4 w-4 mr-2" />
           {showChart ? 'Ocultar Gráfico' : 'Mostrar Gráfico'}
         </Button>
       </div>
