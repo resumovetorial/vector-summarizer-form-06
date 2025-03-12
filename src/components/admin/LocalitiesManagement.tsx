@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
-import { getLocalities, saveLocalities } from '@/services/localitiesService';
+import { getLocalities, saveLocalities, addLocality, removeLocality } from '@/services/localitiesService';
 
 const LocalitiesManagement: React.FC = () => {
   const [localities, setLocalities] = useState<string[]>([]);
@@ -33,15 +33,25 @@ const LocalitiesManagement: React.FC = () => {
       return;
     }
 
-    setLocalities([...localities, newLocality.trim()]);
-    setNewLocality('');
-    toast.success("Localidade adicionada com sucesso!");
+    const success = addLocality(newLocality.trim());
+    
+    if (success) {
+      // Reload the localities to ensure we have the latest data
+      setLocalities(getLocalities());
+      setNewLocality('');
+      toast.success("Localidade adicionada com sucesso!");
+    }
   };
 
   const handleDeleteLocality = (locality: string) => {
     if (confirm(`Tem certeza que deseja excluir a localidade "${locality}"?`)) {
-      setLocalities(localities.filter(l => l !== locality));
-      toast.success("Localidade removida com sucesso!");
+      const success = removeLocality(locality);
+      
+      if (success) {
+        // Reload the localities to ensure we have the latest data
+        setLocalities(getLocalities());
+        toast.success("Localidade removida com sucesso!");
+      }
     }
   };
 
@@ -69,6 +79,11 @@ const LocalitiesManagement: React.FC = () => {
               value={newLocality}
               onChange={(e) => setNewLocality(e.target.value)}
               className="flex-1"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleAddLocality();
+                }
+              }}
             />
             <Button onClick={handleAddLocality}>
               <Plus className="h-4 w-4 mr-2" />

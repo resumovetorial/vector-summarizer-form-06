@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect } from 'react';
-import { MapPin } from 'lucide-react';
+import React from 'react';
+import { FormField } from '@/components/FormField';
 import { 
   Select,
   SelectContent,
@@ -8,7 +8,8 @@ import {
   SelectTrigger,
   SelectValue 
 } from '@/components/ui/select';
-import FormField from '../FormField';
+import { Input } from '@/components/ui/input';
+import { MapPin } from 'lucide-react';
 import { getLocalities } from '@/services/localitiesService';
 
 interface LocalitySelectorProps {
@@ -24,12 +25,9 @@ const LocalitySelector: React.FC<LocalitySelectorProps> = ({
   error,
   animationDelay = 100
 }) => {
-  const [localities, setLocalities] = useState<string[]>([]);
-
-  useEffect(() => {
-    setLocalities(getLocalities());
-  }, []);
-
+  // Get localities from service
+  const localities = getLocalities();
+  
   return (
     <FormField
       id="locality"
@@ -46,7 +44,7 @@ const LocalitySelector: React.FC<LocalitySelectorProps> = ({
           <MapPin className="mr-2 h-4 w-4" />
           <SelectValue placeholder="Selecione a localidade" />
         </SelectTrigger>
-        <SelectContent className="max-h-80">
+        <SelectContent>
           {localities.map((locality) => (
             <SelectItem key={locality} value={locality}>
               {locality}

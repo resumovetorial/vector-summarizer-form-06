@@ -11,6 +11,9 @@ export const getLocalities = (): string[] => {
     if (storedLocalities) {
       return JSON.parse(storedLocalities);
     }
+    
+    // If no localities found in localStorage, use default and save them
+    saveLocalities([...defaultLocalities]);
     return [...defaultLocalities];
   } catch (error) {
     console.error('Error fetching localities:', error);
@@ -20,7 +23,12 @@ export const getLocalities = (): string[] => {
 
 export const saveLocalities = (localities: string[]): boolean => {
   try {
-    localStorage.setItem('localities', JSON.stringify(localities));
+    // Sort localities alphabetically for better user experience
+    const sortedLocalities = [...localities].sort((a, b) => 
+      a.localeCompare(b, 'pt-BR')
+    );
+    
+    localStorage.setItem('localities', JSON.stringify(sortedLocalities));
     return true;
   } catch (error) {
     console.error('Error saving localities:', error);
@@ -32,16 +40,18 @@ export const saveLocalities = (localities: string[]): boolean => {
 export const addLocality = (locality: string): boolean => {
   try {
     const currentLocalities = getLocalities();
-    if (currentLocalities.includes(locality)) {
+    
+    // Check if locality already exists (case-insensitive)
+    if (currentLocalities.some(l => l.toLowerCase() === locality.toLowerCase())) {
       toast.error('Esta localidade já existe');
       return false;
     }
     
     const updatedLocalities = [...currentLocalities, locality];
-    saveLocalities(updatedLocalities);
-    return true;
+    return saveLocalities(updatedLocalities);
   } catch (error) {
     console.error('Error adding locality:', error);
+    toast.error('Erro ao adicionar localidade');
     return false;
   }
 };
@@ -50,10 +60,10 @@ export const removeLocality = (locality: string): boolean => {
   try {
     const currentLocalities = getLocalities();
     const updatedLocalities = currentLocalities.filter(l => l !== locality);
-    saveLocalities(updatedLocalities);
-    return true;
+    return saveLocalities(updatedLocalities);
   } catch (error) {
     console.error('Error removing locality:', error);
+    toast.error('Erro ao remover localidade');
     return false;
   }
 };
