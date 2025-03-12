@@ -149,4 +149,3 @@ create policy "Users can insert vector data for authorized localities"
       and p.role = 'admin'
     )
   );
-
