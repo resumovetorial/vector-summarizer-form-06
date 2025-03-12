@@ -19,6 +19,7 @@ interface QuantitativeDataSectionProps {
     recusa: string;
     fechadas: string;
     recuperadas: string;
+    workModality: string; // Add workModality to the formData interface
   };
   handleInputChange: (field: string, value: any) => void;
   errors: {[key: string]: string};
@@ -41,6 +42,9 @@ const QuantitativeDataSection: React.FC<QuantitativeDataSectionProps> = ({
     formData.qt_pe,
     formData.qt_outros
   ]);
+
+  // Check if PE field should be active
+  const isPEFieldActive = formData.workModality === "PE";
   
   return (
     <>
@@ -114,6 +118,9 @@ const QuantitativeDataSection: React.FC<QuantitativeDataSectionProps> = ({
             onChange={(e) => handleInputChange('qt_pe', e.target.value)}
             placeholder="Quantidade de PE"
             className="w-full"
+            disabled={!isPEFieldActive}
+            // Make the background gray when disabled
+            className={`w-full ${!isPEFieldActive ? 'bg-gray-100' : ''}`}
           />
         </FormField>
       </FormSection>
