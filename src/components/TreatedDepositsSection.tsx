@@ -24,6 +24,9 @@ const TreatedDepositsSection: React.FC<TreatedDepositsSectionProps> = ({
   handleInputChange,
   errors
 }) => {
+  // Check if PE field should be active
+  const isPEFieldActive = formData.workModality === "PE";
+  
   return (
     <>
       <h2 className="text-xl font-semibold mb-4 text-center">Depósitos Tratados</h2>
@@ -96,8 +99,9 @@ const TreatedDepositsSection: React.FC<TreatedDepositsSectionProps> = ({
           <Select
             value={formData.adulticida}
             onValueChange={(value) => handleInputChange('adulticida', value)}
+            disabled={!isPEFieldActive}
           >
-            <SelectTrigger className="w-full">
+            <SelectTrigger className={`w-full ${!isPEFieldActive ? 'bg-gray-100' : ''}`}>
               <Bug className="mr-2 h-4 w-4" />
               <SelectValue placeholder="Selecione o adulticida" />
             </SelectTrigger>
@@ -122,7 +126,8 @@ const TreatedDepositsSection: React.FC<TreatedDepositsSectionProps> = ({
             value={formData.quantidade_cargas}
             onChange={(e) => handleInputChange('quantidade_cargas', e.target.value)}
             placeholder="Informe a quantidade"
-            className="w-full"
+            className={`w-full ${!isPEFieldActive ? 'bg-gray-100' : ''}`}
+            disabled={!isPEFieldActive}
           />
         </FormField>
         
