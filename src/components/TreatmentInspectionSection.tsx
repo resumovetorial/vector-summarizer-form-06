@@ -1,11 +1,12 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import FormField from './FormField';
 import FormSection from './FormSection';
 
 interface TreatmentInspectionSectionProps {
   formData: {
+    qt_total: string;
     tratamento_focal: string;
     tratamento_perifocal: string;
     inspecionados: string;
@@ -23,6 +24,18 @@ const TreatmentInspectionSection: React.FC<TreatmentInspectionSectionProps> = ({
   handleInputChange,
   errors
 }) => {
+  const [informados, setInformados] = useState<string>('0');
+
+  // Calculate Informados when relevant values change
+  useEffect(() => {
+    const total = parseInt(formData.qt_total) || 0;
+    const fechadas = parseInt(formData.fechadas) || 0;
+    const recuperadas = parseInt(formData.recuperadas) || 0;
+    
+    const calculatedInformados = total + fechadas - recuperadas;
+    setInformados(calculatedInformados.toString());
+  }, [formData.qt_total, formData.fechadas, formData.recuperadas]);
+
   return (
     <>
       <h2 className="text-xl font-semibold mb-4 mt-8 text-center">Tratamentos e Inspeções</h2>
@@ -150,6 +163,20 @@ const TreatmentInspectionSection: React.FC<TreatmentInspectionSectionProps> = ({
             onChange={(e) => handleInputChange('recuperadas', e.target.value)}
             placeholder="Quantidade de unidades recuperadas"
             className="w-full"
+          />
+        </FormField>
+        
+        <FormField
+          id="informados"
+          label="Informados"
+          animationDelay={700}
+        >
+          <Input
+            id="informados"
+            type="text"
+            value={informados}
+            readOnly
+            className="w-full bg-gray-100"
           />
         </FormField>
       </FormSection>
