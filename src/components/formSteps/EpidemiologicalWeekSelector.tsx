@@ -20,14 +20,41 @@ interface EpidemiologicalWeekSelectorProps {
   onChange: (value: string) => void;
   error?: string;
   animationDelay?: number;
+  withFormField?: boolean;
+  placeholder?: string;
 }
 
 const EpidemiologicalWeekSelector: React.FC<EpidemiologicalWeekSelectorProps> = ({
   value,
   onChange,
   error,
-  animationDelay = 200
+  animationDelay = 200,
+  withFormField = true,
+  placeholder = "Selecione a semana"
 }) => {
+  const selector = (
+    <Select
+      value={value}
+      onValueChange={onChange}
+    >
+      <SelectTrigger className="w-full">
+        <Calendar className="mr-2 h-4 w-4" />
+        <SelectValue placeholder={placeholder} />
+      </SelectTrigger>
+      <SelectContent className="max-h-80">
+        {epidemiologicalWeeks.map((week) => (
+          <SelectItem key={week} value={week}>
+            {week}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+
+  if (!withFormField) {
+    return selector;
+  }
+
   return (
     <FormField
       id="epidemiologicalWeek"
@@ -36,22 +63,7 @@ const EpidemiologicalWeekSelector: React.FC<EpidemiologicalWeekSelectorProps> = 
       error={error}
       animationDelay={animationDelay}
     >
-      <Select
-        value={value}
-        onValueChange={onChange}
-      >
-        <SelectTrigger className="w-full">
-          <Calendar className="mr-2 h-4 w-4" />
-          <SelectValue placeholder="Selecione a semana" />
-        </SelectTrigger>
-        <SelectContent className="max-h-80">
-          {epidemiologicalWeeks.map((week) => (
-            <SelectItem key={week} value={week}>
-              {week}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      {selector}
     </FormField>
   );
 };

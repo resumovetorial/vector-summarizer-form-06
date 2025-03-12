@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -8,6 +7,7 @@ import { LocalityData, WeekSummary } from '@/types/dashboard';
 import { ChevronDown, ChevronUp, Table2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import EpidemiologicalWeekSelector from '../formSteps/EpidemiologicalWeekSelector';
 
 interface DashboardByWeekProps {
   data: LocalityData[];
@@ -17,6 +17,7 @@ interface DashboardByWeekProps {
 const DashboardByWeek: React.FC<DashboardByWeekProps> = ({ data, year }) => {
   const [expandedLocality, setExpandedLocality] = useState<string | null>(null);
   const [expandedSection, setExpandedSection] = useState<string>('generalInfo');
+  const [selectedWeek, setSelectedWeek] = useState<string>("");
   
   // Group data by epidemiological week
   const groupedByWeek: Record<string, WeekSummary> = {};
@@ -44,6 +45,13 @@ const DashboardByWeek: React.FC<DashboardByWeekProps> = ({ data, year }) => {
   const weekSummaries = Object.values(groupedByWeek).sort((a, b) => 
     parseInt(a.week) - parseInt(b.week)
   );
+
+  // Set initial selectedWeek if not already set and weeks are available
+  React.useEffect(() => {
+    if (selectedWeek === "" && weekSummaries.length > 0) {
+      setSelectedWeek(weekSummaries[0].week);
+    }
+  }, [weekSummaries, selectedWeek]);
   
   // Prepare chart data
   const chartData = weekSummaries.map(week => ({
@@ -61,11 +69,23 @@ const DashboardByWeek: React.FC<DashboardByWeekProps> = ({ data, year }) => {
     }
   };
 
+  const handleWeekChange = (week: string) => {
+    setSelectedWeek(week);
+  };
+
   return (
     <div className="space-y-4">
       <Card>
         <CardHeader>
-          <CardTitle>Resumo por Semana Epidemiológica - {year}</CardTitle>
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <CardTitle>Resumo por Semana Epidemiológica - {year}</CardTitle>
+            <div className="w-full md:w-64">
+              <EpidemiologicalWeekSelector
+                value={selectedWeek}
+                onChange={handleWeekChange}
+              />
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="h-80 w-full">
@@ -88,29 +108,19 @@ const DashboardByWeek: React.FC<DashboardByWeekProps> = ({ data, year }) => {
         </CardContent>
       </Card>
       
-      <Tabs defaultValue={weekSummaries.length > 0 ? weekSummaries[0].week : "01"}>
-        <div className="flex justify-between items-center mb-4">
-          <TabsList className="flex flex-wrap">
-            {weekSummaries.map(week => (
-              <TabsTrigger key={week.week} value={week.week}>
-                SE {week.week}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </div>
-        
-        {weekSummaries.map(week => (
-          <TabsContent key={week.week} value={week.week} className="mt-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Semana Epidemiológica {week.week}</CardTitle>
-              </CardHeader>
-              <CardContent>
+      {selectedWeek && weekSummaries.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Semana Epidemiológica {selectedWeek}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {groupedByWeek[selectedWeek] && (
+              <>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-                  <WeekSummaryCard title="Imóveis" value={week.totalProperties} />
-                  <WeekSummaryCard title="Inspecionados" value={week.totalInspections} />
-                  <WeekSummaryCard title="Depósitos Eliminados" value={week.totalDepositsEliminated} />
-                  <WeekSummaryCard title="Depósitos Tratados" value={week.totalDepositsTreated} />
+                  <WeekSummaryCard title="Imóveis" value={groupedByWeek[selectedWeek].totalProperties} />
+                  <WeekSummaryCard title="Inspecionados" value={groupedByWeek[selectedWeek].totalInspections} />
+                  <WeekSummaryCard title="Depósitos Eliminados" value={groupedByWeek[selectedWeek].totalDepositsEliminated} />
+                  <WeekSummaryCard title="Depósitos Tratados" value={groupedByWeek[selectedWeek].totalDepositsTreated} />
                 </div>
                 
                 <div className="mb-4">
@@ -137,7 +147,7 @@ const DashboardByWeek: React.FC<DashboardByWeekProps> = ({ data, year }) => {
                             </TableRow>
                           </TableHeader>
                           <TableBody>
-                            {week.localities.map((locality, idx) => (
+                            {groupedByWeek[selectedWeek].localities.map((locality, idx) => (
                               <TableRow key={idx}>
                                 <TableCell className="font-medium">{locality.locality}</TableCell>
                                 <TableCell>{locality.workModality}</TableCell>
@@ -172,7 +182,7 @@ const DashboardByWeek: React.FC<DashboardByWeekProps> = ({ data, year }) => {
                             </TableRow>
                           </TableHeader>
                           <TableBody>
-                            {week.localities.map((locality, idx) => (
+                            {groupedByWeek[selectedWeek].localities.map((locality, idx) => (
                               <TableRow key={idx}>
                                 <TableCell className="font-medium">{locality.locality}</TableCell>
                                 <TableCell className="text-right">{locality.qt_residencias}</TableCell>
@@ -211,7 +221,7 @@ const DashboardByWeek: React.FC<DashboardByWeekProps> = ({ data, year }) => {
                             </TableRow>
                           </TableHeader>
                           <TableBody>
-                            {week.localities.map((locality, idx) => (
+                            {groupedByWeek[selectedWeek].localities.map((locality, idx) => (
                               <TableRow key={idx}>
                                 <TableCell className="font-medium">{locality.locality}</TableCell>
                                 <TableCell className="text-right">{locality.a1}</TableCell>
@@ -248,7 +258,7 @@ const DashboardByWeek: React.FC<DashboardByWeekProps> = ({ data, year }) => {
                             </TableRow>
                           </TableHeader>
                           <TableBody>
-                            {week.localities.map((locality, idx) => (
+                            {groupedByWeek[selectedWeek].localities.map((locality, idx) => (
                               <TableRow key={idx}>
                                 <TableCell className="font-medium">{locality.locality}</TableCell>
                                 <TableCell className="text-right">{locality.tratamento_focal}</TableCell>
@@ -267,11 +277,11 @@ const DashboardByWeek: React.FC<DashboardByWeekProps> = ({ data, year }) => {
                     </TabsContent>
                   </Tabs>
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        ))}
-      </Tabs>
+              </>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
