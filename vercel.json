@@ -5,5 +5,9 @@
   ],
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "framework": "vite"
+  "framework": "vite",
+  "env": {
+    "VITE_SUPABASE_URL": "https://vncrtcnamqrycndixycd.supabase.co",
+    "VITE_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuY3J0Y25hbXFyeWNuZGl4eWNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE3ODQ1MDUsImV4cCI6MjA1NzM2MDUwNX0.PtQ2HGUAIVBC1vTpu6ndZNIFJUN6QlFxB-fgEh5I2Cc"
+  }
 }
