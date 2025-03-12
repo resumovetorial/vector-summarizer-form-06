@@ -1,9 +1,10 @@
 
 import React, { useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import UserForm from './UserForm';
 import { AccessLevel, User } from '@/types/admin';
 import { toast } from 'sonner';
+import { supabase } from '@/lib/supabase';
 
 interface UserEditDialogProps {
   isOpen: boolean;
@@ -30,6 +31,7 @@ const UserEditDialog: React.FC<UserEditDialogProps> = ({
   const [formAccessLevel, setFormAccessLevel] = React.useState('');
   const [formActive, setFormActive] = React.useState(true);
   const [formLocalities, setFormLocalities] = React.useState<string[]>([]);
+  const [isLoading, setIsLoading] = React.useState(false);
 
   useEffect(() => {
     if (selectedUser) {
@@ -52,25 +54,57 @@ const UserEditDialog: React.FC<UserEditDialogProps> = ({
     setSelectedUser(null);
   };
 
-  const handleEditUser = () => {
+  const handleEditUser = async () => {
     if (!selectedUser) return;
     
-    const updatedUsers = users.map(user => 
-      user.id === selectedUser.id ? {
-        ...user,
-        name: formName,
-        email: formEmail,
-        role: formRole,
-        accessLevelId: parseInt(formAccessLevel),
-        active: formActive,
-        assignedLocalities: formLocalities
-      } : user
-    );
+    setIsLoading(true);
     
-    setUsers(updatedUsers);
-    setIsOpen(false);
-    resetForm();
-    toast.success("Usuário atualizado com sucesso!");
+    try {
+      // Obtenha o UUID do nível de acesso selecionado
+      const accessLevelId = parseInt(formAccessLevel);
+      
+      // Se o usuário tem um ID do Supabase, atualizar no banco de dados
+      if (selectedUser.supabaseId) {
+        // Atualizar o perfil no Supabase
+        const { error } = await supabase
+          .from('profiles')
+          .update({ 
+            username: formName,
+            role: formRole,
+            access_level_id: accessLevelId,
+            active: formActive
+          })
+          .eq('id', selectedUser.supabaseId);
+          
+        if (error) {
+          console.error('Erro ao atualizar usuário:', error);
+          throw new Error(error.message);
+        }
+      }
+      
+      // Atualizar usuários na interface
+      const updatedUsers = users.map(user => 
+        user.id === selectedUser.id ? {
+          ...user,
+          name: formName,
+          email: formEmail,
+          role: formRole,
+          accessLevelId: accessLevelId,
+          active: formActive,
+          assignedLocalities: formLocalities
+        } : user
+      );
+      
+      setUsers(updatedUsers);
+      setIsOpen(false);
+      resetForm();
+      toast.success("Usuário atualizado com sucesso!");
+    } catch (error: any) {
+      toast.error(`Erro ao atualizar usuário: ${error.message}`);
+      console.error("Erro na atualização:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -78,6 +112,9 @@ const UserEditDialog: React.FC<UserEditDialogProps> = ({
       <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>Editar Usuário</DialogTitle>
+          <DialogDescription>
+            Altere as informações do usuário conforme necessário.
+          </DialogDescription>
         </DialogHeader>
         <UserForm
           name={formName}
@@ -96,6 +133,7 @@ const UserEditDialog: React.FC<UserEditDialogProps> = ({
           onCancel={() => setIsOpen(false)}
           onSubmit={handleEditUser}
           submitLabel="Salvar Alterações"
+          isLoading={isLoading}
         />
       </DialogContent>
     </Dialog>

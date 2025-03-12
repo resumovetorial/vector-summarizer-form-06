@@ -22,6 +22,7 @@ interface UserFormProps {
   onCancel: () => void;
   onSubmit: () => void;
   submitLabel: string;
+  isLoading?: boolean;
 }
 
 const UserForm: React.FC<UserFormProps> = ({
@@ -40,7 +41,8 @@ const UserForm: React.FC<UserFormProps> = ({
   accessLevels,
   onCancel,
   onSubmit,
-  submitLabel
+  submitLabel,
+  isLoading = false
 }) => {
   return (
     <div className="space-y-4 pt-4">
@@ -67,6 +69,7 @@ const UserForm: React.FC<UserFormProps> = ({
         onCancel={onCancel}
         onSubmit={onSubmit}
         submitLabel={submitLabel}
+        isLoading={isLoading}
       />
     </div>
   );
