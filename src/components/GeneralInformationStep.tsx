@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, MapPin } from 'lucide-react';
 import FormField from './FormField';
 import FormSection from './FormSection';
 import DatePickerField from './DatePickerField';
@@ -11,6 +10,13 @@ import CycleSelector from './formSteps/CycleSelector';
 import WorkModalitySelector from './formSteps/WorkModalitySelector';
 import EpidemiologicalWeekSelector from './formSteps/EpidemiologicalWeekSelector';
 import { FormData, ValidationErrors } from '@/types/vectorForm';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue 
+} from '@/components/ui/select';
 
 interface GeneralInformationStepProps {
   formData: FormData;
@@ -36,13 +42,19 @@ const GeneralInformationStep: React.FC<GeneralInformationStepProps> = ({
           error={errors.municipality}
           animationDelay={50}
         >
-          <Input
-            id="municipality"
+          <Select
             value={formData.municipality}
-            onChange={(e) => handleInputChange('municipality', e.target.value)}
-            placeholder="Digite o município"
-            className="w-full"
-          />
+            onValueChange={(value) => handleInputChange('municipality', value)}
+          >
+            <SelectTrigger className="w-full">
+              <MapPin className="mr-2 h-4 w-4" />
+              <SelectValue placeholder="Selecione o município" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Itabuna">Itabuna</SelectItem>
+              {/* We can add more municipalities here in the future */}
+            </SelectContent>
+          </Select>
         </FormField>
         
         <LocalitySelector
