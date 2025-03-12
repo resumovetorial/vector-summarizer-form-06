@@ -7,6 +7,7 @@ export interface User {
   accessLevelId: number;
   active: boolean;
   assignedLocalities: string[];
+  supabaseId?: string; // Adding supabaseId for integration with Supabase
 }
 
 export interface AccessLevel {
