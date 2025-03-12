@@ -1,12 +1,11 @@
 
-import React from 'react';
 import * as XLSX from 'xlsx';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { LocalityData } from '@/types/dashboard';
 import { useToast } from '@/hooks/use-toast';
 
-interface DashboardExportProps {
+interface UseDashboardExportProps {
   dashboardRef: React.RefObject<HTMLDivElement>;
   dashboardData: LocalityData[];
   selectedLocality: string;
@@ -14,13 +13,13 @@ interface DashboardExportProps {
   setIsExporting: (isExporting: boolean) => void;
 }
 
-const DashboardExport: React.FC<DashboardExportProps> = ({
+export const useDashboardExport = ({
   dashboardRef,
   dashboardData,
   selectedLocality,
   localityHistoricalData,
   setIsExporting
-}) => {
+}: UseDashboardExportProps) => {
   const { toast } = useToast();
 
   const exportToExcel = () => {
@@ -170,5 +169,3 @@ const DashboardExport: React.FC<DashboardExportProps> = ({
 
   return { exportToExcel, exportToPDF };
 };
-
-export default DashboardExport;

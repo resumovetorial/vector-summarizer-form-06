@@ -10,7 +10,7 @@ import { mockDashboardData, fetchDashboardData } from '@/services/dashboardServi
 import { LocalityData } from '@/types/dashboard';
 import DashboardHeader from '@/components/dashboard/DashboardHeader';
 import DashboardLocalitySection from '@/components/dashboard/DashboardLocalitySection';
-import DashboardExport from '@/components/dashboard/DashboardExport';
+import { useDashboardExport } from '@/hooks/useDashboardExport';
 
 const Dashboard = () => {
   const { toast } = useToast();
@@ -24,8 +24,8 @@ const Dashboard = () => {
   const [isExporting, setIsExporting] = useState(false);
   const dashboardRef = useRef<HTMLDivElement>(null);
 
-  // Get export functionality
-  const { exportToExcel, exportToPDF } = DashboardExport({
+  // Use the new hook for export functionality
+  const { exportToExcel, exportToPDF } = useDashboardExport({
     dashboardRef,
     dashboardData,
     selectedLocality,
