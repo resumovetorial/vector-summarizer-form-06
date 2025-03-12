@@ -1,6 +1,5 @@
 
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,38 +8,19 @@ import { toast } from "sonner";
 import { useAuth } from '@/hooks/useAuth';
 
 const Login = () => {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, isLoading } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-
-    try {
-      // Simulated authentication - in a real app, this would be a call to an auth API
-      if (username === 'admin' && password === 'admin123') {
-        // Store auth info and call the login function from useAuth
-        const userData = { 
-          username, 
-          role: 'admin',
-          isAuthenticated: true 
-        };
-        
-        login(userData);
-        toast.success("Login bem-sucedido!");
-        navigate('/');
-      } else {
-        toast.error("Credenciais inválidas. Tente novamente.");
-      }
-    } catch (error) {
-      toast.error("Erro ao fazer login. Tente novamente.");
-      console.error("Login error:", error);
-    } finally {
-      setIsLoading(false);
+    
+    if (!email || !password) {
+      toast.error("Por favor, preencha todos os campos");
+      return;
     }
+    
+    await login(email, password);
   };
 
   return (
@@ -61,13 +41,13 @@ const Login = () => {
         <form onSubmit={handleLogin}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username">Usuário</Label>
+              <Label htmlFor="email">Email</Label>
               <Input
-                id="username"
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Digite seu nome de usuário"
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Digite seu email"
                 required
                 className="bg-[#F1F1F1]"
               />
