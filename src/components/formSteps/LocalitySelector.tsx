@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { MapPin } from 'lucide-react';
 import { 
   Select,
@@ -9,7 +9,7 @@ import {
   SelectValue 
 } from '@/components/ui/select';
 import FormField from '../FormField';
-import { localities } from '@/utils/localities';
+import { getLocalities } from '@/services/localitiesService';
 
 interface LocalitySelectorProps {
   value: string;
@@ -24,6 +24,12 @@ const LocalitySelector: React.FC<LocalitySelectorProps> = ({
   error,
   animationDelay = 100
 }) => {
+  const [localities, setLocalities] = useState<string[]>([]);
+
+  useEffect(() => {
+    setLocalities(getLocalities());
+  }, []);
+
   return (
     <FormField
       id="locality"

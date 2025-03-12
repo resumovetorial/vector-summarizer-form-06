@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AdminHeader from '@/components/admin/AdminHeader';
 import UserManagement from '@/components/admin/UserManagement';
 import AccessLevels from '@/components/admin/AccessLevels';
+import LocalitiesManagement from '@/components/admin/LocalitiesManagement';
 
 const Admin: React.FC = () => {
   const navigate = useNavigate();
@@ -34,6 +35,7 @@ const Admin: React.FC = () => {
           <TabsList className="mb-6">
             <TabsTrigger value="users">Usuários</TabsTrigger>
             <TabsTrigger value="access">Níveis de Acesso</TabsTrigger>
+            <TabsTrigger value="localities">Localidades</TabsTrigger>
           </TabsList>
           
           <TabsContent value="users">
@@ -42,6 +44,10 @@ const Admin: React.FC = () => {
           
           <TabsContent value="access">
             <AccessLevels />
+          </TabsContent>
+          
+          <TabsContent value="localities">
+            <LocalitiesManagement />
           </TabsContent>
         </Tabs>
       </main>
