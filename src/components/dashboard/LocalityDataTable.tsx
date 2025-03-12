@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Table,
   TableBody,
@@ -12,16 +12,68 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LocalityData } from '@/types/dashboard';
 import { format } from 'date-fns';
+import { Input } from '@/components/ui/input';
+import { Search, AlertCircle } from 'lucide-react';
+import { getUserAccessibleLocalities } from '@/services/adminService';
 
 interface LocalityDataTableProps {
   data: LocalityData[];
 }
 
 const LocalityDataTable: React.FC<LocalityDataTableProps> = ({ data }) => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [accessibleLocalities, setAccessibleLocalities] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Mock current user ID - in a real app, this would come from authentication
+  const currentUserId = 2; // Assuming this is a supervisor with limited access
+  
+  useEffect(() => {
+    const loadAccessControl = async () => {
+      try {
+        // In a real application, this would use the actual logged-in user ID
+        const localities = await getUserAccessibleLocalities(currentUserId);
+        setAccessibleLocalities(localities);
+      } catch (error) {
+        console.error("Failed to load user permissions:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadAccessControl();
+  }, []);
+  
+  if (isLoading) {
+    return <div className="text-center py-4">Carregando dados...</div>;
+  }
+  
   if (!data || data.length === 0) {
     return <div className="text-center py-4">Nenhum dado disponível para esta localidade.</div>;
   }
-
+  
+  // Check if user has access to this locality
+  const hasAccess = accessibleLocalities.includes(data[0].locality);
+  
+  if (!hasAccess) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-red-500 flex items-center gap-2">
+            <AlertCircle className="h-5 w-5" />
+            Acesso Restrito
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="p-4 text-center">
+            <p className="mb-2">Você não tem permissão para visualizar os dados desta localidade.</p>
+            <p className="text-sm text-muted-foreground">Entre em contato com um administrador para solicitar acesso.</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+  
   // Sort data by date and then by cycle
   const sortedData = [...data].sort((a, b) => {
     // Sort by date first (newest first)
@@ -32,11 +84,32 @@ const LocalityDataTable: React.FC<LocalityDataTableProps> = ({ data }) => {
     // Then sort by cycle
     return a.cycle.localeCompare(b.cycle);
   });
+  
+  // Filter data based on search term
+  const filteredData = sortedData.filter(item => {
+    return (
+      item.locality.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.cycle.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.workModality.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.supervisor.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  });
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Dados Históricos de {data[0].locality}</CardTitle>
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+          <CardTitle>Dados Históricos de {data[0].locality}</CardTitle>
+          <div className="w-full sm:w-64">
+            <Input 
+              placeholder="Buscar..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full"
+              prefix={<Search className="h-4 w-4 text-muted-foreground mr-2" />}
+            />
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="rounded-md border overflow-x-auto">
@@ -67,7 +140,7 @@ const LocalityDataTable: React.FC<LocalityDataTableProps> = ({ data }) => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {sortedData.map((item, index) => (
+              {filteredData.map((item, index) => (
                 <TableRow key={`${item.locality}-${item.cycle}-${item.epidemiologicalWeek}-${index}`}>
                   <TableCell>{item.epidemiologicalWeek}</TableCell>
                   <TableCell>{item.cycle}</TableCell>
