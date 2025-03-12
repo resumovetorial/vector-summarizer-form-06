@@ -2,12 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LocalityData } from '@/types/dashboard';
-import { FilePieChart } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import CycleSummaryChart from './CycleSummaryChart';
-import ModalityTabContent from './ModalityTabContent';
 import { prepareCycleSummaries, getUniqueModalities } from '@/utils/dashboardDataUtils';
 import CycleSelectorDashboard from './CycleSelectorDashboard';
+import ModalityTabContent from './ModalityTabContent';
 
 interface DashboardByCycleProps {
   data: LocalityData[];
@@ -15,7 +12,6 @@ interface DashboardByCycleProps {
 }
 
 const DashboardByCycle: React.FC<DashboardByCycleProps> = ({ data, year }) => {
-  const [showChart, setShowChart] = useState(true);
   const [selectedCycle, setSelectedCycle] = useState<string>("all");
   const [selectedModality, setSelectedModality] = useState<string>("");
   
@@ -68,21 +64,7 @@ const DashboardByCycle: React.FC<DashboardByCycleProps> = ({ data, year }) => {
           cycles={uniqueCycles}
           workModality={selectedModality} // Pass selected modality to filter cycles
         />
-        
-        <Button
-          variant={showChart ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => setShowChart(!showChart)}
-        >
-          <FilePieChart className="h-4 w-4 mr-2" />
-          {showChart ? 'Ocultar Gráfico' : 'Mostrar Gráfico'}
-        </Button>
       </div>
-      
-      {showChart && <CycleSummaryChart 
-        cycleSummaries={filteredSummaries} 
-        year={year} 
-      />}
       
       <Tabs 
         defaultValue={filteredModalities.length > 0 ? filteredModalities[0] : "LI"}

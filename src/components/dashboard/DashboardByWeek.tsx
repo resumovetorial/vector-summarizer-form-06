@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LocalityData, WeekSummary } from '@/types/dashboard';
 import EpidemiologicalWeekSelector from '../formSteps/EpidemiologicalWeekSelector';
-import WeekSummaryChart from './WeekSummaryChart';
 import WeekDetailCard from './WeekDetailCard';
 import { groupDataByWeek, getWeekSummaries } from './weekDataUtils';
 
@@ -49,11 +48,6 @@ const DashboardByWeek: React.FC<DashboardByWeekProps> = ({ data, year }) => {
             </div>
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="h-80 w-full">
-            <WeekSummaryChart weekSummaries={weekSummaries} year={year} />
-          </div>
-        </CardContent>
       </Card>
       
       {selectedWeek && weekSummaries.length > 0 && (
