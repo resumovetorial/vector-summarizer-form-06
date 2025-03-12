@@ -12,13 +12,7 @@ This guide provides instructions for uploading this project to GitHub without mo
 ## Steps to Upload to GitHub
 
 1. **Create a new repository on GitHub**
-   - Go to [GitHub](https://github.com)
-   - Click on the "+" icon in the top-right corner
-   - Select "New repository"
-   - Name your repository (e.g., "vector-control-app")
-   - Choose visibility (public or private)
-   - Do NOT initialize with README, .gitignore, or license
-   - Click "Create repository"
+   - The repository has already been created at [resumovetorial/resumovetorial](https://github.com/resumovetorial/resumovetorial)
 
 2. **Initialize Git in your local project**
    ```bash
@@ -37,7 +31,7 @@ This guide provides instructions for uploading this project to GitHub without mo
 
 5. **Add GitHub repository as remote**
    ```bash
-   git remote add origin https://github.com/yourusername/your-repo-name.git
+   git remote add origin https://github.com/resumovetorial/resumovetorial.git
    ```
 
 6. **Push code to GitHub**
@@ -74,3 +68,4 @@ Or remove them from tracking after adding:
 git reset -- .env
 git reset -- node_modules/
 ```
+
