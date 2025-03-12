@@ -126,7 +126,7 @@ const GeneralInformationStep: React.FC<GeneralInformationStepProps> = ({
           </Select>
         </FormField>
         
-        <FormField
+        <DatePickerField
           id="startDate"
           label="Data Inicial"
           date={formData.startDate}
@@ -138,7 +138,7 @@ const GeneralInformationStep: React.FC<GeneralInformationStepProps> = ({
       </FormSection>
       
       <FormSection>
-        <FormField
+        <DatePickerField
           id="endDate"
           label="Data Final"
           date={formData.endDate}
