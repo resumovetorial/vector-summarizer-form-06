@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Table, TableBody, TableHead, TableHeader, TableRow, TableCell } from '@/components/ui/table';
 import { AccessLevel } from '@/types/admin';
 import AccessLevelRow from './AccessLevelRow';
 
