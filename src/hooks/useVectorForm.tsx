@@ -20,7 +20,7 @@ export const useVectorForm = () => {
     locality: '',
     cycle: '',
     epidemiologicalWeek: '',
-    workModality: '', // Initialize the new field
+    workModality: '',
     startDate: undefined,
     endDate: undefined,
     qt_residencias: '',
@@ -106,10 +106,10 @@ export const useVectorForm = () => {
     setIsLoading(true);
     
     try {
-      const { mockVectorData, mockSummary } = await processVectorData(formData);
+      const result = await processVectorData(formData);
       
-      setVectorData(mockVectorData);
-      setSummary(mockSummary);
+      setVectorData(result.vectorData);
+      setSummary(result.summary);
       setShowResults(true);
       
       toast({
