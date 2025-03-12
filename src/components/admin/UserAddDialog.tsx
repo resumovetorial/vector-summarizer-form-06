@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import UserForm from './UserForm';
 import { AccessLevel, User } from '@/types/admin';
 import { useUserForm } from '@/hooks/useUserForm';
@@ -48,6 +48,9 @@ const UserAddDialog: React.FC<UserAddDialogProps> = ({
       <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>Adicionar Novo Usuário</DialogTitle>
+          <DialogDescription>
+            Preencha os dados do novo usuário. Todos os campos marcados com * são obrigatórios.
+          </DialogDescription>
         </DialogHeader>
         <UserForm
           name={formName}

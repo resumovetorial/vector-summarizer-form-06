@@ -63,23 +63,39 @@ export const useUserForm = ({
   };
 
   const handleSubmit = async () => {
+    if (!formName || !formEmail || !formRole || !formAccessLevel) {
+      toast.error("Por favor, preencha todos os campos obrigatórios");
+      return;
+    }
+
     setIsLoading(true);
     
     try {
       // Parse the access level ID to a number
       const accessLevelIdNum = parseInt(formAccessLevel);
       
+      // Find the actual access level object by ID
+      const selectedAccessLevel = accessLevels.find(level => level.id === accessLevelIdNum);
+      
+      if (!selectedAccessLevel) {
+        throw new Error("Nível de acesso selecionado não é válido");
+      }
+      
+      console.log("Selected user:", initialUser);
+      console.log("Selected access level:", selectedAccessLevel);
+      console.log("Form access level ID:", accessLevelIdNum);
+      
       if (isEditMode && initialUser) {
         // Update existing user
         if (initialUser.supabaseId) {
-          // Update only the profile fields that don't cause UUID conversion issues
+          // Update the profile in Supabase
           const { error } = await supabase
             .from('profiles')
             .update({ 
               username: formName,
               role: formRole,
-              active: formActive
-              // Intentionally NOT updating access_level_id here as it requires UUID
+              active: formActive,
+              access_level_id: selectedAccessLevel.id.toString() // Use the correct ID format for Supabase
             })
             .eq('id', initialUser.supabaseId);
             
@@ -108,9 +124,61 @@ export const useUserForm = ({
         setUsers(updatedUsers);
         toast.success("Usuário atualizado com sucesso!");
       } else {
-        // Add new user
+        // Create new user in Supabase Auth (in a real app, this would typically be 
+        // done through registration and invitation flows, but we'll simulate it here)
+        const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+          email: formEmail,
+          password: Math.random().toString(36).slice(-8), // Generate random password
+          email_confirm: true
+        });
+
+        if (authError) {
+          // If user already exists, we'll just create/update the profile
+          if (!authError.message.includes("already exists")) {
+            console.error('Erro ao criar usuário:', authError);
+            throw new Error(authError.message);
+          }
+        }
+        
+        // Get the user's ID if created, or find existing user
+        let userId: string;
+        if (authData?.user) {
+          userId = authData.user.id;
+        } else {
+          // Try to find user by email
+          const { data: existingUser, error: lookupError } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('username', formEmail)
+            .single();
+            
+          if (lookupError || !existingUser) {
+            throw new Error("Não foi possível encontrar ou criar o usuário");
+          }
+          
+          userId = existingUser.id;
+        }
+        
+        // Update or create profile
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .upsert({ 
+            id: userId,
+            username: formName,
+            role: formRole,
+            active: formActive,
+            access_level_id: selectedAccessLevel.id.toString()
+          });
+          
+        if (profileError) {
+          console.error('Erro ao criar perfil:', profileError);
+          throw new Error(profileError.message);
+        }
+        
+        // Add new user to local state
         const newUser: User = {
-          id: users.length + 1,
+          id: users.length > 0 ? Math.max(...users.map(u => u.id)) + 1 : 1,
+          supabaseId: userId,
           name: formName,
           email: formEmail,
           role: formRole,
