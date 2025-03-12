@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -22,19 +21,21 @@ export function useAuthActions(
       setIsLoading(true);
       setError(null);
       
-      // Primeiro verifica a autenticação antes de redirecionar
       const { session } = await loginWithSupabase(email, password);
       
-      // Não redirecionamos aqui - deixamos o useAuthSession fazer isso quando detectar a mudança de sessão
-      console.log('Login bem-sucedido, session:', session?.user?.email);
+      if (!session) {
+        throw new Error("Erro na autenticação");
+      }
+
       toast.success("Login realizado com sucesso!");
       
     } catch (error: any) {
       const errorMessage = formatAuthError(error);
       setError(errorMessage);
       toast.error(errorMessage);
-      setIsLoading(false);
       throw error;
+    } finally {
+      setIsLoading(false);
     }
   };
 
