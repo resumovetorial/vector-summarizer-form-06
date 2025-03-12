@@ -27,51 +27,71 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
 
   // Initialize the auth state from Supabase session
   useEffect(() => {
+    console.log('Inicializando autenticação...');
+    let isMounted = true;
+    
     const initializeAuth = async () => {
+      if (!isMounted) return;
+      
       setIsLoading(true);
+      setError(null);
       
       try {
+        console.log('Verificando sessão...');
         // Check for existing session
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error('Erro ao obter sessão:', sessionError);
+          setError(sessionError.message);
+          setUser(null);
+          setIsInitialized(true);
+          setIsLoading(false);
+          return;
+        }
         
         if (session) {
+          console.log('Sessão encontrada, criando usuário...');
           try {
             const authUser = await createAuthUser(session);
-            setUser(authUser);
+            console.log('Usuário autenticado:', authUser);
             
-            // If on login page and user is authenticated, redirect to dashboard
-            if (location.pathname === '/login') {
-              navigate('/dashboard', { replace: true });
+            if (isMounted) {
+              setUser(authUser);
+              setIsInitialized(true);
+              setIsLoading(false);
             }
-          } catch (error) {
-            console.error('Error initializing auth:', error);
-            setUser(null);
-            
-            // Redirect to login if error occurs
-            if (location.pathname !== '/login') {
-              navigate('/login', { replace: true });
+          } catch (error: any) {
+            console.error('Erro ao inicializar autenticação:', error);
+            if (isMounted) {
+              setError(error.message || 'Erro ao inicializar autenticação');
+              setUser(null);
+              setIsInitialized(true);
+              setIsLoading(false);
             }
           }
         } else {
-          // No valid session, redirect to login if not already there
-          setUser(null);
-          if (location.pathname !== '/login') {
-            navigate('/login', { replace: true });
+          console.log('Nenhuma sessão encontrada');
+          if (isMounted) {
+            setUser(null);
+            setIsInitialized(true);
+            setIsLoading(false);
           }
         }
-      } catch (error) {
-        console.error('Error checking session:', error);
-        if (location.pathname !== '/login') {
-          navigate('/login', { replace: true });
+      } catch (error: any) {
+        console.error('Erro ao verificar sessão:', error);
+        if (isMounted) {
+          setError(error.message || 'Erro ao verificar sessão');
+          setUser(null);
+          setIsInitialized(true);
+          setIsLoading(false);
         }
-      } finally {
-        setIsLoading(false);
-        setIsInitialized(true);
       }
     };
 
@@ -80,98 +100,121 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth state changed:', event);
+        
+        if (!isMounted) return;
+        
         if (session) {
           try {
+            console.log('Sessão atualizada, criando usuário...');
             const authUser = await createAuthUser(session);
-            setUser(authUser);
+            console.log('Usuário atualizado:', authUser);
             
-            // If on login page and user is authenticated, redirect to dashboard
-            if (location.pathname === '/login') {
-              navigate('/dashboard', { replace: true });
+            if (isMounted) {
+              setUser(authUser);
+              setError(null);
             }
-          } catch (error) {
-            console.error('Error updating auth state:', error);
-            setUser(null);
-            
-            // Redirect to login if error occurs
-            if (location.pathname !== '/login') {
-              navigate('/login', { replace: true });
+          } catch (error: any) {
+            console.error('Erro ao atualizar estado da autenticação:', error);
+            if (isMounted) {
+              setError(error.message || 'Erro ao atualizar estado da autenticação');
+              setUser(null);
             }
           }
         } else {
-          setUser(null);
-          
-          // No valid session, redirect to login if not already there
-          if (location.pathname !== '/login') {
-            navigate('/login', { replace: true });
+          console.log('Sessão encerrada');
+          if (isMounted) {
+            setUser(null);
           }
+        }
+        
+        // Garantir que o estado de loading e inicialização estejam corretos
+        if (isMounted) {
+          setIsInitialized(true);
+          setIsLoading(false);
         }
       }
     );
     
     // Cleanup subscription on unmount
     return () => {
+      isMounted = false;
       subscription.unsubscribe();
     };
-  }, [navigate, location]);
+  }, []);
 
+  // Função de login
   const login = async (email: string, password: string) => {
     try {
       setIsLoading(true);
+      setError(null);
       
+      console.log('Tentando login com:', email);
       const data = await loginWithSupabase(email, password);
       
       if (data.user) {
+        console.log('Login bem-sucedido:', data.user);
         toast.success("Login bem-sucedido!");
-        const from = (location.state as any)?.from?.pathname || '/';
+        const from = (location.state as any)?.from?.pathname || '/dashboard';
         navigate(from, { replace: true });
       }
     } catch (error: any) {
       const errorMessage = formatAuthError(error);
+      console.error("Erro de login:", error);
+      setError(errorMessage);
       toast.error(errorMessage);
-      console.error("Login error:", error);
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Função de registro
   const register = async (email: string, password: string) => {
     try {
       setIsLoading(true);
+      setError(null);
       
+      console.log('Tentando registrar:', email);
       const data = await registerWithSupabase(email, password);
       
       if (data.user) {
+        console.log('Registro bem-sucedido:', data.user);
         toast.success("Cadastro realizado com sucesso! Você já pode fazer login.");
         return;
       }
     } catch (error: any) {
       const errorMessage = formatAuthError(error);
+      console.error("Erro de registro:", error);
+      setError(errorMessage);
       toast.error(errorMessage);
-      console.error("Registration error:", error);
       throw error; // Propagate error
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Função de logout
   const logout = async () => {
     try {
       setIsLoading(true);
+      setError(null);
+      
+      console.log('Realizando logout...');
       await logoutWithSupabase();
       
       setUser(null);
       navigate('/login');
       toast.success("Logout realizado com sucesso");
     } catch (error: any) {
+      console.error("Erro ao fazer logout:", error);
+      setError(error.message || "Erro ao fazer logout");
       toast.error(error.message || "Erro ao fazer logout");
-      console.error("Logout error:", error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Create the auth context value
+  // Criar valor do contexto de autenticação
   const authContextValue: AuthContextType = {
     user,
     login,
@@ -179,8 +222,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     logout,
     isAuthenticated: !!user,
     isLoading,
-    isInitialized
+    isInitialized,
+    error
   };
+
+  console.log('Estado atual da autenticação:', {
+    isAuthenticated: !!user,
+    isLoading,
+    isInitialized,
+    user: user ? { ...user, id: '[REDACTED]' } : null
+  });
 
   return (
     <AuthContextProvider value={authContextValue}>
