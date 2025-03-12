@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import AuthContext, { AuthProvider as AuthContextProvider } from '@/contexts/AuthContext';
@@ -27,43 +27,68 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Initialize the auth state from Supabase session
   useEffect(() => {
     const initializeAuth = async () => {
       setIsLoading(true);
       
-      // Check for existing session
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (session) {
-        try {
-          const authUser = await createAuthUser(session);
-          setUser(authUser);
-        } catch (error) {
-          console.error('Error initializing auth:', error);
-          setUser(null);
+      try {
+        // Check for existing session
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session) {
+          try {
+            const authUser = await createAuthUser(session);
+            setUser(authUser);
+            
+            // If on login page and user is authenticated, redirect to home
+            if (location.pathname === '/login') {
+              const from = (location.state as any)?.from?.pathname || '/';
+              navigate(from, { replace: true });
+            }
+          } catch (error) {
+            console.error('Error initializing auth:', error);
+            setUser(null);
+          }
+        } else if (location.pathname !== '/login') {
+          // If no session and not on login page, redirect to login
+          navigate('/login', { replace: true });
         }
+      } catch (error) {
+        console.error('Error checking session:', error);
+      } finally {
+        setIsLoading(false);
       }
       
       // Listen for auth changes
       const { data: { subscription } } = await supabase.auth.onAuthStateChange(
-        async (_event, session) => {
+        async (event, session) => {
           if (session) {
             try {
               const authUser = await createAuthUser(session);
               setUser(authUser);
+              
+              // If on login page and user is authenticated, redirect to home
+              if (location.pathname === '/login') {
+                const from = (location.state as any)?.from?.pathname || '/';
+                navigate(from, { replace: true });
+              }
             } catch (error) {
               console.error('Error updating auth state:', error);
               setUser(null);
             }
           } else {
             setUser(null);
+            
+            // If not on login page and user is not authenticated, redirect to login
+            if (location.pathname !== '/login') {
+              navigate('/login', { replace: true });
+            }
           }
         }
       );
-      
-      setIsLoading(false);
       
       // Cleanup subscription on unmount
       return () => {
@@ -72,7 +97,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     initializeAuth();
-  }, [navigate]);
+  }, [navigate, location]);
 
   const login = async (email: string, password: string) => {
     try {
@@ -82,7 +107,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       if (data.user) {
         toast.success("Login bem-sucedido!");
-        navigate('/');
+        const from = (location.state as any)?.from?.pathname || '/';
+        navigate(from, { replace: true });
       }
     } catch (error: any) {
       const errorMessage = formatAuthError(error);
