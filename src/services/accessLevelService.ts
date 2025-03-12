@@ -86,7 +86,13 @@ export const updateAccessLevel = async (level: AccessLevel): Promise<AccessLevel
 };
 
 export const deleteAccessLevel = async (levelName: string): Promise<void> => {
-  // Encontrar o UUID do nível de acesso pelo nome
+  // First, check if it's the "Agente" level, which should be removed
+  if (levelName.toLowerCase() === 'agente') {
+    // We'll allow this to be deleted as specified in the requirements
+    console.log('Removing "Agente" access level as requested');
+  }
+  
+  // Find the UUID of the access level by name
   const { data: existingLevels, error: fetchError } = await supabase
     .from('access_levels')
     .select('id')

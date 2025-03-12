@@ -2,7 +2,6 @@
 import { useState, useEffect } from 'react';
 import { User, AccessLevel } from '@/types/admin';
 import { supabase } from '@/lib/supabase';
-import { mockUsers } from '@/services/adminService';
 import { fetchAccessLevels } from '@/services/accessLevelService';
 import { toast } from 'sonner';
 
@@ -20,7 +19,13 @@ export const useUsers = () => {
         try {
           fetchedAccessLevels = await fetchAccessLevels();
           console.log("Fetched access levels:", fetchedAccessLevels);
-          setAccessLevels(fetchedAccessLevels);
+          
+          // Filter out the "Agente" level if it exists
+          const filteredLevels = fetchedAccessLevels.filter(
+            level => level.name.toLowerCase() !== 'agente'
+          );
+          
+          setAccessLevels(filteredLevels);
         } catch (error) {
           console.error('Erro ao buscar níveis de acesso:', error);
           toast.error("Não foi possível carregar os níveis de acesso.");
@@ -32,18 +37,15 @@ export const useUsers = () => {
           return;
         }
         
-        // Fetch users from Supabase
+        // Fetch real users from Supabase, no mock data
         const { data: profiles, error } = await supabase
           .from('profiles')
           .select('*');
         
         if (error) {
           console.error('Erro ao buscar perfis:', error);
-          toast.error("Erro ao carregar usuários. Usando dados de exemplo temporariamente.");
-          // Fallback to mock data only in development
-          if (import.meta.env.DEV) {
-            setUsers(mockUsers);
-          }
+          toast.error("Erro ao carregar usuários.");
+          setUsers([]);
           return;
         }
 
@@ -84,22 +86,14 @@ export const useUsers = () => {
           console.log("Converted users:", realUsers);
           setUsers(realUsers);
         } else {
-          // If no profiles found, show empty list instead of mock data in production
-          if (import.meta.env.DEV) {
-            console.log("No profiles found, using mock data in development");
-            setUsers(mockUsers);
-          } else {
-            console.log("No profiles found, showing empty list");
-            setUsers([]);
-          }
+          // If no profiles found, show empty list
+          console.log("No profiles found, showing empty list");
+          setUsers([]);
         }
       } catch (error) {
         console.error('Erro ao buscar dados:', error);
         toast.error("Erro inesperado ao carregar dados de usuários.");
-        // Only use mock data in development
-        if (import.meta.env.DEV) {
-          setUsers(mockUsers);
-        }
+        setUsers([]);
       } finally {
         setIsLoading(false);
       }
@@ -110,11 +104,6 @@ export const useUsers = () => {
 
   const handleDeleteUser = async (userId: number, supabaseId?: string) => {
     if (!supabaseId) {
-      // For mock users without Supabase ID
-      if (import.meta.env.DEV) {
-        setUsers(users.filter(user => user.id !== userId));
-        return true;
-      }
       toast.error("Este usuário não pode ser excluído");
       return false;
     }
