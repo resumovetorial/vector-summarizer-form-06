@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Calendar } from 'lucide-react';
 import { 
   Select,
@@ -10,21 +10,48 @@ import {
 } from '@/components/ui/select';
 import FormField from '../FormField';
 
-const cycles = ["01", "02", "03", "04", "05", "06"];
-
 interface CycleSelectorProps {
   value: string;
   onChange: (value: string) => void;
   error?: string;
   animationDelay?: number;
+  workModality: string; // Add workModality prop to determine cycle options
 }
 
 const CycleSelector: React.FC<CycleSelectorProps> = ({
   value,
   onChange,
   error,
-  animationDelay = 200
+  animationDelay = 200,
+  workModality
 }) => {
+  // State to hold the available cycles based on work modality
+  const [cycleOptions, setCycleOptions] = useState<string[]>([]);
+
+  // Update cycle options when work modality changes
+  useEffect(() => {
+    if (workModality === 'PE') {
+      // Generate cycles 01-27 for PE modality
+      const peOptions = Array.from({ length: 27 }, (_, i) => 
+        (i + 1).toString().padStart(2, '0')
+      );
+      setCycleOptions(peOptions);
+    } else {
+      // Generate cycles 01-06 for all other modalities
+      const regularOptions = Array.from({ length: 6 }, (_, i) => 
+        (i + 1).toString().padStart(2, '0')
+      );
+      setCycleOptions(regularOptions);
+    }
+  }, [workModality]);
+
+  // If the current value is not valid for the new options, reset it
+  useEffect(() => {
+    if (value && !cycleOptions.includes(value)) {
+      onChange('');
+    }
+  }, [cycleOptions, value, onChange]);
+
   return (
     <FormField
       id="cycle"
@@ -42,7 +69,7 @@ const CycleSelector: React.FC<CycleSelectorProps> = ({
           <SelectValue placeholder="Selecione o ciclo" />
         </SelectTrigger>
         <SelectContent>
-          {cycles.map((cycle) => (
+          {cycleOptions.map((cycle) => (
             <SelectItem key={cycle} value={cycle}>
               {cycle}
             </SelectItem>

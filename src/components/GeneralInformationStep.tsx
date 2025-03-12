@@ -65,6 +65,7 @@ const GeneralInformationStep: React.FC<GeneralInformationStepProps> = ({
           onChange={(value) => handleInputChange('cycle', value)}
           error={errors.cycle}
           animationDelay={200}
+          workModality={formData.workModality} // Pass the workModality to CycleSelector
         />
       </FormSection>
       
