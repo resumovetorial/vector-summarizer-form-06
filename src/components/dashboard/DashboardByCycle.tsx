@@ -17,6 +17,7 @@ interface DashboardByCycleProps {
 const DashboardByCycle: React.FC<DashboardByCycleProps> = ({ data, year }) => {
   const [showChart, setShowChart] = useState(true);
   const [selectedCycle, setSelectedCycle] = useState<string>("all");
+  const [selectedModality, setSelectedModality] = useState<string>("");
   
   // Process data using utility functions
   const cycleSummaries = prepareCycleSummaries(data);
@@ -28,12 +29,20 @@ const DashboardByCycle: React.FC<DashboardByCycleProps> = ({ data, year }) => {
     return parseInt(a) - parseInt(b);
   });
   
-  // Set default selected cycle when data changes
+  // Set default selected cycle and modality when data changes
   useEffect(() => {
     if (uniqueCycles.length > 0 && selectedCycle === "") {
       setSelectedCycle(uniqueCycles[0]);
     }
-  }, [uniqueCycles, selectedCycle]);
+    if (modalities.length > 0 && !selectedModality) {
+      setSelectedModality(modalities[0]);
+    }
+  }, [uniqueCycles, selectedCycle, modalities, selectedModality]);
+  
+  // Handle modality tab change
+  const handleModalityChange = (value: string) => {
+    setSelectedModality(value);
+  };
   
   // Filter data by selected cycle
   const filteredSummaries = selectedCycle && selectedCycle !== "all"
@@ -43,6 +52,13 @@ const DashboardByCycle: React.FC<DashboardByCycleProps> = ({ data, year }) => {
   // Get modalities for the filtered data
   const filteredModalities = getUniqueModalities(filteredSummaries);
   
+  // Set first available modality if current one is not available after filtering
+  useEffect(() => {
+    if (filteredModalities.length > 0 && !filteredModalities.includes(selectedModality)) {
+      setSelectedModality(filteredModalities[0]);
+    }
+  }, [filteredModalities, selectedModality]);
+  
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
@@ -50,6 +66,7 @@ const DashboardByCycle: React.FC<DashboardByCycleProps> = ({ data, year }) => {
           value={selectedCycle} 
           onChange={setSelectedCycle} 
           cycles={uniqueCycles}
+          workModality={selectedModality} // Pass selected modality to filter cycles
         />
         
         <Button
@@ -67,7 +84,11 @@ const DashboardByCycle: React.FC<DashboardByCycleProps> = ({ data, year }) => {
         year={year} 
       />}
       
-      <Tabs defaultValue={filteredModalities.length > 0 ? filteredModalities[0] : "LI"}>
+      <Tabs 
+        defaultValue={filteredModalities.length > 0 ? filteredModalities[0] : "LI"}
+        value={selectedModality}
+        onValueChange={handleModalityChange}
+      >
         <TabsList className="flex flex-wrap mb-4">
           {filteredModalities.map(modality => (
             <TabsTrigger key={modality} value={modality}>

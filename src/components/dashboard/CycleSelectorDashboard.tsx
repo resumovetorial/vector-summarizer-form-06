@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Calendar } from 'lucide-react';
 import { 
   Select,
@@ -13,13 +13,48 @@ interface CycleSelectorDashboardProps {
   value: string;
   onChange: (value: string) => void;
   cycles: string[];
+  workModality?: string; // Optional work modality to filter cycles
 }
 
 const CycleSelectorDashboard: React.FC<CycleSelectorDashboardProps> = ({
   value,
   onChange,
-  cycles
+  cycles,
+  workModality
 }) => {
+  // State to hold the available cycles based on work modality
+  const [availableCycles, setAvailableCycles] = useState<string[]>(cycles);
+
+  // Update available cycles when work modality changes
+  useEffect(() => {
+    if (workModality === 'PE') {
+      // For PE modality, use all cycles up to 27
+      const maxCycle = 27;
+      const cycleNumbers = Array.from({ length: maxCycle }, (_, i) => 
+        (i + 1).toString()
+      );
+      // Filter to only include cycles that exist in the data
+      const filteredCycles = cycleNumbers.filter(cycle => 
+        cycles.includes(cycle)
+      );
+      setAvailableCycles(filteredCycles);
+    } else if (workModality) {
+      // For other modalities, use cycles up to 6
+      const maxCycle = 6;
+      const cycleNumbers = Array.from({ length: maxCycle }, (_, i) => 
+        (i + 1).toString()
+      );
+      // Filter to only include cycles that exist in the data
+      const filteredCycles = cycleNumbers.filter(cycle => 
+        cycles.includes(cycle)
+      );
+      setAvailableCycles(filteredCycles);
+    } else {
+      // If no modality specified, use all available cycles
+      setAvailableCycles(cycles);
+    }
+  }, [workModality, cycles]);
+
   // Format cycle numbers to ensure they have leading zeros (e.g., "01", "02")
   const formatCycleNumber = (cycle: string): string => {
     // If cycle is already formatted or is "all", return as is
@@ -43,7 +78,7 @@ const CycleSelectorDashboard: React.FC<CycleSelectorDashboardProps> = ({
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">Todos os ciclos</SelectItem>
-          {cycles.map((cycle) => (
+          {availableCycles.map((cycle) => (
             <SelectItem key={cycle} value={cycle}>
               Ciclo {formatCycleNumber(cycle)}
             </SelectItem>
