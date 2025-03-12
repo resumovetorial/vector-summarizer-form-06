@@ -7,7 +7,7 @@ import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import { User } from '@/types/admin';
-import { localities } from '@/components/formSteps/LocalitySelector';
+import { localities } from '@/utils/localities';
 
 interface UserAccessFormProps {
   user: User;
@@ -48,7 +48,6 @@ const UserAccessForm: React.FC<UserAccessFormProps> = ({ user, onSave }) => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="flex-1"
-              prefix={<Search className="h-4 w-4 text-muted-foreground" />}
             />
             <Button variant="outline" size="sm" onClick={selectAll}>
               Selecionar Todos

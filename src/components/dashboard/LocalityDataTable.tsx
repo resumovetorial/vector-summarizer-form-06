@@ -106,7 +106,6 @@ const LocalityDataTable: React.FC<LocalityDataTableProps> = ({ data }) => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full"
-              prefix={<Search className="h-4 w-4 text-muted-foreground mr-2" />}
             />
           </div>
         </div>
