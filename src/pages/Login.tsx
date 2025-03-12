@@ -45,7 +45,7 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center background-gradient p-4">
-      <Card className="w-full max-w-md shadow-lg">
+      <Card className="w-full max-w-md shadow-lg bg-[#D3E4FD]">
         <CardHeader className="space-y-2 text-center">
           <div className="flex justify-center mb-4">
             <img 
@@ -69,6 +69,7 @@ const Login = () => {
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="Digite seu nome de usuário"
                 required
+                className="bg-[#F1F1F1]"
               />
             </div>
             
@@ -81,6 +82,7 @@ const Login = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Digite sua senha"
                 required
+                className="bg-[#F1F1F1]"
               />
             </div>
           </CardContent>
