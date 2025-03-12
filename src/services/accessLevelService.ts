@@ -15,7 +15,7 @@ export const fetchAccessLevels = async (): Promise<AccessLevel[]> => {
   
   // Convert the data to match our AccessLevel type
   return data.map(level => ({
-    id: parseInt(level.id), // Mantendo compatibilidade com o tipo existente que usa number
+    id: parseInt(level.id), // Keeping compatibility with existing type that uses number
     name: level.name,
     description: level.description || '',
     permissions: level.permissions,
@@ -39,7 +39,7 @@ export const createAccessLevel = async (level: Omit<AccessLevel, 'id'>): Promise
   }
   
   return {
-    id: parseInt(data.id), // Mantendo compatibilidade com o tipo existente
+    id: parseInt(data.id), // Keeping compatibility with existing type
     name: data.name,
     description: data.description || '',
     permissions: data.permissions,
@@ -47,7 +47,7 @@ export const createAccessLevel = async (level: Omit<AccessLevel, 'id'>): Promise
 };
 
 export const updateAccessLevel = async (level: AccessLevel): Promise<AccessLevel> => {
-  // No Supabase, o ID é um UUID, então precisamos buscar o UUID correto
+  // In Supabase, ID is a UUID, so we need to find the correct UUID
   const { data: existingLevels, error: fetchError } = await supabase
     .from('access_levels')
     .select('id')
@@ -78,7 +78,7 @@ export const updateAccessLevel = async (level: AccessLevel): Promise<AccessLevel
   }
   
   return {
-    id: level.id, // Mantemos o ID original para manter consistência na interface
+    id: level.id, // Keep original ID for interface consistency
     name: data.name,
     description: data.description || '',
     permissions: data.permissions,
