@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft } from 'lucide-react';
 import DepositsInspectionSection from './DepositsInspectionSection';
 import { FormData, ValidationErrors } from '@/types/vectorForm';
 
@@ -37,15 +37,6 @@ const DepositsInspectionStep: React.FC<DepositsInspectionStepProps> = ({
         >
           <ChevronLeft className="mr-2 h-4 w-4" />
           Anterior
-        </Button>
-        
-        <Button 
-          type="button"
-          onClick={nextStep}
-          className="flex items-center"
-        >
-          Próximo
-          <ChevronRight className="ml-2 h-4 w-4" />
         </Button>
       </div>
     </>
