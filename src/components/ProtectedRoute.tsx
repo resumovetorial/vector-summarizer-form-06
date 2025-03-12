@@ -25,17 +25,17 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Check if the user has been approved by an admin
-  // By default, only users with role 'admin' are considered approved
-  const isApproved = user?.role === 'admin';
-
-  // For the admin route, strictly check for admin role
-  if (requiredRole === 'admin' && user?.role !== 'admin') {
+  // Verificar o papel do usuário e aprovar automaticamente o admin pelo email
+  const isAdmin = user?.role === 'admin' || 
+                  (user?.email && ['resumovetorial@gmail.com', 'admin@example.com'].includes(user.email));
+  
+  // Para rotas de admin, verificar se o usuário é admin
+  if (requiredRole === 'admin' && !isAdmin) {
     return <Navigate to="/unauthorized" replace />;
   }
 
-  // For dashboard and other routes, check if user is approved
-  if (!isApproved && location.pathname !== '/unauthorized') {
+  // Para dashboard e outras rotas, verificar se o usuário está aprovado ou é admin
+  if (!isAdmin && location.pathname !== '/unauthorized') {
     return <Navigate to="/unauthorized" replace />;
   }
 
