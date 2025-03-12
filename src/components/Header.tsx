@@ -1,26 +1,41 @@
 
 import React from 'react';
+import { Link } from 'react-router-dom';
+import { BarChart4, Home } from 'lucide-react';
 import AnimatedLogo from './AnimatedLogo';
-import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
-interface HeaderProps {
-  className?: string;
-}
-
-const Header: React.FC<HeaderProps> = ({ className }) => {
+const Header = () => {
   return (
-    <header className={cn(
-      "w-full py-6 px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between",
-      "animate-fade-in",
-      className
-    )}>
-      <div className="flex items-center">
-        <AnimatedLogo className="mr-2" />
-      </div>
-      
-      <div className="mt-4 sm:mt-0 glass py-2 px-4 rounded-full flex items-center shadow-subtle animate-slide-down">
-        <div className="w-2 h-2 rounded-full bg-green-400 mr-2"></div>
-        <p className="text-sm text-muted-foreground">Pronto para processar</p>
+    <header className="py-6">
+      <div className="flex flex-col sm:flex-row justify-between items-center">
+        <div className="flex items-center mb-4 sm:mb-0">
+          <AnimatedLogo />
+          <div className="ml-3">
+            <h1 className="text-xl sm:text-2xl font-bold">VectorSummarizer</h1>
+            <p className="text-sm text-muted-foreground">
+              Sistema de resumo vetorial
+            </p>
+          </div>
+        </div>
+        
+        <nav>
+          <div className="flex space-x-2">
+            <Button variant="ghost" asChild>
+              <Link to="/">
+                <Home className="h-4 w-4 mr-2" />
+                Início
+              </Link>
+            </Button>
+            
+            <Button variant="ghost" asChild>
+              <Link to="/dashboard">
+                <BarChart4 className="h-4 w-4 mr-2" />
+                Dashboard
+              </Link>
+            </Button>
+          </div>
+        </nav>
       </div>
     </header>
   );
