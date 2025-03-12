@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/select';
 import FormField from './FormField';
 import FormSection from './FormSection';
-import { Test, Shield, Bug, User, Calendar, Clock } from 'lucide-react';
+import { Beaker, Shield, Bug, User, Calendar, Clock } from 'lucide-react';
 import { FormData, ValidationErrors } from '@/types/vectorForm';
 
 interface TreatedDepositsSectionProps {
@@ -40,7 +40,7 @@ const TreatedDepositsSection: React.FC<TreatedDepositsSectionProps> = ({
             onValueChange={(value) => handleInputChange('larvicida', value)}
           >
             <SelectTrigger className="w-full">
-              <Test className="mr-2 h-4 w-4" />
+              <Beaker className="mr-2 h-4 w-4" />
               <SelectValue placeholder="Selecione o larvicida" />
             </SelectTrigger>
             <SelectContent>
