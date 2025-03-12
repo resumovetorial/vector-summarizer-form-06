@@ -3,7 +3,7 @@ import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import UserForm from './UserForm';
 import { AccessLevel, User } from '@/types/admin';
-import { toast } from 'sonner';
+import { useUserForm } from '@/hooks/useUserForm';
 
 interface UserAddDialogProps {
   isOpen: boolean;
@@ -20,38 +20,28 @@ const UserAddDialog: React.FC<UserAddDialogProps> = ({
   setUsers,
   accessLevels,
 }) => {
-  const [formName, setFormName] = React.useState('');
-  const [formEmail, setFormEmail] = React.useState('');
-  const [formRole, setFormRole] = React.useState('');
-  const [formAccessLevel, setFormAccessLevel] = React.useState('');
-  const [formActive, setFormActive] = React.useState(true);
-  const [formLocalities, setFormLocalities] = React.useState<string[]>([]);
-
-  const resetForm = () => {
-    setFormName('');
-    setFormEmail('');
-    setFormRole('');
-    setFormAccessLevel('');
-    setFormActive(true);
-    setFormLocalities([]);
-  };
-
-  const handleAddUser = () => {
-    const newUser: User = {
-      id: users.length + 1,
-      name: formName,
-      email: formEmail,
-      role: formRole,
-      accessLevelId: parseInt(formAccessLevel),
-      active: formActive,
-      assignedLocalities: formLocalities
-    };
-    
-    setUsers([...users, newUser]);
-    setIsOpen(false);
-    resetForm();
-    toast.success("Usuário adicionado com sucesso!");
-  };
+  const {
+    formName,
+    setFormName,
+    formEmail,
+    setFormEmail,
+    formRole,
+    setFormRole,
+    formAccessLevel,
+    setFormAccessLevel,
+    formActive,
+    setFormActive,
+    formLocalities,
+    setFormLocalities,
+    isLoading,
+    handleSubmit
+  } = useUserForm({
+    users,
+    setUsers,
+    accessLevels,
+    onSuccess: () => setIsOpen(false),
+    isEditMode: false
+  });
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -74,8 +64,9 @@ const UserAddDialog: React.FC<UserAddDialogProps> = ({
           setSelectedLocalities={setFormLocalities}
           accessLevels={accessLevels}
           onCancel={() => setIsOpen(false)}
-          onSubmit={handleAddUser}
+          onSubmit={handleSubmit}
           submitLabel="Adicionar Usuário"
+          isLoading={isLoading}
         />
       </DialogContent>
     </Dialog>
