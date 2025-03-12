@@ -123,18 +123,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       setIsLoading(true);
       
+      // Primeiro, criar o usuário no auth.users
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: {
-          emailRedirectTo: window.location.origin,
-        },
       });
       
       if (error) throw error;
       
+      // O trigger criado no SQL se encarregará de inserir automaticamente o perfil
+      
       if (data.user) {
         toast.success("Cadastro realizado com sucesso! Você já pode fazer login.");
+        // Não redirecionamos para permitir que o usuário faça login manualmente
       }
     } catch (error: any) {
       toast.error(error.message || "Erro ao criar conta. Tente novamente.");

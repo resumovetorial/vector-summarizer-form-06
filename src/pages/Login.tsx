@@ -44,8 +44,15 @@ const Login = () => {
       return;
     }
     
-    await register(email, password);
-    setActiveTab('login');
+    try {
+      await register(email, password);
+      setEmail('');
+      setPassword('');
+      setConfirmPassword('');
+      setActiveTab('login');
+    } catch (error) {
+      console.error("Erro ao registrar:", error);
+    }
   };
 
   return (
