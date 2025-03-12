@@ -1,8 +1,8 @@
-
 import { User, AccessLevel } from '@/types/admin';
 import { toast } from 'sonner';
 import { validateUserForm } from '@/utils/userFormValidation';
-import { updateExistingUser, createNewUser } from '@/services/userService';
+import { updateExistingUser } from '@/services/userUpdateService';
+import { createNewUser } from '@/services/userCreationService';
 
 interface UseUserFormSubmitProps {
   users: User[];
