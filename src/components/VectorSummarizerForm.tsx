@@ -1,5 +1,7 @@
 
 import React from 'react';
+import { Button } from '@/components/ui/button';
+import { ChevronLeft } from 'lucide-react';
 import ResultDisplay from './ResultDisplay';
 import StepIndicator from './StepIndicator';
 import GeneralInformationStep from './GeneralInformationStep';
