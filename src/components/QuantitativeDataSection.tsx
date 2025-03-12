@@ -1,8 +1,8 @@
+
 import React, { useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import FormField from './FormField';
 import FormSection from './FormSection';
-import TreatmentInspectionSection from './TreatmentInspectionSection';
 
 interface QuantitativeDataSectionProps {
   formData: {
@@ -151,13 +151,6 @@ const QuantitativeDataSection: React.FC<QuantitativeDataSectionProps> = ({
           />
         </FormField>
       </FormSection>
-
-      {/* New Treatment and Inspection Section */}
-      <TreatmentInspectionSection
-        formData={formData}
-        handleInputChange={handleInputChange}
-        errors={errors}
-      />
     </>
   );
 };
