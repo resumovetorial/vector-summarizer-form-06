@@ -19,9 +19,9 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
     user: user ? { role: user.role, email: user.email } : null
   });
 
-  // Aguardar inicialização
+  // Tela de carregamento - apenas se a autenticação ainda não foi inicializada
   if (!isInitialized) {
-    console.log('ProtectedRoute - Aguardando inicialização...');
+    console.log('ProtectedRoute - Aguardando inicialização da autenticação...');
     return (
       <div className="min-h-screen flex items-center justify-center background-gradient">
         <div className="animate-spin h-8 w-8 border-4 border-blue-600 rounded-full border-t-transparent"></div>
@@ -29,9 +29,9 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
     );
   }
 
-  // Verificar autenticação
+  // Verificar autenticação - redirecionar para login se não estiver autenticado
   if (!isAuthenticated) {
-    console.log('ProtectedRoute - Redirecionando para login');
+    console.log('ProtectedRoute - Usuário não autenticado, redirecionando para login');
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 

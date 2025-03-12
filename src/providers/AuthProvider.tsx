@@ -26,19 +26,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading
   );
 
-  // Redirecionamento somente após inicialização completa
+  // Simplificando a lógica de redirecionamento para evitar loops
   useEffect(() => {
-    if (!isInitialized) {
-      return; // Não faça nada até que a autenticação esteja totalmente inicializada
-    }
-
-    // Apenas redirecione se estivermos na página de login e já estiver autenticado
+    // Não faça nada até a autenticação ser inicializada
+    if (!isInitialized) return;
+    
+    // Se estamos na página de login e já estamos autenticados, redirecione
     if (user && location.pathname === '/login') {
-      const from = location.state?.from?.pathname || '/dashboard';
-      console.log('AuthProvider - Redirecionando usuário autenticado para:', from);
-      navigate(from, { replace: true });
+      // Redirecione para o dashboard ou para a rota de origem
+      const destination = location.state?.from?.pathname || '/dashboard';
+      console.log('AuthProvider - Redirecionando para:', destination);
+      // Use setTimeout para garantir que o redirecionamento aconteça depois do render atual
+      setTimeout(() => {
+        navigate(destination, { replace: true });
+      }, 0);
     }
-  }, [user, isInitialized, location, navigate]);
+  }, [user, isInitialized, location.pathname]);
 
   const value: AuthContextType = {
     user,

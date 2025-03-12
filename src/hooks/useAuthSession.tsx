@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { AuthUser } from '@/types/auth';
 import { createAuthUser } from '@/utils/authUtils';
@@ -9,11 +9,20 @@ export function useAuthSession() {
   const [isLoading, setIsLoading] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const initializationAttempted = useRef(false);
 
   useEffect(() => {
     let mounted = true;
-    console.log('useAuthSession - Iniciando inicialização');
+    console.log('useAuthSession - Iniciando verificação de sessão');
 
+    // Evitar múltiplas inicializações
+    if (initializationAttempted.current) {
+      console.log('useAuthSession - Inicialização já foi tentada');
+      return;
+    }
+    
+    initializationAttempted.current = true;
+    
     const initializeAuth = async () => {
       try {
         console.log('useAuthSession - Verificando sessão existente');
@@ -22,11 +31,11 @@ export function useAuthSession() {
         if (!mounted) return;
 
         if (session?.user) {
-          console.log('useAuthSession - Sessão encontrada, criando usuário', session.user.email);
+          console.log('useAuthSession - Sessão encontrada para', session.user.email);
           const authUser = await createAuthUser(session);
           setUser(authUser);
         } else {
-          console.log('useAuthSession - Nenhuma sessão encontrada');
+          console.log('useAuthSession - Nenhuma sessão ativa encontrada');
           setUser(null);
         }
       } catch (error) {
@@ -50,21 +59,20 @@ export function useAuthSession() {
 
       if (!mounted) return;
 
-      // Apenas atualize o estado se houver uma mudança real
       if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'USER_UPDATED') {
         setIsLoading(true);
 
         try {
           if (session?.user) {
+            console.log('useAuthSession - Usuário autenticado:', session.user.email);
             const authUser = await createAuthUser(session);
-            console.log('useAuthSession - Usuário atualizado:', authUser);
             setUser(authUser);
           } else {
             console.log('useAuthSession - Usuário deslogado');
             setUser(null);
           }
         } catch (error) {
-          console.error('useAuthSession - Erro ao atualizar usuário:', error);
+          console.error('useAuthSession - Erro ao processar mudança de estado:', error);
         } finally {
           setIsLoading(false);
         }

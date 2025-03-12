@@ -1,14 +1,11 @@
 
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { 
-  loginWithSupabase, 
-  registerWithSupabase, 
-  logoutWithSupabase,
   formatAuthError,
-  createAuthUser
+  createAuthUser,
+  logoutWithSupabase
 } from '@/utils/authUtils';
 import { AuthUser } from '@/types/auth';
 
@@ -24,6 +21,7 @@ export function useAuthActions(
       setIsLoading(true);
       setError(null);
       
+      // Login direto usando supabase para garantir controle mais preciso
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -31,20 +29,27 @@ export function useAuthActions(
       
       if (error) throw error;
       
-      if (data?.user) {
+      if (data?.user && data.session) {
         const authUser = await createAuthUser(data.session);
+        console.log('Login bem-sucedido, usuário:', authUser);
         setUser(authUser);
         toast.success("Login realizado com sucesso!");
-        navigate('/dashboard', { replace: true });
+        
+        // Redirecione após definir o usuário
+        setTimeout(() => {
+          navigate('/dashboard', { replace: true });
+        }, 100);
+        return true;
       } else {
-        throw new Error("Erro na autenticação");
+        throw new Error("Dados de usuário ou sessão ausentes após login");
       }
       
     } catch (error: any) {
+      console.error('Erro no login:', error);
       const errorMessage = formatAuthError(error);
       setError(errorMessage);
       toast.error(errorMessage);
-      throw error;
+      return false;
     } finally {
       setIsLoading(false);
     }
@@ -54,13 +59,23 @@ export function useAuthActions(
     try {
       setIsLoading(true);
       setError(null);
-      await registerWithSupabase(email, password);
-      toast.success("Cadastro realizado com sucesso!");
+      
+      // Registrando usuário diretamente
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+      
+      if (error) throw error;
+      
+      toast.success("Cadastro realizado com sucesso! Verifique seu email para confirmar.");
+      return true;
     } catch (error: any) {
+      console.error('Erro no registro:', error);
       const errorMessage = formatAuthError(error);
       setError(errorMessage);
       toast.error(errorMessage);
-      throw error;
+      return false;
     } finally {
       setIsLoading(false);
     }
@@ -71,11 +86,19 @@ export function useAuthActions(
       setIsLoading(true);
       await logoutWithSupabase();
       setUser(null);
-      navigate('/login', { replace: true });
+      
+      // Redirecione após logout
+      setTimeout(() => {
+        navigate('/login', { replace: true });
+      }, 100);
+      
       toast.success("Logout realizado com sucesso");
+      return true;
     } catch (error: any) {
+      console.error('Erro no logout:', error);
       setError(error.message);
       toast.error(error.message);
+      return false;
     } finally {
       setIsLoading(false);
     }

@@ -30,11 +30,19 @@ const LoginForm: React.FC<LoginFormProps> = ({
       return;
     }
     
-    if (isSubmitting || isLoading) return;
+    // Evitar múltiplas submissões
+    if (isSubmitting || isLoading) {
+      console.log('LoginForm - Ignorando submissão adicional enquanto processando');
+      return;
+    }
     
     try {
+      console.log('LoginForm - Iniciando processo de login');
       setIsSubmitting(true);
-      await login(email, password);
+      const success = await login(email, password);
+      console.log('LoginForm - Login concluído, sucesso:', success);
+      
+      // Não faça nada após login bem-sucedido - o redirecionamento é tratado em useAuthActions
     } catch (error) {
       console.error("Erro no login:", error);
     } finally {
