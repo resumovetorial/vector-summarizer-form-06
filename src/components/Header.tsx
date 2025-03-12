@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { BarChart4, Home } from 'lucide-react';
+import { BarChart4, Home, ShieldAlert } from 'lucide-react';
 import AnimatedLogo from './AnimatedLogo';
 import { Button } from '@/components/ui/button';
 
@@ -32,6 +32,13 @@ const Header = () => {
               <Link to="/dashboard">
                 <BarChart4 className="h-4 w-4 mr-2" />
                 Dashboard
+              </Link>
+            </Button>
+            
+            <Button variant="ghost" asChild>
+              <Link to="/admin">
+                <ShieldAlert className="h-4 w-4 mr-2" />
+                Admin
               </Link>
             </Button>
           </div>
