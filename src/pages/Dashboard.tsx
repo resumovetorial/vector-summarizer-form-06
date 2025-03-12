@@ -14,6 +14,7 @@ import { mockDashboardData, fetchDashboardData } from '@/services/dashboardServi
 import { LocalityData } from '@/types/dashboard';
 import LocalitySelector from '@/components/formSteps/LocalitySelector';
 import LocalityDetails from '@/components/dashboard/LocalityDetails';
+import LocalityDataTable from '@/components/dashboard/LocalityDataTable';
 
 const Dashboard = () => {
   const { toast } = useToast();
@@ -23,6 +24,7 @@ const Dashboard = () => {
   const [dashboardData, setDashboardData] = useState(mockDashboardData);
   const [selectedLocality, setSelectedLocality] = useState<string>('');
   const [localityData, setLocalityData] = useState<LocalityData | null>(null);
+  const [localityHistoricalData, setLocalityHistoricalData] = useState<LocalityData[]>([]);
 
   const refreshData = async () => {
     setIsLoading(true);
@@ -66,11 +68,14 @@ const Dashboard = () => {
       
       if (filteredData.length > 0) {
         setLocalityData(filteredData[0]);
+        setLocalityHistoricalData(filteredData);
       } else {
         setLocalityData(null);
+        setLocalityHistoricalData([]);
       }
     } else {
       setLocalityData(null);
+      setLocalityHistoricalData([]);
     }
   };
 
@@ -141,6 +146,13 @@ const Dashboard = () => {
                   </CardContent>
                 </Card>
               </div>
+              
+              {/* Locality Data Table - Only show when a locality is selected */}
+              {selectedLocality && localityHistoricalData.length > 0 && (
+                <div className="mb-8">
+                  <LocalityDataTable data={localityHistoricalData} />
+                </div>
+              )}
               
               <Tabs defaultValue="week" className="w-full" onValueChange={(value) => setView(value as 'week' | 'cycle')}>
                 <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 mb-8">
