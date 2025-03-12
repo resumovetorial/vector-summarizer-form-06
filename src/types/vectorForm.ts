@@ -21,6 +21,15 @@ export interface FormData {
   recusa: string;
   fechadas: string;
   recuperadas: string;
+  // New fields for deposits
+  a1: string;
+  a2: string;
+  b: string;
+  c: string;
+  d1: string;
+  d2: string;
+  e: string;
+  depositos_eliminados: string;
 }
 
 export interface ValidationErrors {

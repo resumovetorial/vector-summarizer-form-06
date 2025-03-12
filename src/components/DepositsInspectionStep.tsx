@@ -2,37 +2,27 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import QuantitativeDataSection from './QuantitativeDataSection';
-import TreatmentInspectionSection from './TreatmentInspectionSection';
+import DepositsInspectionSection from './DepositsInspectionSection';
 import { FormData, ValidationErrors } from '@/types/vectorForm';
 
-interface QuantitativeDataStepProps {
+interface DepositsInspectionStepProps {
   formData: FormData;
   handleInputChange: (field: keyof FormData, value: any) => void;
   errors: ValidationErrors;
-  calculateTotal: () => void;
   prevStep: () => void;
   nextStep: () => void;
 }
 
-const QuantitativeDataStep: React.FC<QuantitativeDataStepProps> = ({
+const DepositsInspectionStep: React.FC<DepositsInspectionStepProps> = ({
   formData,
   handleInputChange,
   errors,
-  calculateTotal,
   prevStep,
   nextStep
 }) => {
   return (
     <>
-      <QuantitativeDataSection 
-        formData={formData}
-        handleInputChange={handleInputChange}
-        errors={errors}
-        calculateTotal={calculateTotal}
-      />
-      
-      <TreatmentInspectionSection
+      <DepositsInspectionSection 
         formData={formData}
         handleInputChange={handleInputChange}
         errors={errors}
@@ -62,4 +52,4 @@ const QuantitativeDataStep: React.FC<QuantitativeDataStepProps> = ({
   );
 };
 
-export default QuantitativeDataStep;
+export default DepositsInspectionStep;

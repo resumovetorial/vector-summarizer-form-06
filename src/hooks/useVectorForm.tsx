@@ -34,7 +34,16 @@ export const useVectorForm = () => {
     amostras_coletadas: '',
     recusa: '',
     fechadas: '',
-    recuperadas: ''
+    recuperadas: '',
+    // Initialize new fields
+    a1: '',
+    a2: '',
+    b: '',
+    c: '',
+    d1: '',
+    d2: '',
+    e: '',
+    depositos_eliminados: ''
   });
   
   const handleInputChange = (field: keyof FormData, value: any) => {

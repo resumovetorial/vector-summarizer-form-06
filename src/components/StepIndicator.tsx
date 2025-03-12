@@ -13,6 +13,15 @@ const StepIndicator: React.FC<StepIndicatorProps> = ({
   totalSteps,
   className
 }) => {
+  const getStepName = (stepNumber: number) => {
+    switch(stepNumber) {
+      case 1: return 'Informações Gerais';
+      case 2: return 'Dados Quantitativos';
+      case 3: return 'Depósitos Inspecionados';
+      default: return `Passo ${stepNumber}`;
+    }
+  };
+
   return (
     <div className={cn("w-full flex items-center justify-between mb-8", className)}>
       {Array.from({ length: totalSteps }).map((_, index) => {
@@ -62,7 +71,7 @@ const StepIndicator: React.FC<StepIndicatorProps> = ({
                 isActive || isCompleted ? "text-blue-600 font-medium" : "text-gray-500"
               )}
             >
-              {stepNumber === 1 ? 'Informações Gerais' : 'Dados Quantitativos'}
+              {getStepName(stepNumber)}
             </span>
           </div>
         );
