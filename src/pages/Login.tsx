@@ -6,12 +6,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
+import { useAuth } from '@/hooks/useAuth';
 
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,15 +22,16 @@ const Login = () => {
     try {
       // Simulated authentication - in a real app, this would be a call to an auth API
       if (username === 'admin' && password === 'admin123') {
-        // Store auth info in localStorage
-        localStorage.setItem('user', JSON.stringify({ 
+        // Store auth info and call the login function from useAuth
+        const userData = { 
           username, 
           role: 'admin',
           isAuthenticated: true 
-        }));
+        };
         
+        login(userData);
         toast.success("Login bem-sucedido!");
-        navigate('/admin');
+        navigate('/');
       } else {
         toast.error("Credenciais inválidas. Tente novamente.");
       }
