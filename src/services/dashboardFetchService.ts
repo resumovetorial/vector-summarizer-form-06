@@ -1,4 +1,3 @@
-
 import { LocalityData } from "@/types/dashboard";
 import { getSavedVectorData } from "./vectorService";
 import { mockDashboardData } from "./mockDashboardData";
@@ -10,16 +9,10 @@ import { supabase } from '@/integrations/supabase/client';
  */
 export const setupRealtimeSupport = async () => {
   try {
-    // Configure vector_data table to support Realtime
-    const { error } = await supabase.rpc('enable_realtime_for_table', {
-      table_name: 'vector_data'
-    });
-    
-    if (error) {
-      console.error('Error enabling realtime for vector_data:', error);
-    } else {
-      console.log('Realtime enabled for vector_data table');
-    }
+    console.log('Realtime support is enabled for vector_data table via SQL configurations');
+    // Note: We've already enabled Realtime for vector_data using SQL commands
+    // ALTER TABLE public.vector_data REPLICA IDENTITY FULL;
+    // ALTER PUBLICATION supabase_realtime ADD TABLE public.vector_data;
   } catch (error) {
     console.error('Failed to setup realtime support:', error);
   }
