@@ -8,7 +8,6 @@ import { useAuthActions } from '@/hooks/useAuthActions';
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(false);
-  const location = useLocation();
   const navigate = useNavigate();
   
   const { 
@@ -26,18 +25,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading
   );
 
-  // Simplificada a lógica de redirecionamento
-  useEffect(() => {
-    // Não fazer nada até que a autenticação seja inicializada
-    if (!isInitialized) return;
-    
-    // Apenas redirecionar usuário autenticado da página de login para dashboard
-    if (user && location.pathname === '/login') {
-      navigate('/dashboard', { replace: true });
-    }
-    
-    // Deixe o componente ProtectedRoute lidar com redirecionamentos para páginas protegidas
-  }, [user, isInitialized, location.pathname, navigate]);
+  // Extremely simplified - no redirects in AuthProvider
+  // Let the ProtectedRoute handle all routing logic
 
   const value: AuthContextType = {
     user,

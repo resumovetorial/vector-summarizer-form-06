@@ -1,16 +1,27 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import LoginHeader from '@/components/auth/LoginHeader';
 import LoginForm from '@/components/auth/LoginForm';
 import RegisterForm from '@/components/auth/RegisterForm';
+import { useAuth } from '@/hooks/useAuth';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [activeTab, setActiveTab] = useState('login');
+  const { isAuthenticated, isInitialized } = useAuth();
+  const navigate = useNavigate();
+
+  // Redirect authenticated users away from login page
+  useEffect(() => {
+    if (isAuthenticated && isInitialized) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [isAuthenticated, isInitialized, navigate]);
 
   const handleRegisterSuccess = () => {
     setActiveTab('login');

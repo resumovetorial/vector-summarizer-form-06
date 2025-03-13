@@ -14,11 +14,11 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
   const [content, setContent] = useState<React.ReactNode | null>(null);
 
   useEffect(() => {
-    // Definir páginas públicas que não exigem autenticação
+    // Define public pages that don't require authentication
     const publicPages = ['/login', '/unauthorized'];
     const isPublicPage = publicPages.includes(location.pathname);
 
-    // Mostrar loader durante inicialização
+    // Show loading indicator while initializing
     if (!isInitialized) {
       setContent(
         <div className="min-h-screen flex items-center justify-center background-gradient">
@@ -28,37 +28,37 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
       return;
     }
 
-    // Se estiver em uma página pública, permitir acesso independente de autenticação
+    // CASE 1: Public page - always allow access regardless of auth status
     if (isPublicPage) {
       setContent(children);
       return;
     }
-
-    // Redirecionar para login se não estiver autenticado
+    
+    // CASE 2: Protected page but user is not authenticated - redirect to login
     if (!isAuthenticated) {
       setContent(<Navigate to="/login" state={{ from: location }} replace />);
       return;
     }
-
-    // Verificações de role apenas para usuários autenticados
+    
+    // CASE 3: User is authenticated but we need to check roles for admin access
     if (user) {
       const isAdmin = user.role === 'admin' || 
-                     ['resumovetorial@gmail.com', 'admin@example.com'].includes(user.email || '');
-
-      // Verificar requisito específico de role
+                    ['resumovetorial@gmail.com', 'admin@example.com'].includes(user.email || '');
+      
+      // Check admin role requirement
       if (requiredRole === 'admin' && !isAdmin) {
         setContent(<Navigate to="/unauthorized" replace />);
         return;
       }
-
-      // Verificar acesso a rotas de admin
+      
+      // Check admin routes access
       if (!isAdmin && location.pathname.startsWith('/admin')) {
         setContent(<Navigate to="/unauthorized" replace />);
         return;
       }
     }
-
-    // Acesso concedido
+    
+    // CASE 4: All checks passed - grant access
     setContent(children);
   }, [isAuthenticated, isInitialized, user, location, children, requiredRole]);
 
