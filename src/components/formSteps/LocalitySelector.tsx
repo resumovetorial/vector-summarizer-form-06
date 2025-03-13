@@ -11,6 +11,7 @@ import {
 import { MapPin } from 'lucide-react';
 import { getLocalities } from '@/services/localitiesService';
 import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
 
 interface LocalitySelectorProps {
   value: string;
@@ -34,8 +35,9 @@ const LocalitySelector: React.FC<LocalitySelectorProps> = ({
     const fetchLocalities = async () => {
       try {
         setLoading(true);
+        console.log('Buscando localidades do Supabase...');
         
-        // Tentar buscar do Supabase primeiro
+        // Try to fetch from Supabase first
         const { data, error } = await supabase
           .from('localities')
           .select('name')
@@ -43,24 +45,41 @@ const LocalitySelector: React.FC<LocalitySelectorProps> = ({
           
         if (error) {
           console.error('Erro ao buscar localidades do Supabase:', error);
-          // Fallback para dados locais
+          // Fallback to local data
           const localLocalities = getLocalities();
           console.log('Usando localidades locais:', localLocalities.length);
           setLocalities(localLocalities);
+          toast.warning('Usando localidades locais (sem conexão com servidor)');
         } else if (data && data.length > 0) {
-          // Mapear nomes de localidades do Supabase
+          // Map locality names from Supabase
           const localityNames = data.map(loc => loc.name);
           console.log('Localidades carregadas do Supabase:', localityNames.length);
           setLocalities(localityNames);
+          toast.success('Localidades carregadas com sucesso');
         } else {
-          // Se não houver dados no Supabase, usar fallback
+          // If no data in Supabase, use fallback
           console.log('Nenhuma localidade encontrada no Supabase, usando dados locais');
-          setLocalities(getLocalities());
+          const localLocalities = getLocalities();
+          setLocalities(localLocalities);
+          
+          // Try to populate Supabase with local localities
+          if (localLocalities.length > 0) {
+            try {
+              console.log('Tentando povoar o Supabase com localidades locais...');
+              for (const locality of localLocalities) {
+                await supabase.from('localities').insert({ name: locality }).select();
+              }
+              console.log('Localidades locais carregadas para o Supabase');
+            } catch (insertError) {
+              console.error('Erro ao povoar localidades no Supabase:', insertError);
+            }
+          }
         }
       } catch (err) {
         console.error('Erro ao carregar localidades:', err);
-        // Fallback para dados locais em caso de erro
+        // Fallback to local data in case of error
         setLocalities(getLocalities());
+        toast.error('Erro ao carregar localidades do servidor');
       } finally {
         setLoading(false);
       }

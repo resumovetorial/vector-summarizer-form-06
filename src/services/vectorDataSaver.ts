@@ -27,9 +27,11 @@ export const saveVectorData = async (data: LocalityData[]): Promise<boolean> => 
     // Tentar sincronizar com Supabase se houver dados para salvar
     if (data.length > 0) {
       try {
+        console.log('Tentando sincronizar com Supabase...');
         const syncResult = await syncDataWithSupabase(data);
         if (syncResult) {
           toast.success('Dados sincronizados com sucesso');
+          return true;
         } else {
           toast.warning('Dados salvos localmente, mas não foi possível sincronizar com o servidor');
         }
@@ -64,6 +66,8 @@ const syncDataWithSupabase = async (data: LocalityData[]): Promise<boolean> => {
       // Verificar se esta localidade existe
       let localityId = null;
       
+      console.log(`Verificando localidade: "${item.locality}"`);
+      
       // Primeiro, tentamos buscar a localidade pelo nome exato
       const { data: existingLocalities, error: searchError } = await supabase
         .from('localities')
@@ -72,32 +76,52 @@ const syncDataWithSupabase = async (data: LocalityData[]): Promise<boolean> => {
       
       if (searchError) {
         console.error("Erro ao buscar localidade:", searchError);
-        continue;
-      }
-      
-      // Se encontramos a localidade, usar o ID
-      if (existingLocalities && existingLocalities.length > 0) {
+        // Tentar criar a localidade mesmo assim
+        try {
+          const { data: newLoc, error: insertErr } = await supabase
+            .from('localities')
+            .insert([{ name: item.locality }])
+            .select('id');
+          
+          if (insertErr) {
+            console.error("Erro ao criar localidade após falha na busca:", insertErr);
+            continue;
+          } else if (newLoc && newLoc.length > 0) {
+            localityId = newLoc[0].id;
+            console.log("Localidade criada com ID:", localityId);
+          }
+        } catch (e) {
+          console.error("Exceção ao criar localidade:", e);
+          continue;
+        }
+      } else if (existingLocalities && existingLocalities.length > 0) {
+        // Se encontramos a localidade, usar o ID
         localityId = existingLocalities[0].id;
         console.log("Localidade encontrada com ID:", localityId);
       } else {
         // Se não encontramos, criar nova localidade
         console.log("Localidade não encontrada, criando nova:", item.locality);
         
-        const { data: newLocality, error: insertError } = await supabase
-          .from('localities')
-          .insert([{ name: item.locality }])
-          .select('id');
-        
-        if (insertError) {
-          console.error("Erro ao criar localidade:", insertError);
-          continue;
-        }
-        
-        if (newLocality && newLocality.length > 0) {
-          localityId = newLocality[0].id;
-          console.log("Nova localidade criada com ID:", localityId);
-        } else {
-          console.error("Falha ao criar localidade: sem retorno de dados");
+        try {
+          const { data: newLocality, error: insertError } = await supabase
+            .from('localities')
+            .insert([{ name: item.locality }])
+            .select('id');
+          
+          if (insertError) {
+            console.error("Erro ao criar localidade:", insertError);
+            continue;
+          }
+          
+          if (newLocality && newLocality.length > 0) {
+            localityId = newLocality[0].id;
+            console.log("Nova localidade criada com ID:", localityId);
+          } else {
+            console.error("Falha ao criar localidade: sem retorno de dados");
+            continue;
+          }
+        } catch (e) {
+          console.error("Exceção ao criar nova localidade:", e);
           continue;
         }
       }
@@ -111,6 +135,8 @@ const syncDataWithSupabase = async (data: LocalityData[]): Promise<boolean> => {
         }
         
         // Inserir dados no Supabase
+        console.log("Inserindo dados para localidade:", item.locality);
+        
         const { error } = await supabase
           .from('vector_data')
           .insert([{

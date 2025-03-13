@@ -18,12 +18,15 @@ export const getSavedVectorData = async (): Promise<LocalityData[]> => {
     
     if (error) {
       console.error('Erro ao buscar dados do Supabase:', error);
+      toast.error('Erro ao buscar dados do servidor, usando dados locais');
       // Fallback para localStorage
       return getLocalVectorData();
     }
     
     if (data && data.length > 0) {
       console.log("Dados recuperados do Supabase:", data.length, "linhas");
+      toast.success(`${data.length} registros carregados do servidor`);
+      
       // Converter dados do Supabase para formato LocalityData
       return data.map(item => ({
         municipality: item.municipality,
@@ -68,10 +71,12 @@ export const getSavedVectorData = async (): Promise<LocalityData[]> => {
     }
     
     console.log("Nenhum dado encontrado no Supabase, verificando localStorage");
+    toast.info('Nenhum dado encontrado no servidor, verificando armazenamento local');
     // Se não houver dados no Supabase, fallback para localStorage
     return getLocalVectorData();
   } catch (error) {
     console.error('Erro ao buscar dados vetoriais salvos:', error);
+    toast.error('Erro ao conectar com o servidor, usando dados locais');
     // Fallback para localStorage
     return getLocalVectorData();
   }
@@ -83,12 +88,16 @@ const getLocalVectorData = (): LocalityData[] => {
   if (savedData) {
     try {
       console.log("Dados recuperados do localStorage");
-      return JSON.parse(savedData);
+      const parsedData = JSON.parse(savedData);
+      toast.info(`${parsedData.length} registros carregados do armazenamento local`);
+      return parsedData;
     } catch (error) {
       console.error('Erro ao analisar dados do localStorage:', error);
+      toast.error('Erro ao ler dados locais');
       return [];
     }
   }
   console.log("Nenhum dado encontrado no localStorage");
+  toast.warning('Nenhum dado encontrado localmente');
   return [];
 };
