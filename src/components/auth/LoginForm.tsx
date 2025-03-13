@@ -1,106 +1,113 @@
 
 import React, { useState } from 'react';
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { toast } from "sonner";
 import { useAuth } from '@/hooks/useAuth';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { AlertCircle, Loader2 } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
-interface LoginFormProps {
-  email: string;
-  setEmail: (email: string) => void;
-  password: string;
-  setPassword: (password: string) => void;
-}
+const LoginForm: React.FC = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const { login, isLoading, error } = useAuth();
 
-const LoginForm: React.FC<LoginFormProps> = ({
-  email,
-  setEmail,
-  password,
-  setPassword
-}) => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const { login, isLoading } = useAuth();
-
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!email || !password) {
-      toast.error("Por favor, preencha todos os campos");
-      return;
-    }
-    
-    // Evitar múltiplas submissões
-    if (isSubmitting || isLoading) {
-      console.log('LoginForm - Ignorando submissão adicional enquanto processando');
-      return;
-    }
-    
-    try {
-      console.log('LoginForm - Iniciando processo de login');
-      setIsSubmitting(true);
+    if (email && password) {
       await login(email, password);
-      // O redirecionamento será tratado pelo useEffect no componente Login.tsx
-    } catch (error) {
-      console.error("Erro no login:", error);
-    } finally {
-      setIsSubmitting(false);
     }
   };
-
-  const isButtonDisabled = isLoading || isSubmitting;
-  const buttonText = isButtonDisabled ? "Entrando..." : "Entrar";
+  
+  // Helper para determinar o nível de acesso com base no email
+  const getAccessLevelInfo = (email: string): { level: string, color: string } => {
+    if (email.includes('admin') || email === 'resumovetorial@gmail.com') {
+      return { level: 'Administrador', color: 'text-red-500' };
+    } else if (email.includes('supervisor') || email.includes('coordenador')) {
+      return { level: 'Supervisor', color: 'text-blue-500' };
+    } else {
+      return { level: 'Agente', color: 'text-green-500' };
+    }
+  };
+  
+  const accessInfo = email ? getAccessLevelInfo(email) : { level: '', color: '' };
 
   return (
-    <form onSubmit={handleLogin}>
-      <div className="space-y-4 pt-4">
-        <div className="space-y-2">
-          <Label htmlFor="login-email">Email</Label>
-          <Input
-            id="login-email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Digite seu email"
-            required
-            className="bg-[#F1F1F1]"
-            disabled={isButtonDisabled}
-          />
-        </div>
-        
-        <div className="space-y-2">
-          <Label htmlFor="login-password">Senha</Label>
-          <Input
-            id="login-password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Digite sua senha"
-            required
-            className="bg-[#F1F1F1]"
-            disabled={isButtonDisabled}
-          />
-        </div>
-      </div>
-      
-      <div className="flex items-center mt-6">
-        <Button 
-          type="submit" 
-          className="w-full bg-blue-600 hover:bg-blue-700"
-          disabled={isButtonDisabled}
-        >
-          {isButtonDisabled ? (
-            <span className="flex items-center">
-              <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              {buttonText}
-            </span>
-          ) : buttonText}
-        </Button>
-      </div>
-    </form>
+    <Card className="w-full max-w-md mx-auto">
+      <CardHeader>
+        <CardTitle>Login</CardTitle>
+        <CardDescription>
+          Entre com suas credenciais para acessar o sistema
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="seu@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              disabled={isLoading}
+            />
+          </div>
+          
+          {email && (
+            <div className="text-sm">
+              <span>Nível de acesso: </span>
+              <span className={accessInfo.color + " font-semibold"}>
+                {accessInfo.level}
+              </span>
+              <p className="text-xs text-gray-500 mt-1">
+                * O nível de acesso é determinado automaticamente com base no seu email
+              </p>
+            </div>
+          )}
+          
+          <div className="space-y-2">
+            <Label htmlFor="password">Senha</Label>
+            <Input
+              id="password"
+              type="password"
+              placeholder="******"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              disabled={isLoading}
+            />
+          </div>
+          
+          {error && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                {error}
+              </AlertDescription>
+            </Alert>
+          )}
+          
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Entrando...
+              </>
+            ) : (
+              "Entrar"
+            )}
+          </Button>
+        </form>
+      </CardContent>
+      <CardFooter className="flex justify-center">
+        <p className="text-sm text-muted-foreground">
+          * No modo de demonstração, qualquer senha é aceita
+        </p>
+      </CardFooter>
+    </Card>
   );
 };
 

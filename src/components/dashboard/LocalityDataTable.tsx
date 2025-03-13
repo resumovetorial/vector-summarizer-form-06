@@ -7,6 +7,7 @@ import { useDataExport } from '@/hooks/useDataExport';
 import LocalityDataTableHeader from './LocalityDataTableHeader';
 import LocalityDataTableContent from './LocalityDataTableContent';
 import AccessRestrictionCard from './AccessRestrictionCard';
+import AccessLevelGuard from '../AccessLevelGuard';
 
 interface LocalityDataTableProps {
   data: LocalityData[];
@@ -65,25 +66,30 @@ const LocalityDataTable: React.FC<LocalityDataTableProps> = ({ data }) => {
   });
 
   return (
-    <Card>
-      <CardHeader>
-        <LocalityDataTableHeader 
-          localityName={data[0].locality}
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          onExportToExcel={exportToExcel}
-          onExportToPDF={exportToPDF}
-          isExporting={isExporting}
-        />
-      </CardHeader>
-      <CardContent>
-        <LocalityDataTableContent 
-          data={data}
-          filteredData={filteredData}
-          tableRef={tableRef}
-        />
-      </CardContent>
-    </Card>
+    <AccessLevelGuard 
+      requiredLevel="agente"
+      fallbackMessage="Você precisa ter acesso de agente ou superior para visualizar os dados desta localidade."
+    >
+      <Card>
+        <CardHeader>
+          <LocalityDataTableHeader 
+            localityName={data[0].locality}
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            onExportToExcel={exportToExcel}
+            onExportToPDF={exportToPDF}
+            isExporting={isExporting}
+          />
+        </CardHeader>
+        <CardContent>
+          <LocalityDataTableContent 
+            data={data}
+            filteredData={filteredData}
+            tableRef={tableRef}
+          />
+        </CardContent>
+      </Card>
+    </AccessLevelGuard>
   );
 };
 

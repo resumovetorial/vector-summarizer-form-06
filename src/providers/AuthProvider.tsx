@@ -33,11 +33,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Verifica se o usuário tem o papel específico
     return user.role === requiredRole;
   };
+  
+  // Função para verificar se o usuário tem o nível de acesso necessário
+  const hasAccessLevel = (requiredLevel: 'agente' | 'supervisor' | 'administrador'): boolean => {
+    if (!user) return false;
+    
+    // Se o usuário for admin, tem acesso a tudo
+    if (user.role === 'admin') return true;
+    
+    // Se não tiver nível de acesso definido, não tem acesso
+    if (!user.accessLevel) return false;
+    
+    // Hierarquia de acesso: administrador > supervisor > agente
+    if (user.accessLevel === 'administrador') return true;
+    if (user.accessLevel === 'supervisor' && requiredLevel !== 'administrador') return true;
+    if (user.accessLevel === 'agente' && requiredLevel === 'agente') return true;
+    
+    return false;
+  };
 
   useEffect(() => {
     console.log('AuthProvider - Estado de autenticação atualizado:', { 
       user: user ? 'logado' : 'deslogado',
       role: user?.role || 'nenhum',
+      accessLevel: user?.accessLevel || 'nenhum',
       isInitialized, 
       isLoading: isLoading || isSessionLoading 
     });
@@ -52,7 +71,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     isLoading: isLoading || isSessionLoading,
     isInitialized,
     error,
-    hasPermission
+    hasPermission,
+    hasAccessLevel
   };
 
   return (

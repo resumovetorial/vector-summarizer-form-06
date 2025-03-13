@@ -5,6 +5,7 @@ export interface AuthUser {
   isAuthenticated: boolean;
   id: string;
   email?: string;
+  accessLevel?: 'agente' | 'supervisor' | 'administrador';
 }
 
 export interface AuthContextType {
@@ -17,4 +18,5 @@ export interface AuthContextType {
   isInitialized: boolean;
   error?: string | null;
   hasPermission: (requiredRole: string) => boolean;
+  hasAccessLevel: (requiredLevel: 'agente' | 'supervisor' | 'administrador') => boolean;
 }

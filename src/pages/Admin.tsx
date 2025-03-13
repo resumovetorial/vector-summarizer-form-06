@@ -1,84 +1,50 @@
 
-import React, { useState, useCallback } from 'react';
-import { ChevronLeft } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import React, { useState } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuth } from '@/hooks/useAuth';
+import AccessLevelGuard from '@/components/AccessLevelGuard';
 import AdminHeader from '@/components/admin/AdminHeader';
 import UserManagement from '@/components/admin/UserManagement';
-import AccessLevels from '@/components/admin/AccessLevels';
 import LocalitiesManagement from '@/components/admin/LocalitiesManagement';
-import { useRealtimeUpdates } from '@/hooks/useRealtimeUpdates';
-import { LocalityData } from '@/types/dashboard';
-import { toast } from 'sonner';
+import AccessLevels from '@/components/admin/AccessLevels';
 
-const Admin: React.FC = () => {
-  const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<string>('users');
-  const [realtimeStatus, setRealtimeStatus] = useState<boolean>(false);
-
-  // Callback for realtime updates
-  const handleRealtimeUpdate = useCallback((newData: LocalityData) => {
-    console.log('Admin received realtime update:', newData);
-    
-    // Notify admin about new updates
-    toast.info(`Nova atualização recebida: ${newData.municipality}, ${newData.locality}, Ciclo ${newData.cycle}`);
-    
-  }, []);
-
-  // Configure realtime support
-  const { isSubscribed } = useRealtimeUpdates(handleRealtimeUpdate);
-
-  // Side effect when realtime status changes
-  React.useEffect(() => {
-    setRealtimeStatus(isSubscribed);
-  }, [isSubscribed]);
-
+const Admin = () => {
+  const [activeTab, setActiveTab] = useState('users');
+  const { user } = useAuth();
+  
   return (
-    <div className="min-h-screen bg-background">
-      <AdminHeader />
-      
-      <main className="container mx-auto py-6 px-4 md:px-6">
-        <div className="flex items-center mb-6">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="mr-2" 
-            onClick={() => navigate('/dashboard')}
-          >
-            <ChevronLeft className="h-4 w-4 mr-1" />
-            Voltar ao Dashboard
-          </Button>
-          <h1 className="text-2xl font-bold">Painel Administrativo</h1>
-          
-          {realtimeStatus && (
-            <div className="ml-auto flex items-center px-3 py-1 rounded-full bg-green-100 text-green-800 text-sm">
-              <div className="w-2 h-2 rounded-full bg-green-500 mr-2 animate-pulse"></div>
-              <span>Conectado em tempo real</span>
-            </div>
-          )}
-        </div>
-
-        <Tabs defaultValue="users" value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="mb-6">
+    <div className="container mx-auto py-6">
+      <AccessLevelGuard 
+        requiredLevel="administrador"
+        fallbackMessage="Você precisa ter acesso de administrador para visualizar o painel administrativo."
+      >
+        <AdminHeader 
+          title="Painel Administrativo" 
+          description="Gerencie usuários, localidades e níveis de acesso"
+        />
+        
+        <Tabs
+          defaultValue="users"
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="w-full mt-6"
+        >
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="users">Usuários</TabsTrigger>
-            <TabsTrigger value="access">Níveis de Acesso</TabsTrigger>
             <TabsTrigger value="localities">Localidades</TabsTrigger>
+            <TabsTrigger value="access-levels">Níveis de Acesso</TabsTrigger>
           </TabsList>
-          
-          <TabsContent value="users">
+          <TabsContent value="users" className="mt-6">
             <UserManagement />
           </TabsContent>
-          
-          <TabsContent value="access">
-            <AccessLevels />
-          </TabsContent>
-          
-          <TabsContent value="localities">
+          <TabsContent value="localities" className="mt-6">
             <LocalitiesManagement />
           </TabsContent>
+          <TabsContent value="access-levels" className="mt-6">
+            <AccessLevels />
+          </TabsContent>
         </Tabs>
-      </main>
+      </AccessLevelGuard>
     </div>
   );
 };
