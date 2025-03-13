@@ -61,11 +61,11 @@ export const processVectorData = async (formData: FormData) => {
       .from('localities')
       .select('id')
       .eq('name', formData.locality)
-      .maybeSingle();
+      .single();
     
     let localityId;
     
-    if (localityError || !localityData) {
+    if (localityError) {
       console.log("Localidade não existe, criando nova:", formData.locality);
       // Criar nova localidade
       const { data: newLocality, error: createError } = await supabase
@@ -92,9 +92,8 @@ export const processVectorData = async (formData: FormData) => {
     
     console.log("Usando ID da localidade:", localityId);
     
-    // Obter informações do usuário para atribuição de criador
-    const { data: userData } = await supabase.auth.getUser();
-    const userId = userData.user?.id || 'anonymous';
+    // Usar um ID de usuário fixo para demonstração, já que estamos no modo de demonstração
+    const userId = '00000000-0000-0000-0000-000000000000';
     
     console.log("Inserindo dados no Supabase para usuário:", userId);
     
@@ -119,7 +118,7 @@ export const processVectorData = async (formData: FormData) => {
       inspections: vectorData.inspections,
       deposits_eliminated: vectorData.depositsEliminated,
       deposits_treated: vectorData.depositsTreated,
-      supervisor: userId, // Usar ID do usuário como supervisor por enquanto
+      supervisor: userId, // Usar ID de usuário fixo para demonstração
       qt_residencias: vectorData.qt_residencias,
       qt_comercio: vectorData.qt_comercio,
       qt_terreno_baldio: vectorData.qt_terreno_baldio,

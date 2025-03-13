@@ -10,24 +10,9 @@ export const useRealtimeUpdates = (
   const [isSubscribed, setIsSubscribed] = useState(false);
 
   useEffect(() => {
-    console.log("Setting up Realtime subscription for vector_data table");
+    console.log("Configurando assinatura Realtime para a tabela vector_data");
     
-    // Enable realtime for this table
-    const enableRealtimeForTable = async () => {
-      try {
-        // Add the table to the realtime publication
-        await supabase.rpc('supabase_functions.enable_realtime', {
-          table_name: 'vector_data'
-        });
-        console.log("Realtime support is enabled for vector_data table via SQL configurations");
-      } catch (error) {
-        console.error("Failed to enable realtime:", error);
-      }
-    };
-    
-    enableRealtimeForTable();
-    
-    // Subscribe to changes on the vector_data table
+    // Inscrever-se para mudanças na tabela vector_data
     const channel = supabase
       .channel('schema-db-changes')
       .on(
@@ -38,18 +23,18 @@ export const useRealtimeUpdates = (
           table: 'vector_data'
         },
         (payload) => {
-          console.log('Change received!', payload);
+          console.log('Mudança recebida!', payload);
           callback(payload);
         }
       )
       .subscribe((status) => {
-        console.log("Realtime subscription status:", status);
+        console.log("Status da assinatura Realtime:", status);
         setIsSubscribed(status === 'SUBSCRIBED');
       });
     
-    // Cleanup function
+    // Função de limpeza
     return () => {
-      console.log("Cleaning up realtime subscription");
+      console.log("Limpando assinatura realtime");
       setIsSubscribed(false);
       supabase.removeChannel(channel);
     };
