@@ -4,6 +4,7 @@ import { getSavedVectorData } from "./vectorService";
 import { mockDashboardData } from "./mockDashboardData";
 import { filterDataByYear } from "./dashboardFilterService";
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 /**
  * Configure Supabase to support Realtime for vector_data
