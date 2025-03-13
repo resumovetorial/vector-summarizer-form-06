@@ -14,7 +14,7 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
   const [content, setContent] = useState<React.ReactNode | null>(null);
 
   useEffect(() => {
-    // Aguardar inicialização da autenticação antes de tomar decisões
+    // Mostrar loader enquanto a autenticação está inicializando
     if (!isInitialized) {
       setContent(
         <div className="min-h-screen flex items-center justify-center background-gradient">
@@ -24,26 +24,29 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
       return;
     }
 
-    // Redirecionar para login se não estiver autenticado
-    if (!isAuthenticated) {
+    // Apenas verificar autenticação após inicialização
+    if (!isAuthenticated && isInitialized) {
       setContent(<Navigate to="/login" state={{ from: location }} replace />);
       return;
     }
 
-    // Verificar permissões de admin se necessário
-    const isAdmin = user?.role === 'admin' || 
-                   ['resumovetorial@gmail.com', 'admin@example.com'].includes(user?.email || '');
+    // Verificações de permissão apenas para usuários autenticados
+    if (isAuthenticated && user) {
+      // Verificar permissões de admin
+      const isAdmin = user.role === 'admin' || 
+                    ['resumovetorial@gmail.com', 'admin@example.com'].includes(user.email || '');
 
-    // Verificar requisitos específicos de role
-    if (requiredRole === 'admin' && !isAdmin) {
-      setContent(<Navigate to="/unauthorized" replace />);
-      return;
-    }
+      // Verificar requisitos específicos de role
+      if (requiredRole === 'admin' && !isAdmin) {
+        setContent(<Navigate to="/unauthorized" replace />);
+        return;
+      }
 
-    // Verificar acesso a rotas de admin
-    if (!isAdmin && location.pathname.startsWith('/admin')) {
-      setContent(<Navigate to="/unauthorized" replace />);
-      return;
+      // Verificar acesso a rotas de admin
+      if (!isAdmin && location.pathname.startsWith('/admin')) {
+        setContent(<Navigate to="/unauthorized" replace />);
+        return;
+      }
     }
 
     // Acesso concedido

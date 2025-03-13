@@ -33,11 +33,11 @@ const App = () => {
         <BrowserRouter>
           <AuthProvider>
             <Routes>
-              {/* Rotas públicas */}
+              {/* Rotas públicas que não exigem autenticação */}
               <Route path="/login" element={<Login />} />
               <Route path="/unauthorized" element={<Unauthorized />} />
               
-              {/* Rota inicial - agora protegida */}
+              {/* Rota inicial - precisa ser protegida para forçar login */}
               <Route 
                 path="/" 
                 element={

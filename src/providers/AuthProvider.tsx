@@ -26,13 +26,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading
   );
 
-  // Melhorada lógica de redirecionamento
+  // Correção da lógica de redirecionamento para evitar problemas de inicialização
   useEffect(() => {
     // Não redirecionar até que a autenticação seja inicializada
     if (!isInitialized) return;
     
-    // Páginas públicas que não exigem redirecionamento
-    const publicPages = ['/', '/login', '/unauthorized'];
+    // Páginas que não exigem autenticação
+    const publicPages = ['/login', '/unauthorized'];
     const isPublicPage = publicPages.includes(location.pathname);
     
     if (user) {
