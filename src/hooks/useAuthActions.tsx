@@ -18,23 +18,24 @@ export function useAuthActions(
       setIsLoading(true);
       setError(null);
       
-      // Simulate successful login without actual authentication
-      console.log('useAuthActions - Simulando login bem-sucedido');
+      // Simula verificação de credenciais (em ambiente real seria validado no backend)
+      // Neste exemplo, consideramos 'admin@sistema.com' como administrador
+      const isAdmin = email.toLowerCase() === 'admin@sistema.com';
       
-      // Create a mock user that matches the AuthUser interface
+      // Cria um usuário simulado conforme o tipo de acesso
       const mockUser: AuthUser = {
         id: '1',
         email: email,
-        username: email.split('@')[0], // Use part of email as username
-        role: 'admin',
+        username: email.split('@')[0], // Use parte do email como username
+        role: isAdmin ? 'admin' : 'user',
         isAuthenticated: true
       };
       
       setUser(mockUser);
       toast.success("Login realizado com sucesso!");
       
-      // Navigate to dashboard with replace to avoid navigation issues
-      console.log('useAuthActions - Login simulado bem-sucedido, redirecionando para dashboard');
+      // Redireciona para dashboard
+      console.log(`useAuthActions - Login bem-sucedido como ${mockUser.role}, redirecionando para dashboard`);
       navigate('/dashboard', { replace: true });
       return true;
       
@@ -54,8 +55,21 @@ export function useAuthActions(
       setIsLoading(true);
       setError(null);
       
-      // Simulate successful registration
-      toast.success("Cadastro realizado com sucesso! Usuário criado.");
+      // Simula registro de usuário (em ambiente real seria enviado ao backend)
+      // Novos usuários são sempre criados com papel 'user'
+      const mockUser: AuthUser = {
+        id: crypto.randomUUID(),
+        email: email,
+        username: email.split('@')[0],
+        role: 'user', // Novos usuários sempre começam como 'user'
+        isAuthenticated: true
+      };
+      
+      setUser(mockUser);
+      toast.success("Cadastro realizado com sucesso! Redirecionando para o formulário.");
+      
+      // Redireciona para o formulário após o registro
+      navigate('/', { replace: true });
       return true;
     } catch (error: any) {
       console.error('Erro no registro:', error);
@@ -71,7 +85,6 @@ export function useAuthActions(
   const logout = async () => {
     try {
       setIsLoading(true);
-      // Just clear local state
       setUser(null);
       toast.success("Logout realizado com sucesso");
       navigate('/login', { replace: true });

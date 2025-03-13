@@ -23,9 +23,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading
   );
 
+  // Função para verificar se o usuário tem a permissão (role) necessária
+  const hasPermission = (requiredRole: string): boolean => {
+    if (!user) return false;
+    
+    // 'admin' tem acesso a tudo
+    if (user.role === 'admin') return true;
+    
+    // Verifica se o usuário tem o papel específico
+    return user.role === requiredRole;
+  };
+
   useEffect(() => {
     console.log('AuthProvider - Estado de autenticação atualizado:', { 
       user: user ? 'logado' : 'deslogado',
+      role: user?.role || 'nenhum',
       isInitialized, 
       isLoading: isLoading || isSessionLoading 
     });
@@ -39,7 +51,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     isAuthenticated: !!user,
     isLoading: isLoading || isSessionLoading,
     isInitialized,
-    error
+    error,
+    hasPermission
   };
 
   return (

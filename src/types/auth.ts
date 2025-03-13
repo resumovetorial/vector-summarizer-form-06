@@ -16,4 +16,5 @@ export interface AuthContextType {
   isLoading: boolean;
   isInitialized: boolean;
   error?: string | null;
+  hasPermission: (requiredRole: string) => boolean;
 }

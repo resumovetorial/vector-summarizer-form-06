@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 
 const Header = () => {
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, logout, hasPermission } = useAuth();
 
   return (
     <header className="py-6">
@@ -27,33 +27,40 @@ const Header = () => {
         
         <nav>
           <div className="flex space-x-2">
-            <Button variant="ghost" asChild>
-              <Link to="/">
-                <Home className="h-4 w-4 mr-2" />
-                Início
-              </Link>
-            </Button>
+            {isAuthenticated && (
+              <>
+                <Button variant="ghost" asChild>
+                  <Link to="/">
+                    <Home className="h-4 w-4 mr-2" />
+                    Formulário
+                  </Link>
+                </Button>
+                
+                <Button variant="ghost" asChild>
+                  <Link to="/dashboard">
+                    <BarChart4 className="h-4 w-4 mr-2" />
+                    Dashboard
+                  </Link>
+                </Button>
+                
+                {/* Mostra link de Admin apenas se o usuário tiver permissão */}
+                {hasPermission('admin') && (
+                  <Button variant="ghost" asChild>
+                    <Link to="/admin">
+                      <ShieldAlert className="h-4 w-4 mr-2" />
+                      Admin
+                    </Link>
+                  </Button>
+                )}
+                
+                <Button variant="ghost" onClick={logout}>
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Sair
+                </Button>
+              </>
+            )}
             
-            <Button variant="ghost" asChild>
-              <Link to="/dashboard">
-                <BarChart4 className="h-4 w-4 mr-2" />
-                Dashboard
-              </Link>
-            </Button>
-            
-            <Button variant="ghost" asChild>
-              <Link to="/admin">
-                <ShieldAlert className="h-4 w-4 mr-2" />
-                Admin
-              </Link>
-            </Button>
-            
-            {isAuthenticated ? (
-              <Button variant="ghost" onClick={logout}>
-                <LogOut className="h-4 w-4 mr-2" />
-                Sair
-              </Button>
-            ) : (
+            {!isAuthenticated && (
               <Button variant="ghost" asChild>
                 <Link to="/login">
                   <User className="h-4 w-4 mr-2" />
