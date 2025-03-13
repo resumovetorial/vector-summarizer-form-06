@@ -10,6 +10,8 @@ import { saveVectorDataToSupabase } from './vector/vectorDataSaveService';
 import { findOrCreateLocality } from './localities/localityManager';
 import { saveToLocalStorage } from './vector/vectorLocalStorage';
 import { syncDataWithSupabase } from './vector/vectorDataSync';
+import { getLocalVectorData } from './vector/vectorLocalStorageFetcher';
+import { fetchVectorDataFromSupabase } from './vector/vectorSupabaseFetcher';
 
 export {
   getSavedVectorData,
@@ -20,5 +22,7 @@ export {
   saveVectorDataToSupabase,
   findOrCreateLocality,
   saveToLocalStorage,
-  syncDataWithSupabase
+  syncDataWithSupabase,
+  getLocalVectorData,
+  fetchVectorDataFromSupabase
 };
