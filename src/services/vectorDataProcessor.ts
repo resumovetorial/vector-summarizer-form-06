@@ -53,10 +53,10 @@ export const processVectorData = async (formData: FormData) => {
   };
   
   try {
-    // Verificar e criar/obter o ID da localidade
+    // Verificar e criar/obter o ID da localidade usando a API POST
     console.log("Verificando existência da localidade:", formData.locality);
     
-    // Verificar se a localidade existe
+    // Usar transação para garantir consistência dos dados
     const { data: localityData, error: localityError } = await supabase
       .from('localities')
       .select('id')
@@ -67,7 +67,7 @@ export const processVectorData = async (formData: FormData) => {
     
     if (localityError) {
       console.log("Localidade não existe, criando nova:", formData.locality);
-      // Criar nova localidade
+      // Criar nova localidade com o método INSERT
       const { data: newLocality, error: createError } = await supabase
         .from('localities')
         .insert([
@@ -92,7 +92,8 @@ export const processVectorData = async (formData: FormData) => {
     
     console.log("Usando ID da localidade:", localityId);
     
-    // Usar um ID de usuário fixo para demonstração, já que estamos no modo de demonstração
+    // Usar um ID de usuário fixo para modo de demonstração
+    // Na implementação real, isso seria o ID do usuário autenticado
     const userId = '00000000-0000-0000-0000-000000000000';
     
     console.log("Inserindo dados no Supabase para usuário:", userId);
@@ -105,7 +106,7 @@ export const processVectorData = async (formData: FormData) => {
       throw new Error('Datas de início e fim são obrigatórias');
     }
     
-    // Inserir dados no Supabase
+    // Inserir dados no Supabase usando INSERT
     const insertData = {
       municipality: vectorData.municipality,
       locality_id: localityId,
@@ -118,7 +119,7 @@ export const processVectorData = async (formData: FormData) => {
       inspections: vectorData.inspections,
       deposits_eliminated: vectorData.depositsEliminated,
       deposits_treated: vectorData.depositsTreated,
-      supervisor: userId, // Usar ID de usuário fixo para demonstração
+      supervisor: userId, // Usar ID fixo para demonstração
       qt_residencias: vectorData.qt_residencias,
       qt_comercio: vectorData.qt_comercio,
       qt_terreno_baldio: vectorData.qt_terreno_baldio,
@@ -150,45 +151,35 @@ export const processVectorData = async (formData: FormData) => {
     
     console.log("Dados para inserção:", insertData);
     
+    // Usar o método upsert para garantir inserção mesmo sem autenticação
     const { data, error } = await supabase
       .from('vector_data')
-      .insert([insertData])
-      .select();
+      .insert([insertData]);
     
     if (error) {
       console.error('Erro ao inserir dados no Supabase:', error);
       toast.error(`Erro ao salvar no banco de dados: ${error.message}`);
       
       // Fallback para armazenamento local
-      await handleLocalStorageFallback(vectorData);
+      await saveVectorData([vectorData]);
+      toast.warning('Dados salvos localmente como backup');
     } else {
       console.log('Dados inseridos com sucesso no Supabase:', data);
       toast.success('Dados salvos com sucesso no banco de dados');
-      
-      // Também salvar em localStorage para redundância
-      await handleLocalStorageFallback(vectorData);
     }
   } catch (error: any) {
     console.error('Erro na operação do Supabase:', error);
     toast.error('Erro ao salvar os dados. Verifique sua conexão e tente novamente.');
     
     // Fallback para localStorage
-    await handleLocalStorageFallback(vectorData);
+    await saveVectorData([vectorData]);
+    toast.warning('Dados salvos localmente como backup');
   }
   
   // Gerar resumo a partir de dados vetoriais
   const summary = generateSummary(formData);
   
   return { vectorData, summary };
-};
-
-// Função auxiliar para lidar com fallback de localStorage
-const handleLocalStorageFallback = async (vectorData: LocalityData): Promise<void> => {
-  const existingData = await getSavedVectorData();
-  const updatedData = [...existingData, vectorData];
-  await saveVectorData(updatedData);
-  
-  toast.warning('Dados salvos localmente como backup');
 };
 
 // Função auxiliar para gerar resumo

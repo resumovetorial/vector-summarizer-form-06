@@ -22,7 +22,7 @@ export const getSavedVectorData = async (): Promise<LocalityData[]> => {
       // Converter dados do Supabase para formato LocalityData
       return data.map(item => ({
         municipality: item.municipality,
-        locality: item.localities?.name || item.locality_id, // Usar nome da localidade se disponível
+        locality: item.localities?.name || 'Localidade não encontrada', // Usar nome da localidade se disponível
         cycle: item.cycle,
         epidemiologicalWeek: item.epidemiological_week,
         workModality: item.work_modality,
@@ -62,6 +62,7 @@ export const getSavedVectorData = async (): Promise<LocalityData[]> => {
       }));
     }
     
+    console.log("Nenhum dado encontrado no Supabase, verificando localStorage");
     // Se não houver dados no Supabase, fallback para localStorage
     return getLocalVectorData();
   } catch (error) {
@@ -76,11 +77,13 @@ const getLocalVectorData = (): LocalityData[] => {
   const savedData = localStorage.getItem('vectorData');
   if (savedData) {
     try {
+      console.log("Dados recuperados do localStorage");
       return JSON.parse(savedData);
     } catch (error) {
       console.error('Erro ao analisar dados do localStorage:', error);
       return [];
     }
   }
+  console.log("Nenhum dado encontrado no localStorage");
   return [];
 };
