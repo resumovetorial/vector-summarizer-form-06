@@ -4,11 +4,17 @@ import { AccessLevel } from '@/types/admin';
 
 export const updateAccessLevel = async (level: AccessLevel): Promise<AccessLevel> => {
   try {
-    // Verificar a sessão atual do usuário - Modificado para compatibilidade
-    const { data: { session } } = await supabase.auth.getSession();
+    // Buscar a sessão atual - mais confiável
+    const { data, error: sessionError } = await supabase.auth.getSession();
     
-    if (!session) {
-      console.error('Usuário não autenticado');
+    if (sessionError) {
+      console.error('Erro ao verificar sessão:', sessionError);
+      throw new Error('Erro ao verificar autenticação');
+    }
+    
+    // Verificar se existe uma sessão válida
+    if (!data.session) {
+      console.error('Usuário não autenticado - sessão não encontrada');
       throw new Error('Você precisa estar autenticado para atualizar níveis de acesso');
     }
     
@@ -26,7 +32,7 @@ export const updateAccessLevel = async (level: AccessLevel): Promise<AccessLevel
     
     const supabaseId = existingLevels[0].id;
     
-    const { data, error } = await supabase
+    const { data: updateData, error } = await supabase
       .from('access_levels')
       .update({
         name: level.name,
@@ -50,9 +56,9 @@ export const updateAccessLevel = async (level: AccessLevel): Promise<AccessLevel
     
     return {
       id: level.id, // Keep original ID for interface consistency
-      name: data.name,
-      description: data.description || '',
-      permissions: data.permissions,
+      name: updateData.name,
+      description: updateData.description || '',
+      permissions: updateData.permissions,
     };
   } catch (error: any) {
     console.error('Falha ao atualizar nível de acesso:', error);

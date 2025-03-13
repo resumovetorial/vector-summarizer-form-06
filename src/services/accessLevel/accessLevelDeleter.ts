@@ -3,11 +3,17 @@ import { supabase } from '@/lib/supabase';
 
 export const deleteAccessLevel = async (levelName: string): Promise<void> => {
   try {
-    // Verificar a sessão atual do usuário - Modificado para compatibilidade
-    const { data: { session } } = await supabase.auth.getSession();
+    // Buscar a sessão atual - mais confiável
+    const { data, error: sessionError } = await supabase.auth.getSession();
     
-    if (!session) {
-      console.error('Usuário não autenticado');
+    if (sessionError) {
+      console.error('Erro ao verificar sessão:', sessionError);
+      throw new Error('Erro ao verificar autenticação');
+    }
+    
+    // Verificar se existe uma sessão válida
+    if (!data.session) {
+      console.error('Usuário não autenticado - sessão não encontrada');
       throw new Error('Você precisa estar autenticado para excluir níveis de acesso');
     }
     
