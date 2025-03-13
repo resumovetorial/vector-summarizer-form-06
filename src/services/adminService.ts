@@ -1,4 +1,3 @@
-
 import { User, AccessLevel } from '@/types/admin';
 
 // Mock data for testing the admin panel
@@ -35,7 +34,7 @@ export const mockUsers: User[] = [
     name: 'Pedro Oliveira',
     email: 'pedro@example.com',
     role: 'Agente',
-    accessLevelId: 3,
+    accessLevelId: 4,
     active: false,
     assignedLocalities: []
   }

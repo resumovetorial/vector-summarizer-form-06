@@ -20,7 +20,7 @@ export const useUsers = () => {
           fetchedAccessLevels = await fetchAccessLevels();
           console.log("Fetched access levels:", fetchedAccessLevels);
           
-          // Set access levels (including "Agente" level)
+          // Set access levels (including all defined levels)
           setAccessLevels(fetchedAccessLevels);
         } catch (error) {
           console.error('Erro ao buscar níveis de acesso:', error);
