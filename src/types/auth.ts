@@ -1,6 +1,4 @@
 
-import { User } from '@supabase/supabase-js';
-
 export interface AuthUser {
   username: string;
   role: string;

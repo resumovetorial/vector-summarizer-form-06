@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { AuthUser, AuthContextType } from '@/types/auth';
 import AuthContext from '@/contexts/AuthContext';
@@ -26,24 +26,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading
   );
 
-  // Usar useCallback para evitar recriar a função em cada render
-  const handleRedirect = useCallback(() => {
-    // Não faça nada até a autenticação ser inicializada
+  // Simplified redirection logic
+  useEffect(() => {
+    // Don't redirect until authentication is initialized
     if (!isInitialized) return;
     
-    // Se estamos na página de login e já estamos autenticados, redirecione
+    // If user is authenticated and on the login page, redirect to dashboard
     if (user && location.pathname === '/login') {
-      // Redirecione para o dashboard ou para a rota de origem
       const destination = location.state?.from?.pathname || '/dashboard';
-      console.log('AuthProvider - Redirecionando para:', destination);
-      navigate(destination, { replace: true });
+      // Small delay to prevent immediate redirection that might cause loops
+      setTimeout(() => {
+        navigate(destination, { replace: true });
+      }, 50);
     }
-  }, [user, isInitialized, location.pathname, location.state, navigate]);
-
-  // Efeito simplificado que executa apenas quando as dependências mudam
-  useEffect(() => {
-    handleRedirect();
-  }, [handleRedirect]);
+  }, [user, isInitialized, location.pathname, navigate, location.state]);
 
   const value: AuthContextType = {
     user,

@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { AuthUser } from '@/types/auth';
 import { createAuthUser } from '@/utils/authUtils';
@@ -9,89 +9,66 @@ export function useAuthSession() {
   const [isLoading, setIsLoading] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const initializationAttempted = useRef(false);
-  const authChangeSubscribed = useRef(false);
 
   useEffect(() => {
-    let mounted = true;
-    console.log('useAuthSession - Iniciando verificação de sessão');
-
-    // Evitar múltiplas inicializações
-    if (initializationAttempted.current) {
-      console.log('useAuthSession - Inicialização já foi tentada');
-      return;
-    }
+    let isMounted = true;
     
-    initializationAttempted.current = true;
-    
+    // Initialize auth session
     const initializeAuth = async () => {
       try {
-        console.log('useAuthSession - Verificando sessão existente');
+        setIsLoading(true);
+        
+        // Get current session
         const { data: { session } } = await supabase.auth.getSession();
-
-        if (!mounted) return;
-
+        
+        if (!isMounted) return;
+        
         if (session?.user) {
-          console.log('useAuthSession - Sessão encontrada para', session.user.email);
           const authUser = await createAuthUser(session);
           setUser(authUser);
         } else {
-          console.log('useAuthSession - Nenhuma sessão ativa encontrada');
           setUser(null);
         }
       } catch (error) {
-        console.error('useAuthSession - Erro na inicialização:', error);
-        if (mounted) {
+        if (isMounted) {
           setError(error instanceof Error ? error.message : 'Erro na inicialização');
         }
       } finally {
-        if (mounted) {
+        if (isMounted) {
           setIsInitialized(true);
           setIsLoading(false);
-          console.log('useAuthSession - Inicialização completa');
         }
       }
     };
-
-    initializeAuth();
-
-    // Configurar o listener de mudança de estado de autenticação apenas uma vez
-    if (!authChangeSubscribed.current) {
-      authChangeSubscribed.current = true;
+    
+    // Set up auth state change listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!isMounted) return;
       
-      const { data: subscription } = supabase.auth.onAuthStateChange(async (event, session) => {
-        console.log('useAuthSession - Mudança no estado de autenticação:', event);
-        
-        if (!mounted) return;
-        
-        if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
-          setIsLoading(true);
-          
+      if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
+        if (session?.user) {
           try {
-            if (session?.user) {
-              console.log('useAuthSession - Usuário autenticado:', session.user.email);
-              const authUser = await createAuthUser(session);
-              setUser(authUser);
-            }
+            setIsLoading(true);
+            const authUser = await createAuthUser(session);
+            setUser(authUser);
           } catch (error) {
-            console.error('useAuthSession - Erro ao processar mudança de estado:', error);
+            console.error('Error handling auth state change:', error);
           } finally {
             setIsLoading(false);
           }
-        } else if (event === 'SIGNED_OUT') {
-          console.log('useAuthSession - Usuário deslogado');
-          setUser(null);
         }
-      });
-      
-      return () => {
-        mounted = false;
-        subscription.subscription.unsubscribe();
-      };
-    }
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null);
+      }
+    });
     
+    // Initialize auth on mount
+    initializeAuth();
+    
+    // Cleanup
     return () => {
-      mounted = false;
+      isMounted = false;
+      subscription.unsubscribe();
     };
   }, []);
 

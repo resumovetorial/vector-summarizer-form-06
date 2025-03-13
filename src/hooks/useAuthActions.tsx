@@ -21,7 +21,6 @@ export function useAuthActions(
       setIsLoading(true);
       setError(null);
       
-      // Login direto usando supabase para garantir controle mais preciso
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -31,12 +30,14 @@ export function useAuthActions(
       
       if (data?.user && data.session) {
         const authUser = await createAuthUser(data.session);
-        console.log('Login bem-sucedido, usuário:', authUser);
         setUser(authUser);
         toast.success("Login realizado com sucesso!");
         
-        // Navegação simples e direta para o dashboard
-        navigate('/dashboard', { replace: true });
+        // Delay navigation slightly to avoid race conditions
+        setTimeout(() => {
+          navigate('/dashboard', { replace: true });
+        }, 100);
+        
         return true;
       } else {
         throw new Error("Dados de usuário ou sessão ausentes após login");
@@ -58,7 +59,6 @@ export function useAuthActions(
       setIsLoading(true);
       setError(null);
       
-      // Registrando usuário diretamente
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -85,8 +85,10 @@ export function useAuthActions(
       await logoutWithSupabase();
       setUser(null);
       
-      // Navegação simples e direta para o login
-      navigate('/login', { replace: true });
+      // Add delay to prevent race conditions
+      setTimeout(() => {
+        navigate('/login', { replace: true });
+      }, 100);
       
       toast.success("Logout realizado com sucesso");
       return true;

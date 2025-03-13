@@ -11,21 +11,12 @@ interface ProtectedRouteProps {
 const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
   const { isAuthenticated, isLoading, isInitialized, user } = useAuth();
   const location = useLocation();
-  const [shouldRender, setShouldRender] = useState<React.ReactNode | null>(null);
+  const [content, setContent] = useState<React.ReactNode | null>(null);
 
   useEffect(() => {
-    console.log('ProtectedRoute - Estado:', { 
-      isAuthenticated, 
-      isLoading, 
-      isInitialized,
-      pathname: location.pathname,
-      user: user ? { role: user.role, email: user.email } : null
-    });
-
-    // Aguardar inicialização da autenticação antes de tomar decisões
+    // Wait for auth to initialize before making decisions
     if (!isInitialized) {
-      console.log('ProtectedRoute - Aguardando inicialização da autenticação...');
-      setShouldRender(
+      setContent(
         <div className="min-h-screen flex items-center justify-center background-gradient">
           <div className="animate-spin h-8 w-8 border-4 border-blue-600 rounded-full border-t-transparent"></div>
         </div>
@@ -33,38 +24,33 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
       return;
     }
 
-    // Verificar autenticação - redirecionar para login se não estiver autenticado
+    // Redirect to login if not authenticated
     if (!isAuthenticated) {
-      console.log('ProtectedRoute - Usuário não autenticado, redirecionando para login');
-      setShouldRender(<Navigate to="/login" state={{ from: location }} replace />);
+      setContent(<Navigate to="/login" state={{ from: location }} replace />);
       return;
     }
 
-    // Verificar permissões de administrador
+    // Check admin permissions if needed
     const isAdmin = user?.role === 'admin' || 
                    ['resumovetorial@gmail.com', 'admin@example.com'].includes(user?.email || '');
 
-    console.log('ProtectedRoute - Verificação de admin:', { isAdmin, role: user?.role, email: user?.email });
-
-    // Verificar permissões específicas
+    // Verify specific role requirements
     if (requiredRole === 'admin' && !isAdmin) {
-      console.log('ProtectedRoute - Acesso negado: requer admin');
-      setShouldRender(<Navigate to="/unauthorized" replace />);
+      setContent(<Navigate to="/unauthorized" replace />);
       return;
     }
 
+    // Verify admin route access
     if (!isAdmin && location.pathname.startsWith('/admin')) {
-      console.log('ProtectedRoute - Acesso negado: rota de admin');
-      setShouldRender(<Navigate to="/unauthorized" replace />);
+      setContent(<Navigate to="/unauthorized" replace />);
       return;
     }
 
-    // Acesso permitido
-    console.log('ProtectedRoute - Acesso permitido');
-    setShouldRender(children);
+    // Access granted
+    setContent(children);
   }, [isAuthenticated, isInitialized, isLoading, user, location, children, requiredRole]);
 
-  return <>{shouldRender}</>;
+  return <>{content}</>;
 };
 
 export default ProtectedRoute;
