@@ -19,8 +19,9 @@ export function useAuthActions(
       setError(null);
       
       // Simula verificação de credenciais (em ambiente real seria validado no backend)
-      // Neste exemplo, consideramos 'admin@sistema.com' como administrador
-      const isAdmin = email.toLowerCase() === 'admin@sistema.com';
+      // Verificamos se o email é de um administrador
+      const adminEmails = ['admin@sistema.com', 'resumovetorial@gmail.com'];
+      const isAdmin = adminEmails.includes(email.toLowerCase());
       
       // Cria um usuário simulado conforme o tipo de acesso
       const mockUser: AuthUser = {
