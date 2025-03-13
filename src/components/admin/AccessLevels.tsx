@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -18,7 +17,6 @@ const AccessLevels: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
   
-  // Form fields
   const [formName, setFormName] = useState('');
   const [formDescription, setFormDescription] = useState('');
   const [formPermissions, setFormPermissions] = useState('');
@@ -43,7 +41,6 @@ const AccessLevels: React.FC = () => {
     try {
       setIsLoading(true);
       
-      // Verificar se o usuário está autenticado e tem função de admin
       if (!user || user.role !== 'admin') {
         toast.error("Você precisa ter permissões de administrador para adicionar níveis de acesso.");
         return;
@@ -73,7 +70,6 @@ const AccessLevels: React.FC = () => {
     try {
       setIsLoading(true);
       
-      // Verificar se o usuário está autenticado e tem função de admin
       if (!user || user.role !== 'admin') {
         toast.error("Você precisa ter permissões de administrador para editar níveis de acesso.");
         return;
@@ -105,7 +101,6 @@ const AccessLevels: React.FC = () => {
     try {
       setIsLoading(true);
       
-      // Verificar se o usuário está autenticado e tem função de admin
       if (!user || user.role !== 'admin') {
         toast.error("Você precisa ter permissões de administrador para remover níveis de acesso.");
         return;
@@ -137,7 +132,6 @@ const AccessLevels: React.FC = () => {
     setIsEditDialogOpen(true);
   };
 
-  // Verificar se o usuário é admin
   const isAdmin = user?.role === 'admin';
   
   if (!isAdmin) {
@@ -196,7 +190,7 @@ const AccessLevels: React.FC = () => {
         onSubmit={handleEditLevel}
         setFormName={setFormName}
         setFormDescription={setFormDescription}
-        setFormPermissions={setFormFormissions}
+        setFormPermissions={setFormPermissions}
         isLoading={isLoading}
       />
     </Card>
