@@ -165,13 +165,25 @@ export const processVectorData = async (formData: FormData) => {
   };
   
   try {
+    // Preparar dados para inserção no Supabase
+    const localityUuid = formData.locality;
+    const userData = await supabase.auth.getUser();
+    const userId = userData.data.user?.id || 'anonymous';
+    
+    console.log("Inserindo dados no Supabase:", {
+      municipality: vectorData.municipality,
+      localityId: localityUuid,
+      userId: userId,
+      data: vectorData
+    });
+    
     // Inserir dados no Supabase
     const { data, error } = await supabase
       .from('vector_data')
       .insert([
         {
           municipality: vectorData.municipality,
-          locality_id: vectorData.locality,
+          locality_id: localityUuid,
           cycle: vectorData.cycle,
           epidemiological_week: vectorData.epidemiologicalWeek,
           work_modality: vectorData.workModality,
@@ -181,7 +193,7 @@ export const processVectorData = async (formData: FormData) => {
           inspections: vectorData.inspections,
           deposits_eliminated: vectorData.depositsEliminated,
           deposits_treated: vectorData.depositsTreated,
-          supervisor: vectorData.supervisor,
+          supervisor: userId, // Usar ID do usuário como supervisor temporariamente
           qt_residencias: vectorData.qt_residencias,
           qt_comercio: vectorData.qt_comercio,
           qt_terreno_baldio: vectorData.qt_terreno_baldio,
@@ -208,25 +220,39 @@ export const processVectorData = async (formData: FormData) => {
           quantidade_cargas: vectorData.quantidade_cargas,
           total_tec_saude: vectorData.total_tec_saude,
           total_dias_trabalhados: vectorData.total_dias_trabalhados,
-          created_by: (await supabase.auth.getUser()).data.user?.id || 'anonymous'
+          created_by: userId
         }
       ]);
     
     if (error) {
-      console.error('Error inserting data to Supabase:', error);
+      console.error('Erro ao inserir dados no Supabase:', error);
+      toast.error(`Erro ao salvar no banco de dados: ${error.message}`);
+      
       // Fallback para localStorage
       const existingData = await getSavedVectorData();
       const updatedData = [...existingData, vectorData];
       await saveVectorData(updatedData);
+      
+      toast.warning('Dados salvos localmente devido a erro de conexão');
     } else {
-      console.log('Data successfully inserted to Supabase:', data);
+      console.log('Dados inseridos com sucesso no Supabase:', data);
+      toast.success('Dados salvos com sucesso no banco de dados');
+      
+      // Também salvar no localStorage para redundância
+      const existingData = await getSavedVectorData();
+      const updatedData = [...existingData, vectorData];
+      await saveVectorData(updatedData);
     }
   } catch (error) {
-    console.error('Error in Supabase operation:', error);
+    console.error('Erro na operação do Supabase:', error);
+    toast.error('Erro ao salvar os dados');
+    
     // Fallback para localStorage
     const existingData = await getSavedVectorData();
     const updatedData = [...existingData, vectorData];
     await saveVectorData(updatedData);
+    
+    toast.warning('Dados salvos localmente devido a erro');
   }
   
   // Generate summary from vector data

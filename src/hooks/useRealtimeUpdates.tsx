@@ -27,6 +27,7 @@ export function useRealtimeUpdates(callback: (data: LocalityData) => void) {
             // Type assertion for payload.new as vector_data row type
             const vectorData = payload.new as Tables<'vector_data'>;
             
+            // Criar objeto LocalityData com valores padrão para evitar erros de tipagem
             const newData: LocalityData = {
               municipality: vectorData.municipality || '',
               locality: vectorData.locality_id || '',
@@ -39,7 +40,7 @@ export function useRealtimeUpdates(callback: (data: LocalityData) => void) {
               inspections: vectorData.inspections || 0,
               depositsEliminated: vectorData.deposits_eliminated || 0,
               depositsTreated: vectorData.deposits_treated || 0,
-              supervisor: vectorData.supervisor || '',
+              supervisor: typeof vectorData.supervisor === 'string' ? vectorData.supervisor : '',
               qt_residencias: vectorData.qt_residencias || 0,
               qt_comercio: vectorData.qt_comercio || 0,
               qt_terreno_baldio: vectorData.qt_terreno_baldio || 0,

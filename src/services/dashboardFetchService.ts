@@ -1,3 +1,4 @@
+
 import { LocalityData } from "@/types/dashboard";
 import { getSavedVectorData } from "./vectorService";
 import { mockDashboardData } from "./mockDashboardData";
@@ -28,28 +29,29 @@ export const fetchDashboardData = async (year: string = "2024"): Promise<Localit
   await new Promise(resolve => setTimeout(resolve, 1000));
   
   try {
+    console.log("Tentando buscar dados do Supabase...");
     // Try to get data from Supabase
     const { data, error } = await supabase
       .from('vector_data')
       .select('*');
     
     if (error) {
-      console.error('Error fetching data from Supabase:', error);
+      console.error('Erro ao buscar dados do Supabase:', error);
       // Fallback to localStorage
       const savedData = await getSavedVectorData();
       if (savedData && savedData.length > 0) {
-        console.log("Using saved data from localStorage:", savedData);
+        console.log("Usando dados salvos do localStorage:", savedData);
         // Filter by year
         return filterDataByYear(savedData, year);
       }
       
       // Last fallback to mocked data
-      console.log("Using mock data");
+      console.log("Usando dados simulados");
       return filterDataByYear(mockDashboardData, year);
     }
     
     if (data && data.length > 0) {
-      console.log("Using data from Supabase:", data);
+      console.log("Dados obtidos do Supabase:", data);
       // Convert Supabase data to LocalityData format
       const convertedData = data.map((item) => ({
         municipality: item.municipality,
@@ -98,17 +100,18 @@ export const fetchDashboardData = async (year: string = "2024"): Promise<Localit
     // Fallback to localStorage
     const savedData = await getSavedVectorData();
     if (savedData && savedData.length > 0) {
-      console.log("Using saved data from localStorage:", savedData);
+      console.log("Usando dados salvos do localStorage:", savedData);
       // Filter by year
       return filterDataByYear(savedData, year);
     }
   } catch (error) {
-    console.error('Error in Supabase operation:', error);
+    console.error('Erro na operação do Supabase:', error);
     // Fallback to localStorage
+    toast.error('Erro ao conectar com o banco de dados');
   }
   
   // If no data was obtained, use mocked data
-  console.log("Using mock data");
+  console.log("Usando dados simulados");
   return filterDataByYear(mockDashboardData, year);
 };
 
