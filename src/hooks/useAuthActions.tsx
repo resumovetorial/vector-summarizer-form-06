@@ -37,8 +37,10 @@ export function useAuthActions(
         const authUser = await createAuthUser(data.session);
         setUser(authUser);
         toast.success("Login realizado com sucesso!");
-        navigate('/dashboard', { replace: true });
+        
+        // Usar navigate com replace para evitar problemas com o histórico de navegação
         console.log('useAuthActions - Login bem-sucedido, redirecionando para dashboard');
+        navigate('/dashboard', { replace: true });
         return true;
       } else {
         throw new Error("Dados de usuário ou sessão ausentes após login");

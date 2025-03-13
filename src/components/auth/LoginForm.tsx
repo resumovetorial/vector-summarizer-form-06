@@ -39,10 +39,8 @@ const LoginForm: React.FC<LoginFormProps> = ({
     try {
       console.log('LoginForm - Iniciando processo de login');
       setIsSubmitting(true);
-      const success = await login(email, password);
-      console.log('LoginForm - Login concluído, sucesso:', success);
-      
-      // Não faça nada após login bem-sucedido - o redirecionamento é tratado em useAuthActions
+      await login(email, password);
+      // O redirecionamento será tratado pelo useEffect no componente Login.tsx
     } catch (error) {
       console.error("Erro no login:", error);
     } finally {

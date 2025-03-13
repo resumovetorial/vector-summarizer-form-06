@@ -9,17 +9,18 @@ interface ProtectedRouteProps {
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const { isAuthenticated, isInitialized } = useAuth();
 
-  // Aguarda a inicialização da autenticação para evitar redirecionamentos prematuros
+  // Apenas mostra um indicador de carregamento durante a inicialização
   if (!isInitialized) {
     return <div className="flex items-center justify-center h-screen">Carregando...</div>;
   }
 
-  // Se não estiver autenticado, redireciona para o login
+  // Redireciona para login apenas quando temos certeza que não está autenticado
   if (!isAuthenticated) {
+    console.log('ProtectedRoute: Usuário não autenticado, redirecionando para /login');
     return <Navigate to="/login" replace />;
   }
 
-  // Se autenticado, renderiza o conteúdo protegido
+  // Se chegou aqui, o usuário está autenticado
   return <>{children}</>;
 };
 

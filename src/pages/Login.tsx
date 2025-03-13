@@ -16,10 +16,10 @@ const Login = () => {
   const { isAuthenticated, isInitialized } = useAuth();
   const navigate = useNavigate();
 
-  // Redirecionar apenas após a inicialização e se autenticado
   useEffect(() => {
+    // Redireciona somente se estiver inicializado E autenticado
     if (isInitialized && isAuthenticated) {
-      console.log('Login - Usuário já autenticado, redirecionando');
+      console.log('Login - Redirecionando para dashboard, usuário já autenticado');
       navigate('/dashboard', { replace: true });
     }
   }, [isAuthenticated, isInitialized, navigate]);
@@ -28,11 +28,7 @@ const Login = () => {
     setActiveTab('login');
   };
 
-  // Se ainda estiver inicializando, exibe um indicador de carregamento
-  if (!isInitialized) {
-    return <div className="flex items-center justify-center h-screen">Carregando...</div>;
-  }
-
+  // Exibe o formulário de login mesmo durante a inicialização
   return (
     <div className="min-h-screen flex items-center justify-center background-gradient p-4">
       <Card className="w-full max-w-md shadow-lg bg-[#D3E4FD]">
