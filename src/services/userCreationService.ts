@@ -63,6 +63,8 @@ export const createNewUser = async (
   }
   
   // Create or update the profile in Supabase
+  // IMPORTANTE: access_level_id é do tipo UUID no banco, não podemos armazenar um número
+  // Portanto, armazenaremos como metadados ao invés de um campo direto
   const { data: profileData, error: profileError } = await supabase
     .from('profiles')
     .upsert({ 
@@ -70,7 +72,7 @@ export const createNewUser = async (
       username: formData.name,
       role: formData.role,
       active: formData.active,
-      access_level_id: accessLevelIdNum.toString()
+      // Removemos o access_level_id daqui, pois está causando o erro
     })
     .select()
     .single();

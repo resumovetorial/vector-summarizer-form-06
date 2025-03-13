@@ -26,7 +26,7 @@ export const updateExistingUser = async (
       username: formData.name,
       role: formData.role,
       active: formData.active,
-      access_level_id: accessLevelIdNum.toString() // Store as string in Supabase
+      // Removemos o access_level_id daqui também
     })
     .eq('id', initialUser.supabaseId);
     

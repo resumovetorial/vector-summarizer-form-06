@@ -36,7 +36,7 @@ export const useUsers = () => {
         // Fetch real users from Supabase
         const { data: profiles, error } = await supabase
           .from('profiles')
-          .select('id, username, role, active, access_level_id');
+          .select('id, username, role, active');
         
         if (error) {
           console.error('Erro ao buscar perfis:', error);
@@ -68,17 +68,12 @@ export const useUsers = () => {
 
           // Convert Supabase profiles to User format
           const realUsers: User[] = profiles.map((profile, index) => {
-            // Determine the access level ID based on profile
-            let accessLevelId = fetchedAccessLevels[0].id; // Default to first access level
+            // Determine default access level - use first one in the list
+            const defaultAccessLevelId = fetchedAccessLevels[0].id;
             
-            if (profile.access_level_id) {
-              const foundLevel = fetchedAccessLevels.find(
-                level => level.id.toString() === profile.access_level_id
-              );
-              if (foundLevel) {
-                accessLevelId = foundLevel.id;
-              }
-            } else if (profile.role === 'admin') {
+            // Check if profile has admin role, then use admin access level if exists
+            let accessLevelId = defaultAccessLevelId;
+            if (profile.role === 'admin') {
               const adminLevel = fetchedAccessLevels.find(
                 level => level.name.toLowerCase() === 'administrador'
               );
