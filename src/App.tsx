@@ -31,7 +31,6 @@ const App = () => {
             <Toaster />
             <Sonner />
             <Routes>
-              {/* All routes remain public */}
               <Route path="/" element={<Index />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/admin" element={<Admin />} />

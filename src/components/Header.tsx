@@ -1,10 +1,13 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { BarChart4, Home, ShieldAlert } from 'lucide-react';
+import { BarChart4, Home, LogOut, ShieldAlert, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/hooks/useAuth';
 
 const Header = () => {
+  const { isAuthenticated, logout } = useAuth();
+
   return (
     <header className="py-6">
       <div className="flex flex-col sm:flex-row justify-between items-center">
@@ -44,6 +47,20 @@ const Header = () => {
                 Admin
               </Link>
             </Button>
+            
+            {isAuthenticated ? (
+              <Button variant="ghost" onClick={logout}>
+                <LogOut className="h-4 w-4 mr-2" />
+                Sair
+              </Button>
+            ) : (
+              <Button variant="ghost" asChild>
+                <Link to="/login">
+                  <User className="h-4 w-4 mr-2" />
+                  Login
+                </Link>
+              </Button>
+            )}
           </div>
         </nav>
       </div>

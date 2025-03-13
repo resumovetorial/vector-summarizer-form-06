@@ -1,12 +1,7 @@
 
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { supabase } from '@/lib/supabase';
-import { 
-  formatAuthError,
-  createAuthUser,
-  logoutWithSupabase
-} from '@/utils/authUtils';
+import { formatAuthError } from '@/utils/authUtils';
 import { AuthUser } from '@/types/auth';
 
 export function useAuthActions(
@@ -76,7 +71,7 @@ export function useAuthActions(
   const logout = async () => {
     try {
       setIsLoading(true);
-      // Don't actually log out from Supabase, just clear local state
+      // Just clear local state
       setUser(null);
       toast.success("Logout realizado com sucesso");
       navigate('/login', { replace: true });
