@@ -22,13 +22,17 @@ export const saveVectorData = async (data: LocalityData[]): Promise<boolean> => 
     const dataString = JSON.stringify(data);
     localStorage.setItem('vectorData', dataString);
     
-    console.log('Dados vetoriais salvos no localStorage:', data);
+    console.log('Dados vetoriais salvos no localStorage:', data.length, 'itens');
     
-    // Tentar sincronizar com Supabase
-    try {
-      await syncDataWithSupabase(data);
-    } catch (syncError) {
-      console.error('Erro ao sincronizar com Supabase, mas dados foram salvos localmente:', syncError);
+    // Tentar sincronizar com Supabase se houver dados para salvar
+    if (data.length > 0) {
+      try {
+        await syncDataWithSupabase(data);
+        toast.success('Dados sincronizados com sucesso');
+      } catch (syncError) {
+        console.error('Erro ao sincronizar com Supabase, mas dados foram salvos localmente:', syncError);
+        toast.warning('Dados salvos localmente, mas não foi possível sincronizar com o servidor');
+      }
     }
     
     return true;
@@ -52,83 +56,105 @@ const syncDataWithSupabase = async (data: LocalityData[]): Promise<void> => {
   
   for (const item of data) {
     try {
-      // Verificar se esta localidade existe
-      const { data: localityData, error: localityError } = await supabase
+      // Verificar se esta localidade existe com um query mais robusto
+      let localityId = null;
+      
+      // Primeiro, tentamos buscar a localidade pelo nome exato
+      const { data: existingLocalities, error: searchError } = await supabase
         .from('localities')
         .select('id')
-        .eq('name', item.locality)
-        .single();
+        .eq('name', item.locality);
+      
+      if (searchError) {
+        console.error("Erro ao buscar localidade:", searchError);
+        continue;
+      }
+      
+      // Se encontramos a localidade, usar o ID
+      if (existingLocalities && existingLocalities.length > 0) {
+        localityId = existingLocalities[0].id;
+        console.log("Localidade encontrada com ID:", localityId);
+      } else {
+        // Se não encontramos, criar nova localidade
+        console.log("Localidade não encontrada, criando nova:", item.locality);
         
-      if (localityError) {
-        console.log('Criando nova localidade:', item.locality);
-        // Criar localidade
-        const { data: newLocality, error: createError } = await supabase
+        const { data: newLocality, error: insertError } = await supabase
           .from('localities')
-          .insert([
-            { name: item.locality }
-          ])
-          .select('id')
-          .single();
-          
-        if (createError) {
-          console.error('Erro ao criar localidade:', createError);
+          .insert([{ name: item.locality }])
+          .select('id');
+        
+        if (insertError) {
+          console.error("Erro ao criar localidade:", insertError);
           continue;
         }
         
-        var localityId = newLocality.id;
-      } else {
-        var localityId = localityData.id;
+        if (newLocality && newLocality.length > 0) {
+          localityId = newLocality[0].id;
+          console.log("Nova localidade criada com ID:", localityId);
+        } else {
+          console.error("Falha ao criar localidade: sem retorno de dados");
+          continue;
+        }
       }
       
-      // Inserir dados no Supabase
-      const { error } = await supabase
-        .from('vector_data')
-        .insert([{
-          municipality: item.municipality,
-          locality_id: localityId,
-          cycle: item.cycle,
-          epidemiological_week: item.epidemiologicalWeek,
-          work_modality: item.workModality,
-          start_date: item.startDate,
-          end_date: item.endDate,
-          total_properties: item.totalProperties,
-          inspections: item.inspections,
-          deposits_eliminated: item.depositsEliminated,
-          deposits_treated: item.depositsTreated,
-          supervisor: userId,
-          qt_residencias: item.qt_residencias,
-          qt_comercio: item.qt_comercio,
-          qt_terreno_baldio: item.qt_terreno_baldio,
-          qt_pe: item.qt_pe,
-          qt_outros: item.qt_outros,
-          qt_total: item.qt_total,
-          tratamento_focal: item.tratamento_focal,
-          tratamento_perifocal: item.tratamento_perifocal,
-          amostras_coletadas: item.amostras_coletadas,
-          recusa: item.recusa,
-          fechadas: item.fechadas,
-          recuperadas: item.recuperadas,
-          a1: item.a1,
-          a2: item.a2,
-          b: item.b,
-          c: item.c,
-          d1: item.d1,
-          d2: item.d2,
-          e: item.e,
-          larvicida: item.larvicida,
-          quantidade_larvicida: item.quantidade_larvicida,
-          quantidade_depositos_tratados: item.quantidade_depositos_tratados,
-          adulticida: item.adulticida,
-          quantidade_cargas: item.quantidade_cargas,
-          total_tec_saude: item.total_tec_saude,
-          total_dias_trabalhados: item.total_dias_trabalhados,
-          created_by: userId
-        }]);
+      // Se temos um ID de localidade válido, inserir os dados
+      if (localityId) {
+        // Garantir que as datas estejam presentes
+        if (!item.startDate || !item.endDate) {
+          console.error("Datas de início e/ou fim ausentes para o item:", item);
+          continue;
+        }
+        
+        // Inserir dados no Supabase
+        const { error } = await supabase
+          .from('vector_data')
+          .insert([{
+            municipality: item.municipality,
+            locality_id: localityId,
+            cycle: item.cycle,
+            epidemiological_week: item.epidemiologicalWeek,
+            work_modality: item.workModality,
+            start_date: item.startDate,
+            end_date: item.endDate,
+            total_properties: item.totalProperties,
+            inspections: item.inspections,
+            deposits_eliminated: item.depositsEliminated,
+            deposits_treated: item.depositsTreated,
+            supervisor: userId,
+            qt_residencias: item.qt_residencias,
+            qt_comercio: item.qt_comercio,
+            qt_terreno_baldio: item.qt_terreno_baldio,
+            qt_pe: item.qt_pe,
+            qt_outros: item.qt_outros,
+            qt_total: item.qt_total,
+            tratamento_focal: item.tratamento_focal,
+            tratamento_perifocal: item.tratamento_perifocal,
+            amostras_coletadas: item.amostras_coletadas,
+            recusa: item.recusa,
+            fechadas: item.fechadas,
+            recuperadas: item.recuperadas,
+            a1: item.a1,
+            a2: item.a2,
+            b: item.b,
+            c: item.c,
+            d1: item.d1,
+            d2: item.d2,
+            e: item.e,
+            larvicida: item.larvicida,
+            quantidade_larvicida: item.quantidade_larvicida,
+            quantidade_depositos_tratados: item.quantidade_depositos_tratados,
+            adulticida: item.adulticida,
+            quantidade_cargas: item.quantidade_cargas,
+            total_tec_saude: item.total_tec_saude,
+            total_dias_trabalhados: item.total_dias_trabalhados,
+            created_by: userId
+          }]);
           
-      if (error) {
-        console.error('Erro ao inserir dados no Supabase:', error);
-      } else {
-        console.log('Dados sincronizados com sucesso no Supabase');
+        if (error) {
+          console.error('Erro ao inserir dados no Supabase:', error);
+        } else {
+          console.log('Dados sincronizados com sucesso no Supabase para localidade:', item.locality);
+        }
       }
     } catch (error) {
       console.error('Erro ao sincronizar dados com Supabase:', error);

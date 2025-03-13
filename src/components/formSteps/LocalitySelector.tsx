@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/select';
 import { MapPin } from 'lucide-react';
 import { getLocalities } from '@/services/localitiesService';
+import { supabase } from '@/lib/supabase';
 
 interface LocalitySelectorProps {
   value: string;
@@ -26,10 +27,44 @@ const LocalitySelector: React.FC<LocalitySelectorProps> = ({
 }) => {
   // Use state to store localities
   const [localities, setLocalities] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
   
-  // Fetch localities on component mount and when the component re-renders
+  // Fetch localities from Supabase and fallback to local data
   useEffect(() => {
-    setLocalities(getLocalities());
+    const fetchLocalities = async () => {
+      try {
+        setLoading(true);
+        
+        // Tentar buscar do Supabase primeiro
+        const { data, error } = await supabase
+          .from('localities')
+          .select('name')
+          .order('name');
+          
+        if (error) {
+          console.error('Erro ao buscar localidades do Supabase:', error);
+          // Fallback para dados locais
+          setLocalities(getLocalities());
+        } else if (data && data.length > 0) {
+          // Mapear nomes de localidades do Supabase
+          const localityNames = data.map(loc => loc.name);
+          console.log('Localidades carregadas do Supabase:', localityNames.length);
+          setLocalities(localityNames);
+        } else {
+          // Se não houver dados no Supabase, usar fallback
+          console.log('Nenhuma localidade encontrada no Supabase, usando dados locais');
+          setLocalities(getLocalities());
+        }
+      } catch (err) {
+        console.error('Erro ao carregar localidades:', err);
+        // Fallback para dados locais em caso de erro
+        setLocalities(getLocalities());
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchLocalities();
   }, []);
   
   return (
@@ -43,10 +78,11 @@ const LocalitySelector: React.FC<LocalitySelectorProps> = ({
       <Select
         value={value}
         onValueChange={onChange}
+        disabled={loading}
       >
         <SelectTrigger className="w-full">
           <MapPin className="mr-2 h-4 w-4" />
-          <SelectValue placeholder="Selecione a localidade" />
+          <SelectValue placeholder={loading ? "Carregando localidades..." : "Selecione a localidade"} />
         </SelectTrigger>
         <SelectContent>
           {localities.map((locality) => (
@@ -54,6 +90,11 @@ const LocalitySelector: React.FC<LocalitySelectorProps> = ({
               {locality}
             </SelectItem>
           ))}
+          {localities.length === 0 && !loading && (
+            <SelectItem value="sem-localidades" disabled>
+              Nenhuma localidade encontrada
+            </SelectItem>
+          )}
         </SelectContent>
       </Select>
     </FormField>

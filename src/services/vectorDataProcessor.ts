@@ -53,50 +53,71 @@ export const processVectorData = async (formData: FormData) => {
   };
   
   try {
-    // Verificar e criar/obter o ID da localidade usando a API POST
-    console.log("Verificando existência da localidade:", formData.locality);
-    
-    // Usar transação para garantir consistência dos dados
-    const { data: localityData, error: localityError } = await supabase
-      .from('localities')
-      .select('id')
-      .eq('name', formData.locality)
-      .single();
-    
-    let localityId;
-    
-    if (localityError) {
-      console.log("Localidade não existe, criando nova:", formData.locality);
-      // Criar nova localidade com o método INSERT
-      const { data: newLocality, error: createError } = await supabase
-        .from('localities')
-        .insert([
-          { name: formData.locality }
-        ])
-        .select('id')
-        .single();
-        
-      if (createError) {
-        console.error('Erro ao criar localidade:', createError);
-        throw new Error(`Falha ao criar localidade: ${createError.message}`);
-      }
-      
-      if (!newLocality) {
-        throw new Error('Falha ao criar localidade: sem retorno de dados');
-      }
-      
-      localityId = newLocality.id;
-    } else {
-      localityId = localityData.id;
-    }
-    
-    console.log("Usando ID da localidade:", localityId);
-    
-    // Usar um ID de usuário fixo para modo de demonstração
-    // Na implementação real, isso seria o ID do usuário autenticado
+    // ID de usuário fixo para demonstração - na implementação real, seria o ID do usuário autenticado
     const userId = '00000000-0000-0000-0000-000000000000';
     
-    console.log("Inserindo dados no Supabase para usuário:", userId);
+    // Verificar e obter o ID da localidade de forma mais robusta
+    console.log("Buscando localidade:", formData.locality);
+    
+    // Tentar obter ou criar a localidade
+    let localityId = null;
+    let maxRetries = 3;
+    let retryCount = 0;
+    
+    while (localityId === null && retryCount < maxRetries) {
+      try {
+        // Primeiro, tentamos buscar a localidade pelo nome exato
+        const { data: existingLocalities, error: searchError } = await supabase
+          .from('localities')
+          .select('id')
+          .eq('name', formData.locality);
+        
+        console.log("Resultado da busca por localidade:", existingLocalities, searchError);
+        
+        if (searchError) {
+          console.error("Erro ao buscar localidade:", searchError);
+          // Continuar com a lógica em caso de erro - tentaremos criar
+        }
+        
+        // Se encontramos a localidade, usar o ID
+        if (existingLocalities && existingLocalities.length > 0) {
+          localityId = existingLocalities[0].id;
+          console.log("Localidade encontrada com ID:", localityId);
+        } else {
+          // Se não encontramos, criar nova localidade
+          console.log("Localidade não encontrada, criando nova:", formData.locality);
+          
+          const { data: newLocality, error: insertError } = await supabase
+            .from('localities')
+            .insert([{ name: formData.locality }])
+            .select('id');
+          
+          if (insertError) {
+            console.error("Erro ao criar localidade:", insertError);
+            throw insertError;
+          }
+          
+          if (newLocality && newLocality.length > 0) {
+            localityId = newLocality[0].id;
+            console.log("Nova localidade criada com ID:", localityId);
+          } else {
+            throw new Error("Falha ao criar localidade: sem retorno de dados");
+          }
+        }
+      } catch (error) {
+        console.error(`Tentativa ${retryCount + 1} falhou:`, error);
+        retryCount++;
+        
+        // Pequeno atraso entre tentativas
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
+    
+    // Se não conseguimos um ID de localidade após todas as tentativas, usar fallback para localStorage
+    if (localityId === null) {
+      console.error("Não foi possível obter ou criar ID de localidade após várias tentativas");
+      throw new Error("Falha ao processar localidade após múltiplas tentativas");
+    }
     
     // Garantir que as datas estejam formatadas corretamente
     const startDate = formData.startDate ? format(formData.startDate, 'yyyy-MM-dd') : null;
@@ -106,7 +127,7 @@ export const processVectorData = async (formData: FormData) => {
       throw new Error('Datas de início e fim são obrigatórias');
     }
     
-    // Inserir dados no Supabase usando INSERT
+    // Preparar dados para inserção
     const insertData = {
       municipality: vectorData.municipality,
       locality_id: localityId,
@@ -151,7 +172,7 @@ export const processVectorData = async (formData: FormData) => {
     
     console.log("Dados para inserção:", insertData);
     
-    // Usar o método upsert para garantir inserção mesmo sem autenticação
+    // Inserir dados no Supabase
     const { data, error } = await supabase
       .from('vector_data')
       .insert([insertData]);

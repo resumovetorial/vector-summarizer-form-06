@@ -6,10 +6,13 @@ import { supabase } from '@/lib/supabase';
 // Obter dados vetoriais salvos do Supabase ou armazenamento local como fallback
 export const getSavedVectorData = async (): Promise<LocalityData[]> => {
   try {
-    // Tenta obter dados do Supabase primeiro
+    // Tenta obter dados do Supabase primeiro com um query mais robusto
     const { data, error } = await supabase
       .from('vector_data')
-      .select('*, localities(name)');
+      .select(`
+        *,
+        localities:locality_id(name)
+      `);
     
     if (error) {
       console.error('Erro ao buscar dados do Supabase:', error);
