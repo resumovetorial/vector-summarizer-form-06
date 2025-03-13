@@ -3,14 +3,11 @@ import { FormData } from "@/types/vectorForm";
 import { format } from 'date-fns';
 import { LocalityData } from "@/types/dashboard";
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 import { getSavedVectorData } from './vectorDataFetcher';
 import { saveVectorData } from './vectorDataSaver';
 
 export const processVectorData = async (formData: FormData) => {
-  // Simula o envio para o backend
-  await new Promise(resolve => setTimeout(resolve, 500));
-  
   // Convert form data to vector data format
   const vectorData: LocalityData = {
     municipality: formData.municipality,
@@ -54,17 +51,54 @@ export const processVectorData = async (formData: FormData) => {
   };
   
   try {
-    // Get user ID for the creator attribution
-    const userData = await supabase.auth.getUser();
-    const userId = userData.data.user?.id || 'anonymous';
+    // First check if we need to get or create a locality ID
+    console.log("Checking if locality exists:", formData.locality);
     
-    console.log("Inserindo dados no Supabase:", {
-      municipality: vectorData.municipality,
-      localityId: vectorData.locality,
-      userId: userId,
-      cycle: vectorData.cycle,
-      epidemiologicalWeek: vectorData.epidemiologicalWeek
-    });
+    // Check if locality exists
+    const { data: localityData, error: localityError } = await supabase
+      .from('localities')
+      .select('id')
+      .eq('name', formData.locality)
+      .single();
+    
+    let localityId;
+    
+    if (localityError || !localityData) {
+      console.log("Locality doesn't exist, creating new one:", formData.locality);
+      // Create new locality
+      const { data: newLocality, error: createError } = await supabase
+        .from('localities')
+        .insert([
+          { name: formData.locality }
+        ])
+        .select('id')
+        .single();
+        
+      if (createError) {
+        console.error('Error creating locality:', createError);
+        throw new Error(`Failed to create locality: ${createError.message}`);
+      }
+      
+      localityId = newLocality.id;
+    } else {
+      localityId = localityData.id;
+    }
+    
+    console.log("Using locality ID:", localityId);
+    
+    // Get user info for the creator attribution
+    const { data: userData } = await supabase.auth.getUser();
+    const userId = userData.user?.id || 'anonymous';
+    
+    console.log("Inserting data into Supabase for user:", userId);
+    
+    // Make sure dates are formatted correctly
+    const startDate = formData.startDate ? format(formData.startDate, 'yyyy-MM-dd') : null;
+    const endDate = formData.endDate ? format(formData.endDate, 'yyyy-MM-dd') : null;
+    
+    if (!startDate || !endDate) {
+      throw new Error('Start and end dates are required');
+    }
     
     // Insert data into Supabase
     const { data, error } = await supabase
@@ -72,17 +106,17 @@ export const processVectorData = async (formData: FormData) => {
       .insert([
         {
           municipality: vectorData.municipality,
-          locality_id: vectorData.locality,
+          locality_id: localityId,
           cycle: vectorData.cycle,
           epidemiological_week: vectorData.epidemiologicalWeek,
           work_modality: vectorData.workModality,
-          start_date: vectorData.startDate,
-          end_date: vectorData.endDate,
+          start_date: startDate,
+          end_date: endDate,
           total_properties: vectorData.totalProperties,
           inspections: vectorData.inspections,
           deposits_eliminated: vectorData.depositsEliminated,
           deposits_treated: vectorData.depositsTreated,
-          supervisor: userId, // Use user ID as supervisor
+          supervisor: userId, // Use user ID as supervisor for now
           qt_residencias: vectorData.qt_residencias,
           qt_comercio: vectorData.qt_comercio,
           qt_terreno_baldio: vectorData.qt_terreno_baldio,
@@ -129,7 +163,7 @@ export const processVectorData = async (formData: FormData) => {
     }
   } catch (error) {
     console.error('Erro na operação do Supabase:', error);
-    toast.error('Erro ao salvar os dados');
+    toast.error('Erro ao salvar os dados. Verifique sua conexão e tente novamente.');
     
     // Fallback to localStorage
     handleLocalStorageFallback(vectorData);
@@ -147,7 +181,7 @@ const handleLocalStorageFallback = async (vectorData: LocalityData): Promise<voi
   const updatedData = [...existingData, vectorData];
   await saveVectorData(updatedData);
   
-  toast.warning('Dados salvos localmente');
+  toast.warning('Dados salvos localmente como backup');
 };
 
 // Helper to generate summary

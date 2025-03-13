@@ -7,6 +7,7 @@ import { LocalityData } from '@/types/dashboard';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from "sonner";
+import { useNavigate } from 'react-router-dom';
 
 interface LocalityDetailsProps {
   data: LocalityData;
@@ -14,16 +15,18 @@ interface LocalityDetailsProps {
 
 const LocalityDetails: React.FC<LocalityDetailsProps> = ({ data }) => {
   const [isEditing, setIsEditing] = useState(false);
+  const navigate = useNavigate();
   
   const handleEditClick = () => {
-    // For now, just show a notification - we'll implement the actual edit functionality later
-    toast.info("Funcionalidade de edição será implementada em breve.");
+    // For now, we'll just show a notification
+    toast.info("Preparando edição de dados para " + data.locality);
     setIsEditing(true);
     
-    // Reset the editing state after a short delay
+    // In the future, we could navigate to a form with pre-filled data
     setTimeout(() => {
       setIsEditing(false);
-    }, 2000);
+      navigate(`/edit-vector-data/${data.locality}`, { state: { vectorData: data } });
+    }, 1500);
   };
   
   const formatDate = (dateStr: string) => {

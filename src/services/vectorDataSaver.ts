@@ -1,7 +1,7 @@
 
 import { LocalityData } from "@/types/dashboard";
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 
 // Save vector data to localStorage and Supabase
 export const saveVectorData = async (data: LocalityData[]): Promise<boolean> => {
@@ -45,11 +45,45 @@ export const saveVectorData = async (data: LocalityData[]): Promise<boolean> => 
 const syncDataWithSupabase = async (data: LocalityData[]): Promise<void> => {
   for (const item of data) {
     try {
+      // First, check if this locality exists
+      const { data: localityData, error: localityError } = await supabase
+        .from('localities')
+        .select('id')
+        .eq('name', item.locality)
+        .single();
+        
+      if (localityError) {
+        console.error('Error checking for locality:', localityError);
+        continue;
+      }
+      
+      let localityId;
+      
+      if (!localityData) {
+        // Create locality
+        const { data: newLocality, error: createError } = await supabase
+          .from('localities')
+          .insert([
+            { name: item.locality }
+          ])
+          .select('id')
+          .single();
+          
+        if (createError) {
+          console.error('Error creating locality:', createError);
+          continue;
+        }
+        
+        localityId = newLocality.id;
+      } else {
+        localityId = localityData.id;
+      }
+      
       // Check if this record already exists in Supabase
       const { data: existingData, error: checkError } = await supabase
         .from('vector_data')
         .select('id')
-        .eq('locality_id', item.locality)
+        .eq('locality_id', localityId)
         .eq('cycle', item.cycle)
         .eq('epidemiological_week', item.epidemiologicalWeek);
         
@@ -65,7 +99,7 @@ const syncDataWithSupabase = async (data: LocalityData[]): Promise<void> => {
         
         const { error } = await supabase
           .from('vector_data')
-          .insert([mapLocalityDataToSupabaseFormat(item, userId)]);
+          .insert([mapLocalityDataToSupabaseFormat(item, userId, localityId)]);
           
         if (error) {
           console.error('Error inserting data to Supabase:', error);
@@ -80,10 +114,10 @@ const syncDataWithSupabase = async (data: LocalityData[]): Promise<void> => {
 };
 
 // Helper function to map LocalityData to Supabase format
-const mapLocalityDataToSupabaseFormat = (item: LocalityData, userId: string) => {
+const mapLocalityDataToSupabaseFormat = (item: LocalityData, userId: string, localityId: string) => {
   return {
     municipality: item.municipality,
-    locality_id: item.locality,
+    locality_id: localityId,
     cycle: item.cycle,
     epidemiological_week: item.epidemiologicalWeek,
     work_modality: item.workModality,
