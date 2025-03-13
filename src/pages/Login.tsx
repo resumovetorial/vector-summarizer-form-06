@@ -18,7 +18,7 @@ const Login = () => {
 
   // Redirect authenticated users away from login page
   useEffect(() => {
-    if (isAuthenticated && isInitialized) {
+    if (isInitialized && isAuthenticated) {
       navigate('/dashboard', { replace: true });
     }
   }, [isAuthenticated, isInitialized, navigate]);
