@@ -16,6 +16,9 @@ export const fetchAccessLevels = async (): Promise<AccessLevel[]> => {
       throw error;
     }
     
+    // Log the access levels we've fetched
+    console.log('Fetched access levels:', data);
+    
     // Convert the data to match our AccessLevel type
     return data.map(level => ({
       id: parseInt(level.id), // Keeping compatibility with existing type that uses number
@@ -58,15 +61,16 @@ export const fetchAccessLevels = async (): Promise<AccessLevel[]> => {
 
 export const createAccessLevel = async (level: Omit<AccessLevel, 'id'>): Promise<AccessLevel> => {
   try {
-    // Verificar a sessão atual do usuário
-    const { data: sessionData } = await supabase.auth.getSession();
+    // Verificar a sessão atual do usuário - Modificado para compatibilidade
+    const { data: { session } } = await supabase.auth.getSession();
     
-    if (!sessionData.session) {
+    if (!session) {
       console.error('Usuário não autenticado');
       throw new Error('Você precisa estar autenticado para adicionar níveis de acesso');
     }
     
-    console.log('Tentando criar nível de acesso como usuário:', sessionData.session.user.id);
+    console.log('Tentando criar nível de acesso como usuário:', session.user.id);
+    console.log('Dados do nível de acesso:', level);
     
     const { data, error } = await supabase
       .from('access_levels')
@@ -103,10 +107,10 @@ export const createAccessLevel = async (level: Omit<AccessLevel, 'id'>): Promise
 
 export const updateAccessLevel = async (level: AccessLevel): Promise<AccessLevel> => {
   try {
-    // Verificar a sessão atual do usuário
-    const { data: sessionData } = await supabase.auth.getSession();
+    // Verificar a sessão atual do usuário - Modificado para compatibilidade
+    const { data: { session } } = await supabase.auth.getSession();
     
-    if (!sessionData.session) {
+    if (!session) {
       console.error('Usuário não autenticado');
       throw new Error('Você precisa estar autenticado para atualizar níveis de acesso');
     }
@@ -161,10 +165,10 @@ export const updateAccessLevel = async (level: AccessLevel): Promise<AccessLevel
 
 export const deleteAccessLevel = async (levelName: string): Promise<void> => {
   try {
-    // Verificar a sessão atual do usuário
-    const { data: sessionData } = await supabase.auth.getSession();
+    // Verificar a sessão atual do usuário - Modificado para compatibilidade
+    const { data: { session } } = await supabase.auth.getSession();
     
-    if (!sessionData.session) {
+    if (!session) {
       console.error('Usuário não autenticado');
       throw new Error('Você precisa estar autenticado para excluir níveis de acesso');
     }
