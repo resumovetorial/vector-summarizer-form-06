@@ -17,19 +17,19 @@ const Admin: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('users');
   const [realtimeStatus, setRealtimeStatus] = useState<boolean>(false);
 
-  // Callback para atualizações em tempo real
+  // Callback for realtime updates
   const handleRealtimeUpdate = useCallback((newData: LocalityData) => {
     console.log('Admin received realtime update:', newData);
     
-    // Notificar o administrador sobre novas atualizações
+    // Notify admin about new updates
     toast.info(`Nova atualização recebida: ${newData.municipality}, ${newData.locality}, Ciclo ${newData.cycle}`);
     
   }, []);
 
-  // Configurar suporte a tempo real
+  // Configure realtime support
   const { isSubscribed } = useRealtimeUpdates(handleRealtimeUpdate);
 
-  // Efeito colateral quando o status de tempo real muda
+  // Side effect when realtime status changes
   React.useEffect(() => {
     setRealtimeStatus(isSubscribed);
   }, [isSubscribed]);

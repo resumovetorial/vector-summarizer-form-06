@@ -8,20 +8,20 @@ export function useRealtimeUpdates(callback: (data: LocalityData) => void) {
   const [isSubscribed, setIsSubscribed] = useState(false);
 
   useEffect(() => {
-    // Configurar o canal do Supabase Realtime
+    // Configure Supabase Realtime channel
     const channel = supabase
       .channel('vector-data-changes')
       .on(
         'postgres_changes',
         {
-          event: '*', // Ouvir todos os eventos (insert, update, delete)
+          event: '*', // Listen to all events (insert, update, delete)
           schema: 'public',
           table: 'vector_data'
         },
         (payload) => {
           console.log('Realtime update received:', payload);
           
-          // Converter os dados do payload para o formato LocalityData
+          // Convert payload data to LocalityData format
           if (payload.new) {
             const newData: LocalityData = {
               municipality: payload.new.municipality,
@@ -64,10 +64,10 @@ export function useRealtimeUpdates(callback: (data: LocalityData) => void) {
               total_dias_trabalhados: payload.new.total_dias_trabalhados
             };
             
-            // Chamar o callback com os novos dados
+            // Call callback with the new data
             callback(newData);
             
-            // Notificar o usuário
+            // Notify user
             if (payload.eventType === 'INSERT') {
               toast.info('Novos dados recebidos e atualizados!');
             } else if (payload.eventType === 'UPDATE') {
@@ -84,7 +84,7 @@ export function useRealtimeUpdates(callback: (data: LocalityData) => void) {
         }
       });
 
-    // Limpar a inscrição quando o componente for desmontado
+    // Cleanup subscription when component unmounts
     return () => {
       console.log('Cleaning up realtime subscription');
       supabase.removeChannel(channel);

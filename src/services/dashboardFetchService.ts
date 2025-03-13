@@ -6,11 +6,11 @@ import { filterDataByYear } from "./dashboardFilterService";
 import { supabase } from '@/integrations/supabase/client';
 
 /**
- * Configura o Supabase para suportar Realtime no vector_data
+ * Configure Supabase to support Realtime for vector_data
  */
 export const setupRealtimeSupport = async () => {
   try {
-    // Configurar a tabela vector_data para suportar Realtime
+    // Configure vector_data table to support Realtime
     const { error } = await supabase.rpc('enable_realtime_for_table', {
       table_name: 'vector_data'
     });
@@ -35,14 +35,14 @@ export const fetchDashboardData = async (year: string = "2024"): Promise<Localit
   await new Promise(resolve => setTimeout(resolve, 1000));
   
   try {
-    // Tentar obter dados do Supabase
+    // Try to get data from Supabase
     const { data, error } = await supabase
       .from('vector_data')
       .select('*');
     
     if (error) {
       console.error('Error fetching data from Supabase:', error);
-      // Fallback para localStorage
+      // Fallback to localStorage
       const savedData = await getSavedVectorData();
       if (savedData && savedData.length > 0) {
         console.log("Using saved data from localStorage:", savedData);
@@ -50,14 +50,14 @@ export const fetchDashboardData = async (year: string = "2024"): Promise<Localit
         return filterDataByYear(savedData, year);
       }
       
-      // Último fallback para dados mockados
+      // Last fallback to mocked data
       console.log("Using mock data");
       return filterDataByYear(mockDashboardData, year);
     }
     
     if (data && data.length > 0) {
       console.log("Using data from Supabase:", data);
-      // Converter os dados do Supabase para o formato LocalityData
+      // Convert Supabase data to LocalityData format
       const convertedData = data.map((item) => ({
         municipality: item.municipality,
         locality: item.locality_id,
@@ -102,7 +102,7 @@ export const fetchDashboardData = async (year: string = "2024"): Promise<Localit
       return filterDataByYear(convertedData, year);
     }
     
-    // Fallback para localStorage
+    // Fallback to localStorage
     const savedData = await getSavedVectorData();
     if (savedData && savedData.length > 0) {
       console.log("Using saved data from localStorage:", savedData);
@@ -111,13 +111,13 @@ export const fetchDashboardData = async (year: string = "2024"): Promise<Localit
     }
   } catch (error) {
     console.error('Error in Supabase operation:', error);
-    // Fallback para localStorage
+    // Fallback to localStorage
   }
   
-  // Se nenhum dado foi obtido, use os dados mockados
+  // If no data was obtained, use mocked data
   console.log("Using mock data");
   return filterDataByYear(mockDashboardData, year);
 };
 
-// Tenta configurar o suporte a Realtime
+// Try to configure Realtime support
 setupRealtimeSupport().catch(console.error);
