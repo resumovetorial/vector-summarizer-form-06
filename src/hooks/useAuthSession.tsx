@@ -41,6 +41,9 @@ export function useAuthSession() {
       }
     };
     
+    // Initialize auth on mount
+    initializeAuth();
+    
     // Set up auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!isMounted) return;
@@ -61,9 +64,6 @@ export function useAuthSession() {
         setUser(null);
       }
     });
-    
-    // Initialize auth on mount
-    initializeAuth();
     
     // Cleanup
     return () => {
