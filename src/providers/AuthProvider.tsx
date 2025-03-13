@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AuthContextType } from '@/types/auth';
 import AuthContext from '@/contexts/AuthContext';
 import { useAuthSession } from '@/hooks/useAuthSession';
@@ -22,6 +22,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setError,
     setIsLoading
   );
+
+  useEffect(() => {
+    console.log('AuthProvider - Estado de autenticação atualizado:', { 
+      user: user ? 'logado' : 'deslogado',
+      isInitialized, 
+      isLoading: isLoading || isSessionLoading 
+    });
+  }, [user, isInitialized, isLoading, isSessionLoading]);
 
   const value: AuthContextType = {
     user,

@@ -17,6 +17,8 @@ export function useAuthActions(
   const navigate = useNavigate();
 
   const login = async (email: string, password: string) => {
+    console.log('useAuthActions - Tentando login com email:', email);
+    
     try {
       setIsLoading(true);
       setError(null);
@@ -26,20 +28,24 @@ export function useAuthActions(
         password,
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error('useAuthActions - Erro no login:', error);
+        throw error;
+      }
       
       if (data?.user && data.session) {
         const authUser = await createAuthUser(data.session);
         setUser(authUser);
         toast.success("Login realizado com sucesso!");
-        navigate('/dashboard');
+        navigate('/dashboard', { replace: true });
+        console.log('useAuthActions - Login bem-sucedido, redirecionando para dashboard');
         return true;
       } else {
         throw new Error("Dados de usuário ou sessão ausentes após login");
       }
       
     } catch (error: any) {
-      console.error('Erro no login:', error);
+      console.error('useAuthActions - Erro no login:', error);
       const errorMessage = formatAuthError(error);
       setError(errorMessage);
       toast.error(errorMessage);
@@ -80,7 +86,7 @@ export function useAuthActions(
       await logoutWithSupabase();
       setUser(null);
       toast.success("Logout realizado com sucesso");
-      navigate('/login');
+      navigate('/login', { replace: true });
       return true;
     } catch (error: any) {
       console.error('Erro no logout:', error);

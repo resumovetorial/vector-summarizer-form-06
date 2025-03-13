@@ -6,14 +6,14 @@ import { createAuthUser } from '@/utils/authUtils';
 
 export function useAuthSession() {
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isInitialized, setIsInitialized] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isInitialized, setIsInitialized] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    console.log('useAuthSession - Inicializando sessão de autenticação');
     let isMounted = true;
     
-    // Inicializa a sessão de autenticação
     const initializeAuth = async () => {
       try {
         setIsLoading(true);
@@ -24,12 +24,15 @@ export function useAuthSession() {
         if (!isMounted) return;
         
         if (session?.user) {
+          console.log('useAuthSession - Sessão encontrada, criando usuário autenticado');
           const authUser = await createAuthUser(session);
           setUser(authUser);
         } else {
+          console.log('useAuthSession - Nenhuma sessão encontrada');
           setUser(null);
         }
       } catch (error) {
+        console.error('useAuthSession - Erro na inicialização:', error);
         if (isMounted) {
           setError(error instanceof Error ? error.message : 'Erro na inicialização');
         }
@@ -37,6 +40,7 @@ export function useAuthSession() {
         if (isMounted) {
           setIsInitialized(true);
           setIsLoading(false);
+          console.log('useAuthSession - Inicialização concluída');
         }
       }
     };
@@ -48,6 +52,8 @@ export function useAuthSession() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!isMounted) return;
       
+      console.log('useAuthSession - Mudança de estado de autenticação:', event);
+      
       if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
         if (session?.user) {
           try {
@@ -55,7 +61,7 @@ export function useAuthSession() {
             const authUser = await createAuthUser(session);
             setUser(authUser);
           } catch (error) {
-            console.error('Erro ao processar mudança de estado:', error);
+            console.error('useAuthSession - Erro ao processar mudança de estado:', error);
           } finally {
             setIsLoading(false);
           }
@@ -67,6 +73,7 @@ export function useAuthSession() {
     
     // Limpeza
     return () => {
+      console.log('useAuthSession - Limpando listeners');
       isMounted = false;
       subscription.unsubscribe();
     };
