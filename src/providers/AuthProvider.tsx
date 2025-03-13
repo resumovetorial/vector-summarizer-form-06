@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { AuthUser, AuthContextType } from '@/types/auth';
+import { AuthContextType } from '@/types/auth';
 import AuthContext from '@/contexts/AuthContext';
 import { useAuthSession } from '@/hooks/useAuthSession';
 import { useAuthActions } from '@/hooks/useAuthActions';

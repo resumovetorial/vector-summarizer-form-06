@@ -33,11 +33,11 @@ const App = () => {
         <BrowserRouter>
           <AuthProvider>
             <Routes>
-              {/* Public routes */}
+              {/* Rotas públicas */}
               <Route path="/login" element={<Login />} />
               <Route path="/unauthorized" element={<Unauthorized />} />
               
-              {/* Protected routes */}
+              {/* Rotas protegidas */}
               <Route 
                 path="/" 
                 element={
@@ -57,13 +57,13 @@ const App = () => {
               <Route 
                 path="/admin" 
                 element={
-                  <ProtectedRoute requiredRole="admin">
+                  <ProtectedRoute>
                     <Admin />
                   </ProtectedRoute>
                 } 
               />
               
-              {/* 404 route */}
+              {/* Rota 404 */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AuthProvider>

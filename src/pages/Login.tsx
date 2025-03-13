@@ -16,7 +16,7 @@ const Login = () => {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
-  // If already authenticated, redirect to dashboard
+  // Se já estiver autenticado, redirecionar para o dashboard
   React.useEffect(() => {
     if (isAuthenticated) {
       navigate('/dashboard');

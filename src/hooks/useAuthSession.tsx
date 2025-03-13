@@ -6,19 +6,19 @@ import { createAuthUser } from '@/utils/authUtils';
 
 export function useAuthSession() {
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
     
-    // Initialize auth session
+    // Inicializa a sessão de autenticação
     const initializeAuth = async () => {
       try {
         setIsLoading(true);
         
-        // Get current session
+        // Obtém a sessão atual
         const { data: { session } } = await supabase.auth.getSession();
         
         if (!isMounted) return;
@@ -41,10 +41,10 @@ export function useAuthSession() {
       }
     };
     
-    // Initialize auth on mount
+    // Inicializa a autenticação ao montar
     initializeAuth();
     
-    // Set up auth state change listener
+    // Configura o listener para mudanças de estado da autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!isMounted) return;
       
@@ -55,7 +55,7 @@ export function useAuthSession() {
             const authUser = await createAuthUser(session);
             setUser(authUser);
           } catch (error) {
-            console.error('Error handling auth state change:', error);
+            console.error('Erro ao processar mudança de estado:', error);
           } finally {
             setIsLoading(false);
           }
@@ -65,7 +65,7 @@ export function useAuthSession() {
       }
     });
     
-    // Cleanup
+    // Limpeza
     return () => {
       isMounted = false;
       subscription.unsubscribe();
