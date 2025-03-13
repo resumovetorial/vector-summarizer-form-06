@@ -27,8 +27,12 @@ export const saveVectorData = async (data: LocalityData[]): Promise<boolean> => 
     // Tentar sincronizar com Supabase se houver dados para salvar
     if (data.length > 0) {
       try {
-        await syncDataWithSupabase(data);
-        toast.success('Dados sincronizados com sucesso');
+        const syncResult = await syncDataWithSupabase(data);
+        if (syncResult) {
+          toast.success('Dados sincronizados com sucesso');
+        } else {
+          toast.warning('Dados salvos localmente, mas não foi possível sincronizar com o servidor');
+        }
       } catch (syncError) {
         console.error('Erro ao sincronizar com Supabase, mas dados foram salvos localmente:', syncError);
         toast.warning('Dados salvos localmente, mas não foi possível sincronizar com o servidor');
@@ -50,13 +54,14 @@ export const saveVectorData = async (data: LocalityData[]): Promise<boolean> => 
 };
 
 // Função auxiliar para sincronizar dados com Supabase
-const syncDataWithSupabase = async (data: LocalityData[]): Promise<void> => {
-  // Usar ID fixo para demonstração
+const syncDataWithSupabase = async (data: LocalityData[]): Promise<boolean> => {
+  // Usar ID fixo para demonstração - em produção, seria o ID do usuário autenticado
   const userId = '00000000-0000-0000-0000-000000000000';
+  let successCount = 0;
   
   for (const item of data) {
     try {
-      // Verificar se esta localidade existe com um query mais robusto
+      // Verificar se esta localidade existe
       let localityId = null;
       
       // Primeiro, tentamos buscar a localidade pelo nome exato
@@ -154,10 +159,13 @@ const syncDataWithSupabase = async (data: LocalityData[]): Promise<void> => {
           console.error('Erro ao inserir dados no Supabase:', error);
         } else {
           console.log('Dados sincronizados com sucesso no Supabase para localidade:', item.locality);
+          successCount++;
         }
       }
     } catch (error) {
       console.error('Erro ao sincronizar dados com Supabase:', error);
     }
   }
+  
+  return successCount > 0;
 };

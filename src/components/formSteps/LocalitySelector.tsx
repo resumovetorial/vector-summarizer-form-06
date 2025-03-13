@@ -44,7 +44,9 @@ const LocalitySelector: React.FC<LocalitySelectorProps> = ({
         if (error) {
           console.error('Erro ao buscar localidades do Supabase:', error);
           // Fallback para dados locais
-          setLocalities(getLocalities());
+          const localLocalities = getLocalities();
+          console.log('Usando localidades locais:', localLocalities.length);
+          setLocalities(localLocalities);
         } else if (data && data.length > 0) {
           // Mapear nomes de localidades do Supabase
           const localityNames = data.map(loc => loc.name);
