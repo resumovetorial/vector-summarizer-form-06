@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -11,6 +12,7 @@ import DashboardHeader from '@/components/dashboard/DashboardHeader';
 import DashboardLocalitySection from '@/components/dashboard/DashboardLocalitySection';
 import { useDashboardExport } from '@/hooks/useDashboardExport';
 import { toast } from "sonner";
+import { useRealtimeUpdates } from '@/hooks/useRealtimeUpdates';
 
 const Dashboard = () => {
   const { toast: toastHook } = useToast();
@@ -77,6 +79,72 @@ const Dashboard = () => {
     }
   };
 
+  // Callback para atualizar dados em tempo real
+  const handleRealtimeUpdate = useCallback((newData: LocalityData) => {
+    console.log('Received realtime update:', newData);
+    
+    // Atualizar dashboardData com os novos dados
+    setDashboardData(prevData => {
+      // Verificar se os dados já existem
+      const existingIndex = prevData.findIndex(
+        item => 
+          item.locality === newData.locality && 
+          item.cycle === newData.cycle && 
+          item.startDate === newData.startDate &&
+          item.endDate === newData.endDate
+      );
+      
+      if (existingIndex >= 0) {
+        // Atualizar os dados existentes
+        const updatedData = [...prevData];
+        updatedData[existingIndex] = newData;
+        return updatedData;
+      } else {
+        // Adicionar os novos dados
+        return [...prevData, newData];
+      }
+    });
+    
+    // Se a localidade selecionada for a mesma dos novos dados, atualizar localityData
+    if (selectedLocality === newData.locality) {
+      setLocalityHistoricalData(prevData => {
+        const existingIndex = prevData.findIndex(
+          item => 
+            item.cycle === newData.cycle && 
+            item.startDate === newData.startDate &&
+            item.endDate === newData.endDate
+        );
+        
+        if (existingIndex >= 0) {
+          // Atualizar os dados existentes
+          const updatedData = [...prevData];
+          updatedData[existingIndex] = newData;
+          return updatedData;
+        } else {
+          // Adicionar os novos dados
+          return [...prevData, newData].sort((a, b) => 
+            new Date(b.endDate).getTime() - new Date(a.endDate).getTime()
+          );
+        }
+      });
+      
+      // Atualizar localityData se for o dado mais recente
+      setLocalityData(prevData => {
+        if (!prevData) return newData;
+        
+        // Verificar se os novos dados são mais recentes
+        if (new Date(newData.endDate).getTime() > new Date(prevData.endDate).getTime()) {
+          return newData;
+        }
+        
+        return prevData;
+      });
+    }
+  }, [selectedLocality]);
+
+  // Usar o hook de atualizações em tempo real
+  const { isSubscribed } = useRealtimeUpdates(handleRealtimeUpdate);
+
   useEffect(() => {
     refreshData();
   }, [year]);
@@ -100,6 +168,13 @@ const Dashboard = () => {
                 exportToExcel={exportToExcel}
                 exportToPDF={exportToPDF}
               />
+              
+              {isSubscribed && (
+                <div className="mb-4 px-4 py-2 bg-green-100 text-green-800 rounded-md flex items-center">
+                  <div className="w-2 h-2 rounded-full bg-green-500 mr-2 animate-pulse"></div>
+                  <span>Conectado para atualizações em tempo real</span>
+                </div>
+              )}
               
               <DashboardLocalitySection 
                 selectedLocality={selectedLocality}

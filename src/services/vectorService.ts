@@ -3,10 +3,71 @@ import { FormData } from "@/types/vectorForm";
 import { format } from 'date-fns';
 import { LocalityData } from "@/types/dashboard";
 import { toast } from "sonner";
+import { supabase } from '@/integrations/supabase/client';
 
-// Get saved vector data from localStorage
-export const getSavedVectorData = (): LocalityData[] => {
+// Get saved vector data from localStorage ou Supabase
+export const getSavedVectorData = async (): Promise<LocalityData[]> => {
   try {
+    // Tenta primeiro obter dados do Supabase
+    const { data, error } = await supabase
+      .from('vector_data')
+      .select('*');
+    
+    if (error) {
+      console.error('Error fetching data from Supabase:', error);
+      // Fallback para localStorage
+      const savedData = localStorage.getItem('vectorData');
+      if (savedData) {
+        return JSON.parse(savedData);
+      }
+      return [];
+    }
+    
+    if (data && data.length > 0) {
+      // Converter os dados do Supabase para o formato LocalityData
+      return data.map((item) => ({
+        municipality: item.municipality,
+        locality: item.locality_id,
+        cycle: item.cycle,
+        epidemiologicalWeek: item.epidemiological_week,
+        workModality: item.work_modality,
+        startDate: item.start_date,
+        endDate: item.end_date,
+        totalProperties: item.total_properties,
+        inspections: item.inspections,
+        depositsEliminated: item.deposits_eliminated,
+        depositsTreated: item.deposits_treated,
+        supervisor: item.supervisor,
+        qt_residencias: item.qt_residencias,
+        qt_comercio: item.qt_comercio,
+        qt_terreno_baldio: item.qt_terreno_baldio,
+        qt_pe: item.qt_pe,
+        qt_outros: item.qt_outros,
+        qt_total: item.qt_total,
+        tratamento_focal: item.tratamento_focal,
+        tratamento_perifocal: item.tratamento_perifocal,
+        amostras_coletadas: item.amostras_coletadas,
+        recusa: item.recusa,
+        fechadas: item.fechadas,
+        recuperadas: item.recuperadas,
+        a1: item.a1,
+        a2: item.a2,
+        b: item.b,
+        c: item.c,
+        d1: item.d1,
+        d2: item.d2,
+        e: item.e,
+        larvicida: item.larvicida,
+        quantidade_larvicida: item.quantidade_larvicida,
+        quantidade_depositos_tratados: item.quantidade_depositos_tratados,
+        adulticida: item.adulticida,
+        quantidade_cargas: item.quantidade_cargas,
+        total_tec_saude: item.total_tec_saude,
+        total_dias_trabalhados: item.total_dias_trabalhados
+      }));
+    }
+    
+    // Fallback para localStorage
     const savedData = localStorage.getItem('vectorData');
     if (savedData) {
       return JSON.parse(savedData);
@@ -14,12 +75,17 @@ export const getSavedVectorData = (): LocalityData[] => {
     return [];
   } catch (error) {
     console.error('Error fetching saved vector data:', error);
+    // Fallback para localStorage
+    const savedData = localStorage.getItem('vectorData');
+    if (savedData) {
+      return JSON.parse(savedData);
+    }
     return [];
   }
 };
 
 // Improved save vector data function with validation and error handling
-export const saveVectorData = (data: LocalityData[]): boolean => {
+export const saveVectorData = async (data: LocalityData[]): Promise<boolean> => {
   try {
     // Validate data before saving
     if (!Array.isArray(data)) {
@@ -33,14 +99,11 @@ export const saveVectorData = (data: LocalityData[]): boolean => {
       console.warn('Saving empty data array');
     }
     
-    // Compress data if it's very large
+    // Salvar no localStorage para compatibilidade
     const dataString = JSON.stringify(data);
-    if (dataString.length > 5000000) { // ~5MB
-      console.warn('Large data size detected. Consider implementing pagination or data pruning.');
-    }
-    
     localStorage.setItem('vectorData', dataString);
-    console.log('Vector data saved successfully:', data);
+    
+    console.log('Vector data saved to localStorage:', data);
     return true;
   } catch (error) {
     console.error('Error saving vector data:', error);
@@ -56,8 +119,8 @@ export const saveVectorData = (data: LocalityData[]): boolean => {
 };
 
 export const processVectorData = async (formData: FormData) => {
-  // Simulate API call with timeout
-  await new Promise(resolve => setTimeout(resolve, 1500));
+  // Simula o envio para o backend
+  await new Promise(resolve => setTimeout(resolve, 1000));
   
   // Convert form data to vector data format
   const vectorData: LocalityData = {
@@ -101,32 +164,73 @@ export const processVectorData = async (formData: FormData) => {
     total_dias_trabalhados: parseInt(formData.total_dias_trabalhados) || 0
   };
   
-  // Get existing data
-  const existingData = getSavedVectorData();
-  
-  // Check for duplicates (same locality, cycle, date range)
-  const isDuplicate = existingData.some(item => 
-    item.locality === vectorData.locality && 
-    item.cycle === vectorData.cycle &&
-    item.startDate === vectorData.startDate &&
-    item.endDate === vectorData.endDate
-  );
-  
-  if (isDuplicate) {
-    console.warn('Duplicate data detected');
-    toast.warning('Atenção: Dados similares já existem no sistema');
+  try {
+    // Inserir dados no Supabase
+    const { data, error } = await supabase
+      .from('vector_data')
+      .insert([
+        {
+          municipality: vectorData.municipality,
+          locality_id: vectorData.locality,
+          cycle: vectorData.cycle,
+          epidemiological_week: vectorData.epidemiologicalWeek,
+          work_modality: vectorData.workModality,
+          start_date: vectorData.startDate,
+          end_date: vectorData.endDate,
+          total_properties: vectorData.totalProperties,
+          inspections: vectorData.inspections,
+          deposits_eliminated: vectorData.depositsEliminated,
+          deposits_treated: vectorData.depositsTreated,
+          supervisor: vectorData.supervisor,
+          qt_residencias: vectorData.qt_residencias,
+          qt_comercio: vectorData.qt_comercio,
+          qt_terreno_baldio: vectorData.qt_terreno_baldio,
+          qt_pe: vectorData.qt_pe,
+          qt_outros: vectorData.qt_outros,
+          qt_total: vectorData.qt_total,
+          tratamento_focal: vectorData.tratamento_focal,
+          tratamento_perifocal: vectorData.tratamento_perifocal,
+          amostras_coletadas: vectorData.amostras_coletadas,
+          recusa: vectorData.recusa,
+          fechadas: vectorData.fechadas,
+          recuperadas: vectorData.recuperadas,
+          a1: vectorData.a1,
+          a2: vectorData.a2,
+          b: vectorData.b,
+          c: vectorData.c,
+          d1: vectorData.d1,
+          d2: vectorData.d2,
+          e: vectorData.e,
+          larvicida: vectorData.larvicida,
+          quantidade_larvicida: vectorData.quantidade_larvicida,
+          quantidade_depositos_tratados: vectorData.quantidade_depositos_tratados,
+          adulticida: vectorData.adulticida,
+          quantidade_cargas: vectorData.quantidade_cargas,
+          total_tec_saude: vectorData.total_tec_saude,
+          total_dias_trabalhados: vectorData.total_dias_trabalhados,
+          created_by: (await supabase.auth.getUser()).data.user?.id || 'anonymous'
+        }
+      ]);
+    
+    if (error) {
+      console.error('Error inserting data to Supabase:', error);
+      // Fallback para localStorage
+      const existingData = await getSavedVectorData();
+      const updatedData = [...existingData, vectorData];
+      await saveVectorData(updatedData);
+    } else {
+      console.log('Data successfully inserted to Supabase:', data);
+    }
+  } catch (error) {
+    console.error('Error in Supabase operation:', error);
+    // Fallback para localStorage
+    const existingData = await getSavedVectorData();
+    const updatedData = [...existingData, vectorData];
+    await saveVectorData(updatedData);
   }
-  
-  // Add new data to existing data
-  const updatedData = [...existingData, vectorData];
-  
-  // Save the updated data
-  const saveSuccess = saveVectorData(updatedData);
-  console.log('Save success:', saveSuccess, 'Updated data:', updatedData);
   
   // Generate summary from vector data
   const summary = `Resumo para ${formData.municipality}, ${formData.locality}, durante o ciclo ${formData.cycle} (semana epidemiológica ${formData.epidemiologicalWeek}). Período: ${formData.startDate ? format(formData.startDate, 'dd/MM/yyyy') : 'N/A'} a ${formData.endDate ? format(formData.endDate, 'dd/MM/yyyy') : 'N/A'}. Total de imóveis: ${formData.qt_total}. Depósitos eliminados: ${formData.depositos_eliminados || 0}. Depósitos tratados: ${formData.quantidade_depositos_tratados || 0}. Supervisor: ${formData.nome_supervisor || 'N/A'}.`;
   
   return { vectorData, summary };
 };
-
