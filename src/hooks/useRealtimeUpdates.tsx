@@ -27,7 +27,7 @@ export function useRealtimeUpdates(callback: (data: LocalityData) => void) {
             // Type assertion for payload.new as vector_data row type
             const vectorData = payload.new as Tables<'vector_data'>;
             
-            // Criar objeto LocalityData com valores padrão para evitar erros de tipagem
+            // Create LocalityData object with default values to avoid type errors
             const newData: LocalityData = {
               municipality: vectorData.municipality || '',
               locality: vectorData.locality_id || '',
