@@ -50,12 +50,18 @@ export const mockAccessLevels: AccessLevel[] = [
   },
   {
     id: 2,
-    name: 'Supervisor',
+    name: 'Supervisor Geral',
     description: 'Acesso ao dashboard e formulários',
     permissions: ['dashboard', 'form', 'reports']
   },
   {
     id: 3,
+    name: 'Supervisor Area',
+    description: 'Acesso ao dashboard e formulários de áreas específicas',
+    permissions: ['dashboard', 'form', 'reports']
+  },
+  {
+    id: 4,
     name: 'Agente',
     description: 'Acesso apenas aos formulários',
     permissions: ['form']
