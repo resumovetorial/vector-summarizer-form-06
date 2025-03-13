@@ -80,9 +80,84 @@ const Dashboard = () => {
   };
 
   // Callback para atualizar dados em tempo real
-  const handleRealtimeUpdate = useCallback((newData: LocalityData) => {
-    console.log('Received realtime update:', newData);
+  const handleRealtimeUpdate = useCallback((payload: any) => {
+    if (!payload || !payload.new) {
+      console.log('Received empty realtime update');
+      return;
+    }
     
+    const item = payload.new;
+    console.log('Received realtime update:', item);
+    
+    // Convert Supabase payload to LocalityData format
+    const newData: LocalityData = {
+      municipality: item.municipality,
+      locality: item.locality_id, // We'll need to fetch the locality name separately
+      cycle: item.cycle,
+      epidemiologicalWeek: item.epidemiological_week,
+      workModality: item.work_modality,
+      startDate: item.start_date,
+      endDate: item.end_date,
+      totalProperties: item.total_properties,
+      inspections: item.inspections,
+      depositsEliminated: item.deposits_eliminated,
+      depositsTreated: item.deposits_treated,
+      supervisor: item.supervisor,
+      qt_residencias: item.qt_residencias,
+      qt_comercio: item.qt_comercio,
+      qt_terreno_baldio: item.qt_terreno_baldio,
+      qt_pe: item.qt_pe,
+      qt_outros: item.qt_outros,
+      qt_total: item.qt_total,
+      tratamento_focal: item.tratamento_focal,
+      tratamento_perifocal: item.tratamento_perifocal,
+      amostras_coletadas: item.amostras_coletadas,
+      recusa: item.recusa,
+      fechadas: item.fechadas,
+      recuperadas: item.recuperadas,
+      a1: item.a1,
+      a2: item.a2,
+      b: item.b,
+      c: item.c,
+      d1: item.d1,
+      d2: item.d2,
+      e: item.e,
+      larvicida: item.larvicida,
+      quantidade_larvicida: item.quantidade_larvicida,
+      quantidade_depositos_tratados: item.quantidade_depositos_tratados,
+      adulticida: item.adulticida,
+      quantidade_cargas: item.quantidade_cargas,
+      total_tec_saude: item.total_tec_saude,
+      total_dias_trabalhados: item.total_dias_trabalhados
+    };
+    
+    // Fetch the locality name
+    const fetchLocalityName = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('localities')
+          .select('name')
+          .eq('id', item.locality_id)
+          .single();
+        
+        if (data && !error) {
+          newData.locality = data.name;
+        }
+        
+        // Now update the dashboard data
+        updateDashboardData(newData);
+      } catch (err) {
+        console.error('Error fetching locality name:', err);
+        // Still update with just the ID
+        updateDashboardData(newData);
+      }
+    };
+    
+    fetchLocalityName();
+  }, []);
+  
+  // Helper function to update dashboard data
+  const updateDashboardData = useCallback((newData: LocalityData) => {
     // Atualizar dashboardData com os novos dados
     setDashboardData(prevData => {
       // Verificar se os dados já existem
@@ -143,7 +218,7 @@ const Dashboard = () => {
   }, [selectedLocality]);
 
   // Usar o hook de atualizações em tempo real
-  const { isSubscribed } = useRealtimeUpdates(handleRealtimeUpdate);
+  const { isSubscribed } = useRealtimeUpdates(handleRealtimeUpdate, []);
 
   useEffect(() => {
     refreshData();

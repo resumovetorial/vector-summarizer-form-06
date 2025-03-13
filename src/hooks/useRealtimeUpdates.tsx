@@ -1,11 +1,14 @@
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { LocalityData } from '@/types/dashboard';
 
 export const useRealtimeUpdates = (
-  callback: () => void,
+  callback: (payload?: any) => void,
   dependencies: any[] = []
 ) => {
+  const [isSubscribed, setIsSubscribed] = useState(false);
+
   useEffect(() => {
     console.log("Setting up Realtime subscription for vector_data table");
     
@@ -36,19 +39,23 @@ export const useRealtimeUpdates = (
         },
         (payload) => {
           console.log('Change received!', payload);
-          callback();
+          callback(payload);
         }
       )
       .subscribe((status) => {
         console.log("Realtime subscription status:", status);
+        setIsSubscribed(status === 'SUBSCRIBED');
       });
     
     // Cleanup function
     return () => {
       console.log("Cleaning up realtime subscription");
+      setIsSubscribed(false);
       supabase.removeChannel(channel);
     };
   }, dependencies);
+
+  return { isSubscribed };
 };
 
 export default useRealtimeUpdates;
