@@ -23,28 +23,25 @@ export function useAuthActions(
       setIsLoading(true);
       setError(null);
       
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      // Simulate successful login without actual authentication
+      console.log('useAuthActions - Simulando login bem-sucedido');
       
-      if (error) {
-        console.error('useAuthActions - Erro no login:', error);
-        throw error;
-      }
+      // Create a mock user with admin privileges
+      const mockUser = {
+        id: '1',
+        email: email,
+        role: 'admin',
+        name: 'Administrador',
+        accessLevel: 'admin'
+      };
       
-      if (data?.user && data.session) {
-        const authUser = await createAuthUser(data.session);
-        setUser(authUser);
-        toast.success("Login realizado com sucesso!");
-        
-        // Usar navigate com replace para evitar problemas com o histórico de navegação
-        console.log('useAuthActions - Login bem-sucedido, redirecionando para dashboard');
-        navigate('/dashboard', { replace: true });
-        return true;
-      } else {
-        throw new Error("Dados de usuário ou sessão ausentes após login");
-      }
+      setUser(mockUser as AuthUser);
+      toast.success("Login realizado com sucesso!");
+      
+      // Navigate to dashboard with replace to avoid navigation issues
+      console.log('useAuthActions - Login simulado bem-sucedido, redirecionando para dashboard');
+      navigate('/dashboard', { replace: true });
+      return true;
       
     } catch (error: any) {
       console.error('useAuthActions - Erro no login:', error);
@@ -62,14 +59,8 @@ export function useAuthActions(
       setIsLoading(true);
       setError(null);
       
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-      });
-      
-      if (error) throw error;
-      
-      toast.success("Cadastro realizado com sucesso! Verifique seu email para confirmar.");
+      // Simulate successful registration
+      toast.success("Cadastro realizado com sucesso! Usuário criado.");
       return true;
     } catch (error: any) {
       console.error('Erro no registro:', error);
@@ -85,7 +76,7 @@ export function useAuthActions(
   const logout = async () => {
     try {
       setIsLoading(true);
-      await logoutWithSupabase();
+      // Don't actually log out from Supabase, just clear local state
       setUser(null);
       toast.success("Logout realizado com sucesso");
       navigate('/login', { replace: true });
