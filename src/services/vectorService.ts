@@ -8,6 +8,8 @@ import { processVectorData } from './vectorDataProcessor';
 import { formatFormToVectorData, generateSummary } from './vector/vectorDataFormatter';
 import { saveVectorDataToSupabase } from './vector/vectorDataSaveService';
 import { findOrCreateLocality } from './localities/localityManager';
+import { saveToLocalStorage } from './vector/vectorLocalStorage';
+import { syncDataWithSupabase } from './vector/vectorDataSync';
 
 export {
   getSavedVectorData,
@@ -16,5 +18,7 @@ export {
   formatFormToVectorData,
   generateSummary,
   saveVectorDataToSupabase,
-  findOrCreateLocality
+  findOrCreateLocality,
+  saveToLocalStorage,
+  syncDataWithSupabase
 };
