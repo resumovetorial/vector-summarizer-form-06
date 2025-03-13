@@ -51,8 +51,8 @@ const Header = () => {
                     </Link>
                   </Button>
                   
-                  {/* Mostra link de Admin apenas se o usuário tiver acesso de administrador */}
-                  {hasPermission('admin') || (user?.accessLevel === 'administrador') && (
+                  {/* Fix: Show Admin link if user has admin permission OR user has administrador access level */}
+                  {(hasPermission('admin') || user?.accessLevel === 'administrador') && (
                     <Button variant="ghost" asChild>
                       <Link to="/admin">
                         <ShieldAlert className="h-4 w-4 mr-2" />
