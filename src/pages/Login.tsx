@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -13,15 +13,15 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [activeTab, setActiveTab] = useState('login');
-  const { isAuthenticated, isInitialized } = useAuth();
+  const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
-  // Redirect authenticated users away from login page
-  useEffect(() => {
-    if (isInitialized && isAuthenticated) {
-      navigate('/dashboard', { replace: true });
+  // If already authenticated, redirect to dashboard
+  React.useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard');
     }
-  }, [isAuthenticated, isInitialized, navigate]);
+  }, [isAuthenticated, navigate]);
 
   const handleRegisterSuccess = () => {
     setActiveTab('login');

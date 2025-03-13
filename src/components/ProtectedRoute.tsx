@@ -10,7 +10,7 @@ interface ProtectedRouteProps {
 const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
   const { isAuthenticated, isInitialized, user } = useAuth();
 
-  // Still initializing auth - show loading spinner
+  // If still initializing, show a loading spinner
   if (!isInitialized) {
     return (
       <div className="min-h-screen flex items-center justify-center background-gradient">
@@ -19,19 +19,9 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
     );
   }
 
-  // Not authenticated - redirect to login
+  // If not authenticated, redirect to login
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-
-  // Check admin access if required
-  if (requiredRole === 'admin' || window.location.pathname.startsWith('/admin')) {
-    const isAdmin = user?.role === 'admin' || 
-                   ['resumovetorial@gmail.com', 'admin@example.com'].includes(user?.email || '');
-    
-    if (!isAdmin) {
-      return <Navigate to="/unauthorized" replace />;
-    }
+    return <Navigate to="/login" />;
   }
 
   // All checks passed, render the protected content

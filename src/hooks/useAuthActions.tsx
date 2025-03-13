@@ -32,7 +32,6 @@ export function useAuthActions(
         const authUser = await createAuthUser(data.session);
         setUser(authUser);
         toast.success("Login realizado com sucesso!");
-        navigate('/dashboard');
         return true;
       } else {
         throw new Error("Dados de usuário ou sessão ausentes após login");
@@ -80,7 +79,6 @@ export function useAuthActions(
       await logoutWithSupabase();
       setUser(null);
       toast.success("Logout realizado com sucesso");
-      navigate('/login');
       return true;
     } catch (error: any) {
       console.error('Erro no logout:', error);
