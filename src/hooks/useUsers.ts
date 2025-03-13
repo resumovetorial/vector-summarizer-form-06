@@ -20,12 +20,8 @@ export const useUsers = () => {
           fetchedAccessLevels = await fetchAccessLevels();
           console.log("Fetched access levels:", fetchedAccessLevels);
           
-          // Filter out the "Agente" level if it exists
-          const filteredLevels = fetchedAccessLevels.filter(
-            level => level.name.toLowerCase() !== 'agente'
-          );
-          
-          setAccessLevels(filteredLevels);
+          // Set access levels (including "Agente" level)
+          setAccessLevels(fetchedAccessLevels);
         } catch (error) {
           console.error('Erro ao buscar níveis de acesso:', error);
           toast.error("Não foi possível carregar os níveis de acesso.");
@@ -37,10 +33,10 @@ export const useUsers = () => {
           return;
         }
         
-        // Fetch real users from Supabase, no mock data
+        // Fetch real users from Supabase
         const { data: profiles, error } = await supabase
           .from('profiles')
-          .select('*');
+          .select('id, username, role, active, access_level_id');
         
         if (error) {
           console.error('Erro ao buscar perfis:', error);
@@ -49,33 +45,56 @@ export const useUsers = () => {
           return;
         }
 
+        console.log("Raw profiles data:", profiles);
+
         if (profiles && profiles.length > 0) {
+          // Get auth users to combine with profiles
+          const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+          
+          let emailMap: Record<string, string> = {};
+          
+          if (!authError && authUsers?.users) {
+            console.log("Auth users data:", authUsers.users);
+            // Create a mapping of user IDs to emails
+            emailMap = authUsers.users.reduce((map: Record<string, string>, user: any) => {
+              if (user.id && user.email) {
+                map[user.id] = user.email;
+              }
+              return map;
+            }, {});
+          } else {
+            console.log("Could not fetch auth users (expected for non-admin access):", authError);
+          }
+
           // Convert Supabase profiles to User format
           const realUsers: User[] = profiles.map((profile, index) => {
             // Determine the access level ID based on profile
             let accessLevelId = fetchedAccessLevels[0].id; // Default to first access level
             
             if (profile.access_level_id) {
-              // If profile has an access level ID, find the matching numeric ID
-              const matchingLevel = fetchedAccessLevels.find(
+              const foundLevel = fetchedAccessLevels.find(
                 level => level.id.toString() === profile.access_level_id
               );
-              if (matchingLevel) {
-                accessLevelId = matchingLevel.id;
+              if (foundLevel) {
+                accessLevelId = foundLevel.id;
               }
             } else if (profile.role === 'admin') {
-              // Try to find admin access level
-              const adminLevel = fetchedAccessLevels.find(level => level.name.toLowerCase() === 'administrador');
+              const adminLevel = fetchedAccessLevels.find(
+                level => level.name.toLowerCase() === 'administrador'
+              );
               if (adminLevel) {
                 accessLevelId = adminLevel.id;
               }
             }
             
+            // Get email from auth users if available, or use username
+            const email = emailMap[profile.id] || profile.username || `usuario${index + 1}@exemplo.com`;
+            
             return {
               id: index + 1,
               supabaseId: profile.id,
-              name: profile.username || `Usuário ${index + 1}`,
-              email: profile.username || `usuario${index + 1}@exemplo.com`,
+              name: profile.username || email.split('@')[0] || `Usuário ${index + 1}`,
+              email: email,
               role: profile.role || 'Usuário',
               accessLevelId: accessLevelId,
               active: profile.active ?? true,
@@ -86,7 +105,6 @@ export const useUsers = () => {
           console.log("Converted users:", realUsers);
           setUsers(realUsers);
         } else {
-          // If no profiles found, show empty list
           console.log("No profiles found, showing empty list");
           setUsers([]);
         }

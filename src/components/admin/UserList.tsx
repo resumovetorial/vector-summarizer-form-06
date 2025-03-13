@@ -33,6 +33,14 @@ const UserList: React.FC<UserListProps> = ({
     return level ? level.name : 'Desconhecido';
   };
 
+  if (users.length === 0) {
+    return (
+      <div className="text-center py-8 text-muted-foreground">
+        Nenhum usuário encontrado. Clique em "Adicionar Usuário" para começar.
+      </div>
+    );
+  }
+
   return (
     <div className="overflow-x-auto">
       <Table>
