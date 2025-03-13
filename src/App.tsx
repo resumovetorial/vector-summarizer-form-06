@@ -3,16 +3,12 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "@/providers/AuthProvider";
-import ProtectedRoute from "@/components/ProtectedRoute";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import Admin from "./pages/Admin";
-import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
-import Unauthorized from "./pages/Unauthorized";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -31,42 +27,15 @@ const App = () => {
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <AuthProvider>
-            <Routes>
-              {/* Rotas públicas */}
-              <Route path="/login" element={<Login />} />
-              <Route path="/unauthorized" element={<Unauthorized />} />
-              
-              {/* Rotas protegidas */}
-              <Route 
-                path="/" 
-                element={
-                  <ProtectedRoute>
-                    <Index />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/dashboard" 
-                element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/admin" 
-                element={
-                  <ProtectedRoute>
-                    <Admin />
-                  </ProtectedRoute>
-                } 
-              />
-              
-              {/* Rota 404 */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </AuthProvider>
+          <Routes>
+            {/* Todas as rotas são agora públicas */}
+            <Route path="/" element={<Index />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/admin" element={<Admin />} />
+            
+            {/* Rota 404 */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
