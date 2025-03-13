@@ -32,12 +32,6 @@ export function useAuthActions(
         const authUser = await createAuthUser(data.session);
         setUser(authUser);
         toast.success("Login realizado com sucesso!");
-        
-        // Delay navigation slightly to avoid race conditions
-        setTimeout(() => {
-          navigate('/dashboard', { replace: true });
-        }, 100);
-        
         return true;
       } else {
         throw new Error("Dados de usuário ou sessão ausentes após login");
@@ -84,12 +78,6 @@ export function useAuthActions(
       setIsLoading(true);
       await logoutWithSupabase();
       setUser(null);
-      
-      // Add delay to prevent race conditions
-      setTimeout(() => {
-        navigate('/login', { replace: true });
-      }, 100);
-      
       toast.success("Logout realizado com sucesso");
       return true;
     } catch (error: any) {

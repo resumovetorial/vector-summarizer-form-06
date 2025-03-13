@@ -1,6 +1,5 @@
 
-import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useState } from 'react';
 import { AuthUser, AuthContextType } from '@/types/auth';
 import AuthContext from '@/contexts/AuthContext';
 import { useAuthSession } from '@/hooks/useAuthSession';
@@ -8,7 +7,6 @@ import { useAuthActions } from '@/hooks/useAuthActions';
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
   
   const { 
     user, 
@@ -24,9 +22,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setError,
     setIsLoading
   );
-
-  // Extremely simplified - no redirects in AuthProvider
-  // Let the ProtectedRoute handle all routing logic
 
   const value: AuthContextType = {
     user,
