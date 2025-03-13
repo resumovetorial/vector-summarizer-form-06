@@ -37,10 +37,17 @@ const App = () => {
               <Route path="/login" element={<Login />} />
               <Route path="/unauthorized" element={<Unauthorized />} />
               
-              {/* Rota inicial */}
-              <Route path="/" element={<Index />} />
+              {/* Rota inicial - agora protegida */}
+              <Route 
+                path="/" 
+                element={
+                  <ProtectedRoute>
+                    <Index />
+                  </ProtectedRoute>
+                } 
+              />
               
-              {/* Rotas protegidas */}
+              {/* Outras rotas protegidas */}
               <Route 
                 path="/dashboard" 
                 element={

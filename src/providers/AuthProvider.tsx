@@ -26,20 +26,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading
   );
 
-  // Simplified redirection logic
+  // Melhorada lógica de redirecionamento
   useEffect(() => {
-    // Don't redirect until authentication is initialized
+    // Não redirecionar até que a autenticação seja inicializada
     if (!isInitialized) return;
     
-    // If user is authenticated and on the login page, redirect to dashboard
-    if (user && location.pathname === '/login') {
-      const destination = location.state?.from?.pathname || '/dashboard';
-      // Small delay to prevent immediate redirection that might cause loops
-      setTimeout(() => {
+    // Páginas públicas que não exigem redirecionamento
+    const publicPages = ['/', '/login', '/unauthorized'];
+    const isPublicPage = publicPages.includes(location.pathname);
+    
+    if (user) {
+      // Se usuário está autenticado e na página de login, redirecionar para dashboard
+      if (location.pathname === '/login') {
+        const destination = location.state?.from?.pathname || '/dashboard';
         navigate(destination, { replace: true });
-      }, 50);
+      }
+    } else {
+      // Se não está autenticado e não está em página pública, redirecionar para login
+      if (!isPublicPage) {
+        navigate('/login', { 
+          replace: true,
+          state: { from: location } 
+        });
+      }
     }
-  }, [user, isInitialized, location.pathname, navigate, location.state]);
+  }, [user, isInitialized, location.pathname, navigate, location]);
 
   const value: AuthContextType = {
     user,

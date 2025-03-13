@@ -14,7 +14,7 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
   const [content, setContent] = useState<React.ReactNode | null>(null);
 
   useEffect(() => {
-    // Wait for auth to initialize before making decisions
+    // Aguardar inicialização da autenticação antes de tomar decisões
     if (!isInitialized) {
       setContent(
         <div className="min-h-screen flex items-center justify-center background-gradient">
@@ -24,29 +24,29 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
       return;
     }
 
-    // Redirect to login if not authenticated
+    // Redirecionar para login se não estiver autenticado
     if (!isAuthenticated) {
       setContent(<Navigate to="/login" state={{ from: location }} replace />);
       return;
     }
 
-    // Check admin permissions if needed
+    // Verificar permissões de admin se necessário
     const isAdmin = user?.role === 'admin' || 
                    ['resumovetorial@gmail.com', 'admin@example.com'].includes(user?.email || '');
 
-    // Verify specific role requirements
+    // Verificar requisitos específicos de role
     if (requiredRole === 'admin' && !isAdmin) {
       setContent(<Navigate to="/unauthorized" replace />);
       return;
     }
 
-    // Verify admin route access
+    // Verificar acesso a rotas de admin
     if (!isAdmin && location.pathname.startsWith('/admin')) {
       setContent(<Navigate to="/unauthorized" replace />);
       return;
     }
 
-    // Access granted
+    // Acesso concedido
     setContent(children);
   }, [isAuthenticated, isInitialized, isLoading, user, location, children, requiredRole]);
 
