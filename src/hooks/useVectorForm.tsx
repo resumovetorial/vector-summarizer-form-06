@@ -4,7 +4,7 @@ import { useToast } from '@/hooks/use-toast';
 import { FormData, ValidationErrors } from '@/types/vectorForm';
 import { calculateTotalQuantity } from '@/utils/formCalculations';
 import { validateStep, validateForm } from '@/utils/formValidation';
-import { processVectorData } from '@/services/vectorService';
+import { processVectorData } from '@/services/vectorDataProcessor';
 import { toast } from "sonner";
 
 export const useVectorForm = () => {
@@ -37,7 +37,7 @@ export const useVectorForm = () => {
     recusa: '',
     fechadas: '',
     recuperadas: '',
-    // Deposits fields
+    // Campos de depósitos
     a1: '',
     a2: '',
     b: '',
@@ -46,7 +46,7 @@ export const useVectorForm = () => {
     d2: '',
     e: '',
     depositos_eliminados: '',
-    // New treated deposits fields
+    // Novos campos de depósitos tratados
     larvicida: '',
     quantidade_larvicida: '',
     quantidade_depositos_tratados: '',
@@ -59,7 +59,7 @@ export const useVectorForm = () => {
   
   const handleInputChange = (field: keyof FormData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    // Clear error when user types
+    // Limpar erro quando o usuário digita
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: undefined }));
     }
@@ -101,6 +101,14 @@ export const useVectorForm = () => {
     
     try {
       console.log("Enviando dados do formulário:", formData);
+      
+      // Verificar se existe algum campo obrigatório vazio
+      if (!formData.municipality || !formData.locality || !formData.cycle || 
+          !formData.epidemiologicalWeek || !formData.workModality || 
+          !formData.startDate || !formData.endDate) {
+        throw new Error("Todos os campos obrigatórios devem ser preenchidos");
+      }
+      
       const result = await processVectorData(formData);
       
       console.log("Resultado do processamento:", result);
@@ -109,9 +117,9 @@ export const useVectorForm = () => {
       setShowResults(true);
       
       toast.success("A sumarização foi gerada com sucesso");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro ao processar o formulário:", error);
-      toast.error("Ocorreu um erro ao processar sua solicitação");
+      toast.error(`Ocorreu um erro ao processar sua solicitação: ${error.message || 'Erro desconhecido'}`);
     } finally {
       setIsLoading(false);
     }

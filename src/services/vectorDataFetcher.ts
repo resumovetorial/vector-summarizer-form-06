@@ -3,26 +3,26 @@ import { LocalityData } from "@/types/dashboard";
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 
-// Get saved vector data from Supabase or local storage as fallback
+// Obter dados vetoriais salvos do Supabase ou armazenamento local como fallback
 export const getSavedVectorData = async (): Promise<LocalityData[]> => {
   try {
-    // Try to get data from Supabase first
+    // Tenta obter dados do Supabase primeiro
     const { data, error } = await supabase
       .from('vector_data')
       .select('*, localities(name)');
     
     if (error) {
-      console.error('Error fetching data from Supabase:', error);
-      // Fallback to localStorage
+      console.error('Erro ao buscar dados do Supabase:', error);
+      // Fallback para localStorage
       return getLocalVectorData();
     }
     
     if (data && data.length > 0) {
-      console.log("Data retrieved from Supabase:", data.length, "rows");
-      // Convert Supabase data to LocalityData format
+      console.log("Dados recuperados do Supabase:", data.length, "linhas");
+      // Converter dados do Supabase para formato LocalityData
       return data.map(item => ({
         municipality: item.municipality,
-        locality: item.localities?.name || item.locality_id, // Use locality name if available
+        locality: item.localities?.name || item.locality_id, // Usar nome da localidade se disponível
         cycle: item.cycle,
         epidemiologicalWeek: item.epidemiological_week,
         workModality: item.work_modality,
@@ -62,23 +62,23 @@ export const getSavedVectorData = async (): Promise<LocalityData[]> => {
       }));
     }
     
-    // If no data in Supabase, fallback to localStorage
+    // Se não houver dados no Supabase, fallback para localStorage
     return getLocalVectorData();
   } catch (error) {
-    console.error('Error fetching saved vector data:', error);
-    // Fallback to localStorage
+    console.error('Erro ao buscar dados vetoriais salvos:', error);
+    // Fallback para localStorage
     return getLocalVectorData();
   }
 };
 
-// Helper function to get data from localStorage
+// Função auxiliar para obter dados do localStorage
 const getLocalVectorData = (): LocalityData[] => {
   const savedData = localStorage.getItem('vectorData');
   if (savedData) {
     try {
       return JSON.parse(savedData);
     } catch (error) {
-      console.error('Error parsing localStorage data:', error);
+      console.error('Erro ao analisar dados do localStorage:', error);
       return [];
     }
   }
