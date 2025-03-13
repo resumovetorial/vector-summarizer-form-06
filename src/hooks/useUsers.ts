@@ -51,17 +51,19 @@ export const useUsers = () => {
           // Get auth users to combine with profiles
           const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
           
+          // Initialize emailMap as an empty Record<string, string>
           let emailMap: Record<string, string> = {};
           
           if (!authError && authUsers?.users) {
             console.log("Auth users data:", authUsers.users);
             // Create a mapping of user IDs to emails
+            // Explicitly type the array and initial value for reduce
             emailMap = authUsers.users.reduce((map: Record<string, string>, user: any) => {
               if (user.id && user.email) {
                 map[user.id] = user.email;
               }
               return map;
-            }, {});
+            }, {} as Record<string, string>); // Specify initial value type
           } else {
             console.log("Could not fetch auth users (expected for non-admin access):", authError);
           }
