@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Header from '@/components/Header';
@@ -13,6 +12,7 @@ import DashboardLocalitySection from '@/components/dashboard/DashboardLocalitySe
 import { useDashboardExport } from '@/hooks/useDashboardExport';
 import { toast } from "sonner";
 import { useRealtimeUpdates } from '@/hooks/useRealtimeUpdates';
+import { supabase } from '@/lib/supabase';
 
 const Dashboard = () => {
   const { toast: toastHook } = useToast();
@@ -26,7 +26,6 @@ const Dashboard = () => {
   const [isExporting, setIsExporting] = useState(false);
   const dashboardRef = useRef<HTMLDivElement>(null);
 
-  // Use the hook for export functionality
   const { exportToExcel, exportToPDF } = useDashboardExport({
     dashboardRef,
     dashboardData,
@@ -44,7 +43,6 @@ const Dashboard = () => {
       console.log("Dashboard data fetched:", data);
       setDashboardData(data);
       
-      // Limpar a seleção de localidade
       setSelectedLocality('');
       setLocalityData(null);
       setLocalityHistoricalData([]);
@@ -79,7 +77,6 @@ const Dashboard = () => {
     }
   };
 
-  // Callback para atualizar dados em tempo real
   const handleRealtimeUpdate = useCallback((payload: any) => {
     if (!payload || !payload.new) {
       console.log('Received empty realtime update');
@@ -89,10 +86,9 @@ const Dashboard = () => {
     const item = payload.new;
     console.log('Received realtime update:', item);
     
-    // Convert Supabase payload to LocalityData format
     const newData: LocalityData = {
       municipality: item.municipality,
-      locality: item.locality_id, // We'll need to fetch the locality name separately
+      locality: item.locality_id,
       cycle: item.cycle,
       epidemiologicalWeek: item.epidemiological_week,
       workModality: item.work_modality,
@@ -131,7 +127,6 @@ const Dashboard = () => {
       total_dias_trabalhados: item.total_dias_trabalhados
     };
     
-    // Fetch the locality name
     const fetchLocalityName = async () => {
       try {
         const { data, error } = await supabase
@@ -144,23 +139,18 @@ const Dashboard = () => {
           newData.locality = data.name;
         }
         
-        // Now update the dashboard data
         updateDashboardData(newData);
       } catch (err) {
         console.error('Error fetching locality name:', err);
-        // Still update with just the ID
         updateDashboardData(newData);
       }
     };
     
     fetchLocalityName();
   }, []);
-  
-  // Helper function to update dashboard data
+
   const updateDashboardData = useCallback((newData: LocalityData) => {
-    // Atualizar dashboardData com os novos dados
     setDashboardData(prevData => {
-      // Verificar se os dados já existem
       const existingIndex = prevData.findIndex(
         item => 
           item.locality === newData.locality && 
@@ -170,17 +160,14 @@ const Dashboard = () => {
       );
       
       if (existingIndex >= 0) {
-        // Atualizar os dados existentes
         const updatedData = [...prevData];
         updatedData[existingIndex] = newData;
         return updatedData;
       } else {
-        // Adicionar os novos dados
         return [...prevData, newData];
       }
     });
     
-    // Se a localidade selecionada for a mesma dos novos dados, atualizar localityData
     if (selectedLocality === newData.locality) {
       setLocalityHistoricalData(prevData => {
         const existingIndex = prevData.findIndex(
@@ -191,23 +178,19 @@ const Dashboard = () => {
         );
         
         if (existingIndex >= 0) {
-          // Atualizar os dados existentes
           const updatedData = [...prevData];
           updatedData[existingIndex] = newData;
           return updatedData;
         } else {
-          // Adicionar os novos dados
           return [...prevData, newData].sort((a, b) => 
             new Date(b.endDate).getTime() - new Date(a.endDate).getTime()
           );
         }
       });
       
-      // Atualizar localityData se for o dado mais recente
       setLocalityData(prevData => {
         if (!prevData) return newData;
         
-        // Verificar se os novos dados são mais recentes
         if (new Date(newData.endDate).getTime() > new Date(prevData.endDate).getTime()) {
           return newData;
         }
@@ -217,7 +200,6 @@ const Dashboard = () => {
     }
   }, [selectedLocality]);
 
-  // Usar o hook de atualizações em tempo real
   const { isSubscribed } = useRealtimeUpdates(handleRealtimeUpdate, []);
 
   useEffect(() => {
