@@ -14,7 +14,11 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
   const [content, setContent] = useState<React.ReactNode | null>(null);
 
   useEffect(() => {
-    // Mostrar loader apenas enquanto a autenticação está inicializando
+    // Definir páginas públicas que não exigem autenticação
+    const publicPages = ['/login', '/unauthorized'];
+    const isPublicPage = publicPages.includes(location.pathname);
+
+    // Mostrar loader durante inicialização
     if (!isInitialized) {
       setContent(
         <div className="min-h-screen flex items-center justify-center background-gradient">
@@ -24,24 +28,24 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
       return;
     }
 
-    // Apenas verificar autenticação após inicialização completa
-    // e não em páginas públicas para evitar loops
-    if (!isAuthenticated && isInitialized) {
-      // Evita redirecionamentos recursivos
-      const publicPages = ['/login', '/unauthorized'];
-      if (!publicPages.includes(location.pathname)) {
-        setContent(<Navigate to="/login" state={{ from: location }} replace />);
-        return;
-      }
+    // Se estiver em uma página pública, permitir acesso independente de autenticação
+    if (isPublicPage) {
+      setContent(children);
+      return;
     }
 
-    // Verificações de permissão apenas para usuários autenticados
-    if (isAuthenticated && user) {
-      // Verificar permissões de admin
-      const isAdmin = user.role === 'admin' || 
-                    ['resumovetorial@gmail.com', 'admin@example.com'].includes(user.email || '');
+    // Redirecionar para login se não estiver autenticado
+    if (!isAuthenticated) {
+      setContent(<Navigate to="/login" state={{ from: location }} replace />);
+      return;
+    }
 
-      // Verificar requisitos específicos de role
+    // Verificações de role apenas para usuários autenticados
+    if (user) {
+      const isAdmin = user.role === 'admin' || 
+                     ['resumovetorial@gmail.com', 'admin@example.com'].includes(user.email || '');
+
+      // Verificar requisito específico de role
       if (requiredRole === 'admin' && !isAdmin) {
         setContent(<Navigate to="/unauthorized" replace />);
         return;
@@ -54,9 +58,9 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
       }
     }
 
-    // Acesso concedido ou página pública
+    // Acesso concedido
     setContent(children);
-  }, [isAuthenticated, isInitialized, isLoading, user, location, children, requiredRole]);
+  }, [isAuthenticated, isInitialized, user, location, children, requiredRole]);
 
   return <>{content}</>;
 };

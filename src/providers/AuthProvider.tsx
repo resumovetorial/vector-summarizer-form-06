@@ -26,29 +26,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading
   );
 
-  // Corrigindo loop infinito - simplificando a lógica de redirecionamento
+  // Simplificada a lógica de redirecionamento
   useEffect(() => {
-    // Não redirecionar até que a autenticação seja inicializada
+    // Não fazer nada até que a autenticação seja inicializada
     if (!isInitialized) return;
     
-    // Páginas que não exigem autenticação
-    const publicPages = ['/login', '/unauthorized'];
-    const isPublicPage = publicPages.includes(location.pathname);
-    
-    // Redirecionamento básico - apenas redirecionar para a dashboard no login bem-sucedido
-    // ou para login quando em página protegida sem autenticação
+    // Apenas redirecionar usuário autenticado da página de login para dashboard
     if (user && location.pathname === '/login') {
-      const destination = location.state?.from?.pathname || '/dashboard';
-      navigate(destination, { replace: true });
-    } else if (!user && !isPublicPage) {
-      // Apenas redirecionar para login quando definitivamente não autenticado
-      // e não estiver em uma página pública
-      navigate('/login', { 
-        replace: true,
-        state: { from: location } 
-      });
+      navigate('/dashboard', { replace: true });
     }
-  }, [user, isInitialized, location.pathname, navigate, location]);
+    
+    // Deixe o componente ProtectedRoute lidar com redirecionamentos para páginas protegidas
+  }, [user, isInitialized, location.pathname, navigate]);
 
   const value: AuthContextType = {
     user,
