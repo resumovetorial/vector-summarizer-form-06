@@ -21,6 +21,7 @@ export const updateExistingUser = async (
   if (!initialUser.supabaseId) return null;
 
   // Update the profile in Supabase
+  let profileUpdated = false;
   try {
     const { error } = await supabase
       .from('profiles')
@@ -35,10 +36,18 @@ export const updateExistingUser = async (
       console.error('Erro ao atualizar usuário:', error);
       throw new Error(error.message);
     }
+    
+    profileUpdated = true;
   } catch (error: any) {
     console.error('Falha na atualização do perfil:', error);
     toast.error(`Erro na atualização do perfil: ${error.message}. Continuando em modo de demonstração.`);
     // Continue despite errors to maintain demo functionality
+  }
+  
+  if (profileUpdated) {
+    toast.success("Usuário atualizado com sucesso!");
+  } else {
+    toast.info("Usuário atualizado em modo de demonstração apenas.");
   }
   
   // Return updated user object

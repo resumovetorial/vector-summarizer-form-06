@@ -27,7 +27,8 @@ export const createNewUser = async (
     
   if (searchError) {
     console.error('Erro ao verificar existência do usuário:', searchError);
-    throw new Error(searchError.message);
+    // Continue without throwing to maintain demo functionality
+    console.warn("Continuing in demo mode despite search error");
   }
 
   let userId: string;
@@ -63,8 +64,11 @@ export const createNewUser = async (
   }
   
   // Create or update the profile in Supabase
+  // Note: This will likely fail in demo mode due to RLS, which is expected
+  // We'll catch the error and continue with client-side only changes
+  let profileCreated = false;
   try {
-    const { data: profileData, error: profileError } = await supabase
+    const { error: profileError } = await supabase
       .from('profiles')
       .upsert({ 
         id: userId,
@@ -80,14 +84,15 @@ export const createNewUser = async (
       throw new Error(profileError.message);
     }
     
-    console.log("Created/updated profile:", profileData);
+    profileCreated = true;
+    console.log("Created/updated profile successfully");
   } catch (error: any) {
     console.error('Erro na operação de upsert do perfil:', error);
     // Continue with the flow despite the error to maintain demo functionality
     toast.error(`Erro na criação do perfil no Supabase: ${error.message}. Continuando em modo de demonstração.`);
   }
   
-  // Create new user object
+  // Create new user object for client-side state
   const newUser: User = {
     id: users.length > 0 ? Math.max(...users.map(u => u.id)) + 1 : 1,
     supabaseId: userId,
@@ -98,6 +103,12 @@ export const createNewUser = async (
     active: formData.active,
     assignedLocalities: formData.localities
   };
+  
+  if (profileCreated) {
+    toast.success("Usuário criado com sucesso!");
+  } else {
+    toast.info("Usuário criado em modo de demonstração apenas.");
+  }
   
   return { userId, newUser };
 };
