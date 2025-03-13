@@ -18,10 +18,7 @@ const Admin = () => {
         requiredLevel="administrador"
         fallbackMessage="Você precisa ter acesso de administrador para visualizar o painel administrativo."
       >
-        <AdminHeader 
-          title="Painel Administrativo" 
-          description="Gerencie usuários, localidades e níveis de acesso"
-        />
+        <AdminHeader />
         
         <Tabs
           defaultValue="users"

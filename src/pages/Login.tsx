@@ -44,12 +44,7 @@ const Login = () => {
           
           <TabsContent value="login">
             <CardContent>
-              <LoginForm 
-                email={email}
-                setEmail={setEmail}
-                password={password}
-                setPassword={setPassword}
-              />
+              <LoginForm />
             </CardContent>
           </TabsContent>
           
