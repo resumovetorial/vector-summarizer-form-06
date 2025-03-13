@@ -26,16 +26,16 @@ export function useAuthActions(
       // Simulate successful login without actual authentication
       console.log('useAuthActions - Simulando login bem-sucedido');
       
-      // Create a mock user with admin privileges
-      const mockUser = {
+      // Create a mock user that matches the AuthUser interface
+      const mockUser: AuthUser = {
         id: '1',
         email: email,
+        username: email.split('@')[0], // Use part of email as username
         role: 'admin',
-        name: 'Administrador',
-        accessLevel: 'admin'
+        isAuthenticated: true
       };
       
-      setUser(mockUser as AuthUser);
+      setUser(mockUser);
       toast.success("Login realizado com sucesso!");
       
       // Navigate to dashboard with replace to avoid navigation issues
