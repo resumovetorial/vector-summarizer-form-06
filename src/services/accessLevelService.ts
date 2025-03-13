@@ -1,6 +1,7 @@
 
 import { supabase } from '@/lib/supabase';
 import { AccessLevel } from '@/types/admin';
+import { toast } from 'sonner';
 
 export const fetchAccessLevels = async (): Promise<AccessLevel[]> => {
   // Attempt to fetch from Supabase
@@ -11,7 +12,7 @@ export const fetchAccessLevels = async (): Promise<AccessLevel[]> => {
       .order('name');
     
     if (error) {
-      console.error('Error fetching access levels:', error);
+      console.error('Erro ao buscar níveis de acesso:', error);
       throw error;
     }
     
@@ -23,7 +24,7 @@ export const fetchAccessLevels = async (): Promise<AccessLevel[]> => {
       permissions: level.permissions,
     }));
   } catch (error) {
-    console.error('Error fetching access levels from Supabase, using fallback:', error);
+    console.error('Erro ao buscar níveis de acesso do Supabase, usando fallback:', error);
     
     // Return default levels if Supabase query fails
     return [
@@ -57,6 +58,16 @@ export const fetchAccessLevels = async (): Promise<AccessLevel[]> => {
 
 export const createAccessLevel = async (level: Omit<AccessLevel, 'id'>): Promise<AccessLevel> => {
   try {
+    // Verificar a sessão atual do usuário
+    const { data: sessionData } = await supabase.auth.getSession();
+    
+    if (!sessionData.session) {
+      console.error('Usuário não autenticado');
+      throw new Error('Você precisa estar autenticado para adicionar níveis de acesso');
+    }
+    
+    console.log('Tentando criar nível de acesso como usuário:', sessionData.session.user.id);
+    
     const { data, error } = await supabase
       .from('access_levels')
       .insert([{
@@ -68,7 +79,13 @@ export const createAccessLevel = async (level: Omit<AccessLevel, 'id'>): Promise
       .single();
     
     if (error) {
-      console.error('Error creating access level:', error);
+      console.error('Erro ao criar nível de acesso:', error);
+      
+      // Verificar se é um erro de RLS
+      if (error.message.includes('violates row-level security policy')) {
+        throw new Error('Você não tem permissão para adicionar níveis de acesso. Você precisa ter função de administrador.');
+      }
+      
       throw error;
     }
     
@@ -78,14 +95,22 @@ export const createAccessLevel = async (level: Omit<AccessLevel, 'id'>): Promise
       description: data.description || '',
       permissions: data.permissions,
     };
-  } catch (error) {
-    console.error('Failed to create access level:', error);
+  } catch (error: any) {
+    console.error('Falha ao criar nível de acesso:', error);
     throw error;
   }
 };
 
 export const updateAccessLevel = async (level: AccessLevel): Promise<AccessLevel> => {
   try {
+    // Verificar a sessão atual do usuário
+    const { data: sessionData } = await supabase.auth.getSession();
+    
+    if (!sessionData.session) {
+      console.error('Usuário não autenticado');
+      throw new Error('Você precisa estar autenticado para atualizar níveis de acesso');
+    }
+    
     // In Supabase, ID is a UUID, so we need to find the correct UUID
     const { data: existingLevels, error: fetchError } = await supabase
       .from('access_levels')
@@ -94,8 +119,8 @@ export const updateAccessLevel = async (level: AccessLevel): Promise<AccessLevel
       .limit(1);
     
     if (fetchError || !existingLevels || existingLevels.length === 0) {
-      console.error('Error finding access level:', fetchError);
-      throw fetchError || new Error('Access level not found');
+      console.error('Erro ao encontrar nível de acesso:', fetchError);
+      throw fetchError || new Error('Nível de acesso não encontrado');
     }
     
     const supabaseId = existingLevels[0].id;
@@ -112,7 +137,13 @@ export const updateAccessLevel = async (level: AccessLevel): Promise<AccessLevel
       .single();
     
     if (error) {
-      console.error('Error updating access level:', error);
+      console.error('Erro ao atualizar nível de acesso:', error);
+      
+      // Verificar se é um erro de RLS
+      if (error.message.includes('violates row-level security policy')) {
+        throw new Error('Você não tem permissão para atualizar níveis de acesso. Você precisa ter função de administrador.');
+      }
+      
       throw error;
     }
     
@@ -122,18 +153,25 @@ export const updateAccessLevel = async (level: AccessLevel): Promise<AccessLevel
       description: data.description || '',
       permissions: data.permissions,
     };
-  } catch (error) {
-    console.error('Failed to update access level:', error);
+  } catch (error: any) {
+    console.error('Falha ao atualizar nível de acesso:', error);
     throw error;
   }
 };
 
 export const deleteAccessLevel = async (levelName: string): Promise<void> => {
   try {
-    // First, check if it's the "Agente" level, which should be removed
+    // Verificar a sessão atual do usuário
+    const { data: sessionData } = await supabase.auth.getSession();
+    
+    if (!sessionData.session) {
+      console.error('Usuário não autenticado');
+      throw new Error('Você precisa estar autenticado para excluir níveis de acesso');
+    }
+    
+    // Verify if it's the "Agente" level, which should be removable
     if (levelName.toLowerCase() === 'agente') {
-      // We'll allow this to be deleted as specified in the requirements
-      console.log('Removing "Agente" access level as requested');
+      console.log('Removendo nível de acesso "Agente" conforme solicitado');
     }
     
     // Find the UUID of the access level by name
@@ -144,8 +182,8 @@ export const deleteAccessLevel = async (levelName: string): Promise<void> => {
       .limit(1);
     
     if (fetchError || !existingLevels || existingLevels.length === 0) {
-      console.error('Error finding access level:', fetchError);
-      throw fetchError || new Error('Access level not found');
+      console.error('Erro ao encontrar nível de acesso:', fetchError);
+      throw fetchError || new Error('Nível de acesso não encontrado');
     }
     
     const supabaseId = existingLevels[0].id;
@@ -156,11 +194,17 @@ export const deleteAccessLevel = async (levelName: string): Promise<void> => {
       .eq('id', supabaseId);
     
     if (error) {
-      console.error('Error deleting access level:', error);
+      console.error('Erro ao excluir nível de acesso:', error);
+      
+      // Verificar se é um erro de RLS
+      if (error.message.includes('violates row-level security policy')) {
+        throw new Error('Você não tem permissão para excluir níveis de acesso. Você precisa ter função de administrador.');
+      }
+      
       throw error;
     }
-  } catch (error) {
-    console.error('Failed to delete access level:', error);
+  } catch (error: any) {
+    console.error('Falha ao excluir nível de acesso:', error);
     throw error;
   }
 };

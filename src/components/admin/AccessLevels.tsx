@@ -43,6 +43,12 @@ const AccessLevels: React.FC = () => {
     try {
       setIsLoading(true);
       
+      // Verificar se o usuário está autenticado e tem função de admin
+      if (!user || user.role !== 'admin') {
+        toast.error("Você precisa ter permissões de administrador para adicionar níveis de acesso.");
+        return;
+      }
+      
       const newLevel = await createAccessLevel({
         name: formName,
         description: formDescription,
@@ -54,6 +60,7 @@ const AccessLevels: React.FC = () => {
       resetForm();
       toast.success("Nível de acesso adicionado com sucesso!");
     } catch (error: any) {
+      console.error("Erro completo:", error);
       toast.error(`Erro ao adicionar nível de acesso: ${error.message}`);
     } finally {
       setIsLoading(false);
@@ -65,6 +72,12 @@ const AccessLevels: React.FC = () => {
     
     try {
       setIsLoading(true);
+      
+      // Verificar se o usuário está autenticado e tem função de admin
+      if (!user || user.role !== 'admin') {
+        toast.error("Você precisa ter permissões de administrador para editar níveis de acesso.");
+        return;
+      }
       
       const updatedLevel = await updateAccessLevel({
         ...selectedLevel,
@@ -91,6 +104,13 @@ const AccessLevels: React.FC = () => {
   const handleDeleteLevel = async (level: AccessLevel) => {
     try {
       setIsLoading(true);
+      
+      // Verificar se o usuário está autenticado e tem função de admin
+      if (!user || user.role !== 'admin') {
+        toast.error("Você precisa ter permissões de administrador para remover níveis de acesso.");
+        return;
+      }
+      
       await deleteAccessLevel(level.name);
       
       setAccessLevels(accessLevels.filter(l => l.id !== level.id));
@@ -176,7 +196,7 @@ const AccessLevels: React.FC = () => {
         onSubmit={handleEditLevel}
         setFormName={setFormName}
         setFormDescription={setFormDescription}
-        setFormPermissions={setFormPermissions}
+        setFormPermissions={setFormFormissions}
         isLoading={isLoading}
       />
     </Card>
