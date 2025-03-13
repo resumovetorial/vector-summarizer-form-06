@@ -14,7 +14,7 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
   const [content, setContent] = useState<React.ReactNode | null>(null);
 
   useEffect(() => {
-    // Mostrar loader enquanto a autenticação está inicializando
+    // Mostrar loader apenas enquanto a autenticação está inicializando
     if (!isInitialized) {
       setContent(
         <div className="min-h-screen flex items-center justify-center background-gradient">
@@ -24,10 +24,15 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
       return;
     }
 
-    // Apenas verificar autenticação após inicialização
+    // Apenas verificar autenticação após inicialização completa
+    // e não em páginas públicas para evitar loops
     if (!isAuthenticated && isInitialized) {
-      setContent(<Navigate to="/login" state={{ from: location }} replace />);
-      return;
+      // Evita redirecionamentos recursivos
+      const publicPages = ['/login', '/unauthorized'];
+      if (!publicPages.includes(location.pathname)) {
+        setContent(<Navigate to="/login" state={{ from: location }} replace />);
+        return;
+      }
     }
 
     // Verificações de permissão apenas para usuários autenticados
@@ -49,7 +54,7 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
       }
     }
 
-    // Acesso concedido
+    // Acesso concedido ou página pública
     setContent(children);
   }, [isAuthenticated, isInitialized, isLoading, user, location, children, requiredRole]);
 

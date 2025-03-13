@@ -26,7 +26,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading
   );
 
-  // Correção da lógica de redirecionamento para evitar problemas de inicialização
+  // Corrigindo loop infinito - simplificando a lógica de redirecionamento
   useEffect(() => {
     // Não redirecionar até que a autenticação seja inicializada
     if (!isInitialized) return;
@@ -35,20 +35,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const publicPages = ['/login', '/unauthorized'];
     const isPublicPage = publicPages.includes(location.pathname);
     
-    if (user) {
-      // Se usuário está autenticado e na página de login, redirecionar para dashboard
-      if (location.pathname === '/login') {
-        const destination = location.state?.from?.pathname || '/dashboard';
-        navigate(destination, { replace: true });
-      }
-    } else {
-      // Se não está autenticado e não está em página pública, redirecionar para login
-      if (!isPublicPage) {
-        navigate('/login', { 
-          replace: true,
-          state: { from: location } 
-        });
-      }
+    // Redirecionamento básico - apenas redirecionar para a dashboard no login bem-sucedido
+    // ou para login quando em página protegida sem autenticação
+    if (user && location.pathname === '/login') {
+      const destination = location.state?.from?.pathname || '/dashboard';
+      navigate(destination, { replace: true });
+    } else if (!user && !isPublicPage) {
+      // Apenas redirecionar para login quando definitivamente não autenticado
+      // e não estiver em uma página pública
+      navigate('/login', { 
+        replace: true,
+        state: { from: location } 
+      });
     }
   }, [user, isInitialized, location.pathname, navigate, location]);
 
