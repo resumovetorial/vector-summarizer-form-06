@@ -63,26 +63,29 @@ export const createNewUser = async (
   }
   
   // Create or update the profile in Supabase
-  // IMPORTANTE: access_level_id é do tipo UUID no banco, não podemos armazenar um número
-  // Portanto, armazenaremos como metadados ao invés de um campo direto
-  const { data: profileData, error: profileError } = await supabase
-    .from('profiles')
-    .upsert({ 
-      id: userId,
-      username: formData.name,
-      role: formData.role,
-      active: formData.active,
-      // Removemos o access_level_id daqui, pois está causando o erro
-    })
-    .select()
-    .single();
+  try {
+    const { data: profileData, error: profileError } = await supabase
+      .from('profiles')
+      .upsert({ 
+        id: userId,
+        username: formData.name,
+        role: formData.role,
+        active: formData.active,
+      }, {
+        onConflict: 'id'
+      });
+      
+    if (profileError) {
+      console.error('Erro ao criar/atualizar perfil:', profileError);
+      throw new Error(profileError.message);
+    }
     
-  if (profileError) {
-    console.error('Erro ao criar/atualizar perfil:', profileError);
-    throw new Error(profileError.message);
+    console.log("Created/updated profile:", profileData);
+  } catch (error: any) {
+    console.error('Erro na operação de upsert do perfil:', error);
+    // Continue with the flow despite the error to maintain demo functionality
+    toast.error(`Erro na criação do perfil no Supabase: ${error.message}. Continuando em modo de demonstração.`);
   }
-  
-  console.log("Created/updated profile:", profileData);
   
   // Create new user object
   const newUser: User = {
