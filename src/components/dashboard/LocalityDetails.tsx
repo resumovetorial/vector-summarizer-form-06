@@ -18,15 +18,55 @@ const LocalityDetails: React.FC<LocalityDetailsProps> = ({ data }) => {
   const navigate = useNavigate();
   
   const handleEditClick = () => {
-    // For now, we'll just show a notification
+    // Mostrar notificação
     toast.info("Preparando edição de dados para " + data.locality);
     setIsEditing(true);
     
-    // In the future, we could navigate to a form with pre-filled data
+    // Converter os dados para o formato do formulário
+    const formData = {
+      municipality: data.municipality,
+      locality: data.locality,
+      cycle: data.cycle,
+      epidemiologicalWeek: data.epidemiologicalWeek,
+      workModality: data.workModality,
+      startDate: new Date(data.startDate),
+      endDate: new Date(data.endDate),
+      qt_residencias: data.qt_residencias.toString(),
+      qt_comercio: data.qt_comercio.toString(),
+      qt_terreno_baldio: data.qt_terreno_baldio.toString(),
+      qt_pe: data.qt_pe.toString(),
+      qt_outros: data.qt_outros.toString(),
+      qt_total: data.qt_total.toString(),
+      tratamento_focal: data.tratamento_focal.toString(),
+      tratamento_perifocal: data.tratamento_perifocal.toString(),
+      inspecionados: data.inspections.toString(),
+      amostras_coletadas: data.amostras_coletadas.toString(),
+      recusa: data.recusa.toString(),
+      fechadas: data.fechadas.toString(),
+      recuperadas: data.recuperadas.toString(),
+      a1: data.a1.toString(),
+      a2: data.a2.toString(),
+      b: data.b.toString(),
+      c: data.c.toString(),
+      d1: data.d1.toString(),
+      d2: data.d2.toString(),
+      e: data.e.toString(),
+      depositos_eliminados: data.depositsEliminated.toString(),
+      larvicida: data.larvicida,
+      quantidade_larvicida: data.quantidade_larvicida.toString(),
+      quantidade_depositos_tratados: data.quantidade_depositos_tratados.toString(),
+      adulticida: data.adulticida,
+      quantidade_cargas: data.quantidade_cargas.toString(),
+      total_tec_saude: data.total_tec_saude.toString(),
+      total_dias_trabalhados: data.total_dias_trabalhados.toString(),
+      nome_supervisor: data.supervisor
+    };
+    
+    // Navegar para a página inicial com os dados para edição
     setTimeout(() => {
+      navigate('/', { state: { editMode: true, vectorDataToEdit: formData } });
       setIsEditing(false);
-      navigate(`/edit-vector-data/${data.locality}`, { state: { vectorData: data } });
-    }, 1500);
+    }, 1000);
   };
   
   const formatDate = (dateStr: string) => {

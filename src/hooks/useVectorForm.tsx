@@ -6,9 +6,13 @@ import { calculateTotalQuantity } from '@/utils/formCalculations';
 import { validateStep, validateForm } from '@/utils/formValidation';
 import { processVectorData } from '@/services/vectorDataProcessor';
 import { toast } from "sonner";
+import { useLocation } from 'react-router-dom';
 
 export const useVectorForm = () => {
   const { toast: toastHook } = useToast();
+  const location = useLocation();
+  const editMode = location.state?.editMode;
+  
   const [isLoading, setIsLoading] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [vectorData, setVectorData] = useState<any>(null);
@@ -97,7 +101,7 @@ export const useVectorForm = () => {
     }
     
     setIsLoading(true);
-    toast.info("Processando dados...");
+    toast.info(editMode ? "Atualizando dados..." : "Processando dados...");
     
     try {
       console.log("Enviando dados do formulário:", formData);
@@ -116,7 +120,10 @@ export const useVectorForm = () => {
       setSummary(result.summary);
       setShowResults(true);
       
-      toast.success("A sumarização foi gerada com sucesso");
+      toast.success(editMode 
+        ? "Os dados foram atualizados com sucesso" 
+        : "A sumarização foi gerada com sucesso"
+      );
     } catch (error: any) {
       console.error("Erro ao processar o formulário:", error);
       toast.error(`Ocorreu um erro ao processar sua solicitação: ${error.message || 'Erro desconhecido'}`);
@@ -127,6 +134,7 @@ export const useVectorForm = () => {
   
   return {
     formData,
+    setFormData,
     handleInputChange,
     errors,
     isLoading,
@@ -135,6 +143,7 @@ export const useVectorForm = () => {
     vectorData,
     summary,
     currentStep,
+    setCurrentStep,
     nextStep,
     prevStep,
     calculateTotal
