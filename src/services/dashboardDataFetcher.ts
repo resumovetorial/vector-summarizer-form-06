@@ -3,9 +3,8 @@ import { LocalityData } from "@/types/dashboard";
 import { getSavedVectorData } from "./vectorService";
 import { mockDashboardData } from "./mockDashboardData";
 import { filterDataByYear } from "./dashboardFilterService";
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { mapSupabaseDataToLocalityData } from "./dashboardMapperService";
 
 /**
  * Fetches dashboard data from Supabase or falls back to local storage or mock data
@@ -14,7 +13,7 @@ import { mapSupabaseDataToLocalityData } from "./dashboardMapperService";
  */
 export const fetchDashboardData = async (year: string = "2024"): Promise<LocalityData[]> => {
   // Simulate API call with timeout
-  await new Promise(resolve => setTimeout(resolve, 1000));
+  await new Promise(resolve => setTimeout(resolve, 500));
   
   try {
     console.log("Tentando buscar dados do Supabase...");
@@ -46,7 +45,7 @@ export const fetchDashboardData = async (year: string = "2024"): Promise<Localit
       // Convert Supabase data to LocalityData format with locality names
       const convertedData = data.map(item => ({
         municipality: item.municipality,
-        locality: item.localities?.name || item.locality_id, // Use locality name if available
+        locality: item.localities?.name || 'Localidade não encontrada',
         cycle: item.cycle,
         epidemiologicalWeek: item.epidemiological_week,
         workModality: item.work_modality,
@@ -85,6 +84,7 @@ export const fetchDashboardData = async (year: string = "2024"): Promise<Localit
         total_dias_trabalhados: item.total_dias_trabalhados
       }));
       
+      toast.success(`${convertedData.length} registros carregados do servidor`);
       return filterDataByYear(convertedData, year);
     }
     

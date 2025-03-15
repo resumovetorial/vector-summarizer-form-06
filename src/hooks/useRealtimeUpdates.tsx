@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { LocalityData } from '@/types/dashboard';
 
 export const useRealtimeUpdates = (
@@ -11,6 +11,27 @@ export const useRealtimeUpdates = (
 
   useEffect(() => {
     console.log("Configurando assinatura Realtime para a tabela vector_data");
+    
+    // Enable realtime for the vector_data table
+    const enableRealtime = async () => {
+      try {
+        // First check if the table has realtime enabled
+        const { error } = await supabase.rpc('supabase_realtime.enable_publication_for_table', {
+          table_name: 'vector_data'
+        });
+        
+        if (error) {
+          console.error("Erro ao ativar realtime para a tabela vector_data:", error);
+          return;
+        }
+        
+        console.log("Realtime support is enabled for vector_data table via SQL configurations");
+      } catch (err) {
+        console.error("Erro ao configurar realtime:", err);
+      }
+    };
+    
+    enableRealtime();
     
     // Inscrever-se para mudanças na tabela vector_data
     const channel = supabase

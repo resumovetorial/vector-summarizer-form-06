@@ -1,7 +1,7 @@
 
 import { LocalityData } from "@/types/dashboard";
 import { toast } from 'sonner';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { findOrCreateLocality } from '../localities/localityManager';
 
 /**
@@ -10,8 +10,10 @@ import { findOrCreateLocality } from '../localities/localityManager';
  * @returns True if at least one record was synced successfully
  */
 export const syncDataWithSupabase = async (data: LocalityData[]): Promise<boolean> => {
-  // Use ID for demonstration - in production, would be the authenticated user's ID
-  const userId = '00000000-0000-0000-0000-000000000000';
+  // Try to get the current authenticated user
+  const { data: { user } } = await supabase.auth.getUser();
+  const userId = user?.id || '00000000-0000-0000-0000-000000000000';
+  
   let successCount = 0;
   
   for (const item of data) {
@@ -20,18 +22,18 @@ export const syncDataWithSupabase = async (data: LocalityData[]): Promise<boolea
       const localityId = await findOrCreateLocality(item.locality);
       
       if (!localityId) {
-        console.error(`Failed to process locality: ${item.locality}`);
+        console.error(`Falha ao processar localidade: ${item.locality}`);
         continue;
       }
       
       // Ensure dates are present
       if (!item.startDate || !item.endDate) {
-        console.error("Missing start or end date for item:", item);
+        console.error("Data de início ou fim ausente para o item:", item);
         continue;
       }
       
       // Insert data to Supabase
-      console.log("Inserting data for locality:", item.locality, "with ID:", localityId);
+      console.log("Inserindo dados para localidade:", item.locality, "com ID:", localityId);
       
       const { error } = await supabase
         .from('vector_data')
@@ -78,13 +80,13 @@ export const syncDataWithSupabase = async (data: LocalityData[]): Promise<boolea
         }]);
         
       if (error) {
-        console.error('Error inserting data into Supabase:', error);
+        console.error('Erro ao inserir dados no Supabase:', error);
       } else {
-        console.log('Data synchronized successfully with Supabase for locality:', item.locality);
+        console.log('Dados sincronizados com sucesso no Supabase para localidade:', item.locality);
         successCount++;
       }
     } catch (error) {
-      console.error('Error during Supabase sync operation:', error);
+      console.error('Erro durante operação de sincronização com Supabase:', error);
     }
   }
   

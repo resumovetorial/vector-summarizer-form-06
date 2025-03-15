@@ -15,32 +15,32 @@ export const saveVectorData = async (data: LocalityData[]): Promise<boolean> => 
     const localSaveSuccess = await saveToLocalStorage(data);
     
     if (!localSaveSuccess) {
-      toast.error('Error saving data locally');
+      toast.error('Erro ao salvar dados localmente');
       return false;
     }
     
     // Try to sync with Supabase if we have data to save
     if (data.length > 0) {
       try {
-        console.log('Attempting to sync with Supabase...');
+        console.log('Tentando sincronizar com o Supabase...');
         const syncResult = await syncDataWithSupabase(data);
         
         if (syncResult) {
-          toast.success('Data synchronized successfully');
+          toast.success('Dados sincronizados com o servidor com sucesso');
           return true;
         } else {
-          toast.warning('Data saved locally, but could not be synchronized with the server');
+          toast.warning('Dados salvos localmente, mas não foi possível sincronizar com o servidor');
         }
       } catch (syncError) {
-        console.error('Error syncing with Supabase, but data was saved locally:', syncError);
-        toast.warning('Data saved locally, but could not be synchronized with the server');
+        console.error('Erro ao sincronizar com o Supabase, mas os dados foram salvos localmente:', syncError);
+        toast.warning('Dados salvos localmente, mas não foi possível sincronizar com o servidor');
       }
     }
     
     return true;
   } catch (error) {
-    console.error('Error in vector data save operation:', error);
-    toast.error('Error saving data');
+    console.error('Erro na operação de salvamento de dados:', error);
+    toast.error('Erro ao salvar dados');
     return false;
   }
 };

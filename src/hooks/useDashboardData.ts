@@ -3,6 +3,7 @@ import { useState, useCallback } from 'react';
 import { LocalityData } from '@/types/dashboard';
 import { fetchDashboardData } from '@/services/dashboardService';
 import { toast } from "sonner";
+import { supabase } from '@/integrations/supabase/client';
 
 export const useDashboardData = () => {
   const [isLoading, setIsLoading] = useState(false);
