@@ -31,11 +31,10 @@ export const saveVectorDataToSupabase = async (formData: FormData): Promise<bool
     
     // Get current user for supervisor and created_by field
     const { data: { user } } = await supabase.auth.getUser();
-    const userId = user?.id || '00000000-0000-0000-0000-000000000000';
 
-    // Add user info to the data
-    insertData.supervisor = userId;
-    insertData.created_by = userId;
+    // Add user info to the data - use null if user is not authenticated
+    insertData.supervisor = user?.id || null;
+    insertData.created_by = user?.id || null;
     
     // Insert data into Supabase
     const { data, error } = await supabase

@@ -12,7 +12,6 @@ import { findOrCreateLocality } from '../localities/localityManager';
 export const syncDataWithSupabase = async (data: LocalityData[]): Promise<boolean> => {
   // Try to get the current authenticated user
   const { data: { user } } = await supabase.auth.getUser();
-  const userId = user?.id || '00000000-0000-0000-0000-000000000000';
   
   let successCount = 0;
   
@@ -35,6 +34,11 @@ export const syncDataWithSupabase = async (data: LocalityData[]): Promise<boolea
       // Insert data to Supabase
       console.log("Inserindo dados para localidade:", item.locality, "com ID:", localityId);
       
+      // Verificar se usuário está autenticado
+      if (!user || !user.id) {
+        console.warn("Usuário não autenticado, usando NULL para o supervisor");
+      }
+      
       const { error } = await supabase
         .from('vector_data')
         .insert([{
@@ -49,7 +53,7 @@ export const syncDataWithSupabase = async (data: LocalityData[]): Promise<boolea
           inspections: item.inspections,
           deposits_eliminated: item.depositsEliminated,
           deposits_treated: item.depositsTreated,
-          supervisor: userId,
+          supervisor: user?.id || null,  // Usar null quando não houver usuário autenticado
           qt_residencias: item.qt_residencias,
           qt_comercio: item.qt_comercio,
           qt_terreno_baldio: item.qt_terreno_baldio,
@@ -76,7 +80,7 @@ export const syncDataWithSupabase = async (data: LocalityData[]): Promise<boolea
           quantidade_cargas: item.quantidade_cargas,
           total_tec_saude: item.total_tec_saude,
           total_dias_trabalhados: item.total_dias_trabalhados,
-          created_by: userId
+          created_by: user?.id || null  // Usar null quando não houver usuário autenticado
         }]);
         
       if (error) {
