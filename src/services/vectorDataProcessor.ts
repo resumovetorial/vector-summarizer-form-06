@@ -28,6 +28,11 @@ export const processVectorData = async (formData: FormData) => {
       // Update existing record
       console.log("Updating existing record with ID:", formData.recordId);
       saveSuccess = await updateVectorDataInSupabase(formData);
+      
+      if (saveSuccess) {
+        // Se a atualização foi bem-sucedida, adicione o ID ao vectorData para consistência
+        vectorData.id = formData.recordId;
+      }
     } else {
       // Create new record
       saveSuccess = await saveVectorDataToSupabase(formData);

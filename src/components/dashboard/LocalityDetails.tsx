@@ -18,13 +18,19 @@ const LocalityDetails: React.FC<LocalityDetailsProps> = ({ data }) => {
   const navigate = useNavigate();
   
   const handleEditClick = () => {
+    // Verificamos se o ID existe
+    if (!data.id) {
+      toast.error("Não é possível editar: ID do registro não encontrado");
+      return;
+    }
+    
     // Mostrar notificação
     toast.info("Preparando edição de dados para " + data.locality);
     setIsEditing(true);
     
     // Converter os dados para o formato do formulário
     const formData = {
-      recordId: data.id, // Add the record ID for updating
+      recordId: data.id, // Garantir que o ID é passado corretamente
       municipality: data.municipality,
       locality: data.locality,
       cycle: data.cycle,
@@ -62,6 +68,8 @@ const LocalityDetails: React.FC<LocalityDetailsProps> = ({ data }) => {
       total_dias_trabalhados: data.total_dias_trabalhados.toString(),
       nome_supervisor: data.supervisor
     };
+    
+    console.log("Enviando dados para edição:", formData);
     
     // Navegar para a página inicial com os dados para edição
     setTimeout(() => {

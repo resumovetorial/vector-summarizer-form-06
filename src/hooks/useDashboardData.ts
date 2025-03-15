@@ -30,6 +30,19 @@ export const useDashboardData = () => {
 
   const updateDashboardData = useCallback((newData: LocalityData) => {
     setDashboardData(prevData => {
+      // Se tem um ID no novo dado, usamos ele para identificar o registro a ser atualizado
+      if (newData.id) {
+        const existingIndex = prevData.findIndex(item => item.id === newData.id);
+        
+        if (existingIndex >= 0) {
+          console.log("Atualizando registro existente com ID:", newData.id);
+          const updatedData = [...prevData];
+          updatedData[existingIndex] = newData;
+          return updatedData;
+        }
+      }
+      
+      // Verificação alternativa por campos combinados caso não encontremos por ID
       const existingIndex = prevData.findIndex(
         item => 
           item.locality === newData.locality && 

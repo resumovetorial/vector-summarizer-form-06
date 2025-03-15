@@ -1,4 +1,3 @@
-
 import React, { useRef, useCallback } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -7,8 +6,9 @@ import DashboardLocalitySection from '@/components/dashboard/DashboardLocalitySe
 import DashboardTabs from '@/components/dashboard/DashboardTabs';
 import { useDashboardExport } from '@/hooks/useDashboardExport';
 import { useRealtimeUpdates } from '@/hooks/useRealtimeUpdates';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { LocalityData } from '@/types/dashboard';
+import { toast } from 'sonner';
 
 interface DashboardContainerProps {
   isLoading: boolean;
@@ -60,6 +60,7 @@ const DashboardContainer: React.FC<DashboardContainerProps> = ({
     console.log('Received realtime update:', item);
     
     const newData: LocalityData = {
+      id: item.id,
       municipality: item.municipality,
       locality: item.locality_id,
       cycle: item.cycle,
@@ -110,6 +111,7 @@ const DashboardContainer: React.FC<DashboardContainerProps> = ({
         
         if (data && !error) {
           newData.locality = data.name;
+          toast.success(`Dados de ${data.name} atualizados`);
         }
         
         updateDashboardData(newData);
@@ -120,7 +122,7 @@ const DashboardContainer: React.FC<DashboardContainerProps> = ({
     };
     
     fetchLocalityName();
-  }, [selectedLocality, updateDashboardData]);
+  }, [updateDashboardData]);
 
   const { isSubscribed } = useRealtimeUpdates(handleRealtimeUpdate, []);
 
