@@ -24,10 +24,8 @@ const LoginForm: React.FC = () => {
   const getAccessLevelInfo = (email: string): { level: string, color: string } => {
     if (email.includes('admin') || email === 'resumovetorial@gmail.com') {
       return { level: 'Administrador', color: 'text-red-500' };
-    } else if (email.includes('supervisor') || email.includes('coordenador')) {
-      return { level: 'Supervisor', color: 'text-blue-500' };
     } else {
-      return { level: 'Agente', color: 'text-green-500' };
+      return { level: 'Supervisor', color: 'text-blue-500' };
     }
   };
   

@@ -1,4 +1,3 @@
-
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { formatAuthError } from '@/utils/authUtils';
@@ -11,20 +10,15 @@ export function useAuthActions(
 ) {
   const navigate = useNavigate();
 
-  // Helper to determine access level based on email or role
-  const determineAccessLevel = (email: string, role: string): 'agente' | 'supervisor' | 'administrador' => {
+  // Helper para determinar o nível de acesso com base no email ou role
+  const determineAccessLevel = (email: string, role: string): 'supervisor' | 'administrador' => {
     // Administradores
     if (role === 'admin' || email.includes('admin')) {
       return 'administrador';
     }
     
-    // Supervisores (emails contendo 'supervisor' ou 'coordenador')
-    if (email.includes('supervisor') || email.includes('coordenador')) {
-      return 'supervisor';
-    }
-    
-    // Por padrão, todos são agentes
-    return 'agente';
+    // Todos os outros usuários serão supervisores
+    return 'supervisor';
   };
 
   const login = async (email: string, password: string) => {
@@ -88,7 +82,7 @@ export function useAuthActions(
         email: email,
         username: email.split('@')[0],
         role: 'user', // Novos usuários sempre começam como 'user'
-        accessLevel: accessLevel, // Mas podem ter diferentes níveis de acesso
+        accessLevel: accessLevel, // Mas agora só podem ser supervisor ou administrador
         isAuthenticated: true
       };
       

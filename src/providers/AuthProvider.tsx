@@ -35,7 +35,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
   
   // Função para verificar se o usuário tem o nível de acesso necessário
-  const hasAccessLevel = (requiredLevel: 'agente' | 'supervisor' | 'administrador'): boolean => {
+  const hasAccessLevel = (requiredLevel: 'supervisor' | 'administrador'): boolean => {
     if (!user) return false;
     
     // Se o usuário for admin, tem acesso a tudo
@@ -44,10 +44,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Se não tiver nível de acesso definido, não tem acesso
     if (!user.accessLevel) return false;
     
-    // Hierarquia de acesso: administrador > supervisor > agente
+    // Hierarquia de acesso: administrador > supervisor
     if (user.accessLevel === 'administrador') return true;
-    if (user.accessLevel === 'supervisor' && requiredLevel !== 'administrador') return true;
-    if (user.accessLevel === 'agente' && requiredLevel === 'agente') return true;
+    if (user.accessLevel === 'supervisor' && requiredLevel === 'supervisor') return true;
     
     return false;
   };
