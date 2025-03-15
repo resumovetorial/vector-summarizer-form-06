@@ -38,12 +38,24 @@ export const useAccessLevels = () => {
     }
   };
 
+  // Verificar se o usuário tem permissão para gerenciar níveis de acesso (admin ou supervisor)
+  const hasPermissionToManage = (): boolean => {
+    if (!user) return false;
+    
+    // Administrador sempre tem acesso
+    if (user.role === 'admin') return true;
+    
+    // Verificar o nível de acesso do usuário
+    const accessLevel = user.accessLevel?.toLowerCase();
+    return accessLevel === 'supervisor' || accessLevel === 'administrador';
+  };
+
   const handleAddLevel = async () => {
     try {
       setIsLoading(true);
       
-      if (!user || user.role !== 'admin') {
-        toast.error("Você precisa ter permissões de administrador para adicionar níveis de acesso.");
+      if (!hasPermissionToManage()) {
+        toast.error("Apenas administradores e supervisores podem adicionar níveis de acesso.");
         return;
       }
       
@@ -71,8 +83,8 @@ export const useAccessLevels = () => {
     try {
       setIsLoading(true);
       
-      if (!user || user.role !== 'admin') {
-        toast.error("Você precisa ter permissões de administrador para editar níveis de acesso.");
+      if (!hasPermissionToManage()) {
+        toast.error("Apenas administradores e supervisores podem editar níveis de acesso.");
         return;
       }
       
@@ -102,8 +114,8 @@ export const useAccessLevels = () => {
     try {
       setIsLoading(true);
       
-      if (!user || user.role !== 'admin') {
-        toast.error("Você precisa ter permissões de administrador para remover níveis de acesso.");
+      if (!hasPermissionToManage()) {
+        toast.error("Apenas administradores e supervisores podem remover níveis de acesso.");
         return;
       }
       
@@ -151,6 +163,6 @@ export const useAccessLevels = () => {
     handleEditLevel,
     handleDeleteLevel,
     openEditDialog,
-    isAdmin: user?.role === 'admin'
+    isAdmin: hasPermissionToManage()
   };
 };

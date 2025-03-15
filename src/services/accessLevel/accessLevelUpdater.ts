@@ -18,6 +18,41 @@ export const updateAccessLevel = async (level: AccessLevel): Promise<AccessLevel
       throw new Error('Você precisa estar autenticado para atualizar níveis de acesso');
     }
     
+    // Obter o perfil do usuário para verificar o nível de acesso
+    const { data: profileData, error: profileError } = await supabase
+      .from('profiles')
+      .select('role, access_level_id')
+      .eq('id', data.session.user.id)
+      .single();
+      
+    if (profileError || !profileData) {
+      console.error('Erro ao obter perfil do usuário:', profileError);
+      throw new Error('Não foi possível verificar seu nível de acesso');
+    }
+    
+    // Verificar se é administrador ou supervisor
+    const isAdmin = profileData.role === 'admin';
+    
+    // Se não for admin, verificar o access_level_id
+    if (!isAdmin && profileData.access_level_id) {
+      const { data: accessLevelData, error: accessLevelError } = await supabase
+        .from('access_levels')
+        .select('name')
+        .eq('id', profileData.access_level_id)
+        .single();
+        
+      if (accessLevelError || !accessLevelData) {
+        throw new Error('Erro ao verificar nível de acesso');
+      }
+      
+      const levelName = accessLevelData.name.toLowerCase();
+      if (levelName !== 'supervisor' && levelName !== 'administrador') {
+        throw new Error('Apenas administradores e supervisores podem gerenciar níveis de acesso');
+      }
+    } else if (!isAdmin) {
+      throw new Error('Apenas administradores e supervisores podem gerenciar níveis de acesso');
+    }
+    
     // In Supabase, ID is a UUID, so we need to find the correct UUID
     const { data: existingLevels, error: fetchError } = await supabase
       .from('access_levels')
