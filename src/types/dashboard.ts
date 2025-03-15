@@ -1,6 +1,7 @@
 
 // Dashboard related types
 export interface LocalityData {
+  id?: string; // Add ID field for record identification
   municipality: string;
   locality: string;
   cycle: string;

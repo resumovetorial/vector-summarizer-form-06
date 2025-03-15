@@ -41,6 +41,11 @@ const VectorSummarizerForm: React.FC = () => {
     if (editMode && vectorDataToEdit) {
       setFormData(vectorDataToEdit);
       toast.info("Dados carregados para edição");
+      
+      // Log the recordId to verify it was properly loaded
+      if (vectorDataToEdit.recordId) {
+        console.log("Editando registro com ID:", vectorDataToEdit.recordId);
+      }
     }
   }, [editMode, vectorDataToEdit, setFormData]);
   

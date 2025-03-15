@@ -44,6 +44,7 @@ export const fetchDashboardData = async (year: string = "2024"): Promise<Localit
       console.log("Dados obtidos do Supabase:", data);
       // Convert Supabase data to LocalityData format with locality names
       const convertedData = data.map(item => ({
+        id: item.id, // Include the record ID
         municipality: item.municipality,
         locality: item.localities?.name || 'Localidade não encontrada',
         cycle: item.cycle,

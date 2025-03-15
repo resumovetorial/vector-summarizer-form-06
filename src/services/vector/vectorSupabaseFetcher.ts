@@ -50,6 +50,7 @@ export const fetchVectorDataFromSupabase = async (): Promise<LocalityData[] | nu
  */
 const mapSupabaseDataToLocalityData = (data: any[]): LocalityData[] => {
   return data.map(item => ({
+    id: item.id, // Include the record ID
     municipality: item.municipality,
     locality: item.localities?.name || 'Localidade não encontrada',
     cycle: item.cycle,

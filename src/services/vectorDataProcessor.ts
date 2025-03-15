@@ -4,7 +4,7 @@ import { LocalityData } from "@/types/dashboard";
 import { toast } from 'sonner';
 import { saveVectorData } from './vectorDataSaver';
 import { formatFormToVectorData, generateSummary } from './vector/vectorDataFormatter';
-import { saveVectorDataToSupabase } from './vector/vectorDataSaveService';
+import { saveVectorDataToSupabase, updateVectorDataInSupabase } from './vector/vectorDataSaveService';
 
 export const processVectorData = async (formData: FormData) => {
   console.log("Starting form data processing:", formData);
@@ -20,8 +20,18 @@ export const processVectorData = async (formData: FormData) => {
       throw new Error("All required fields must be filled");
     }
     
-    // Try to save to Supabase
-    const saveSuccess = await saveVectorDataToSupabase(formData);
+    // Check if we're in edit mode (record ID exists)
+    const isEditMode = !!formData.recordId;
+    let saveSuccess = false;
+    
+    if (isEditMode) {
+      // Update existing record
+      console.log("Updating existing record with ID:", formData.recordId);
+      saveSuccess = await updateVectorDataInSupabase(formData);
+    } else {
+      // Create new record
+      saveSuccess = await saveVectorDataToSupabase(formData);
+    }
     
     // If Supabase save fails, use local storage as fallback
     if (!saveSuccess) {

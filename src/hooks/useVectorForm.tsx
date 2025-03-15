@@ -12,6 +12,7 @@ export const useVectorForm = () => {
   const { toast: toastHook } = useToast();
   const location = useLocation();
   const editMode = location.state?.editMode;
+  const vectorDataToEdit = location.state?.vectorDataToEdit;
   
   const [isLoading, setIsLoading] = useState(false);
   const [showResults, setShowResults] = useState(false);
@@ -58,7 +59,8 @@ export const useVectorForm = () => {
     quantidade_cargas: '',
     total_tec_saude: '',
     total_dias_trabalhados: '',
-    nome_supervisor: ''
+    nome_supervisor: '',
+    recordId: undefined // Store the record ID for editing
   });
   
   const handleInputChange = (field: keyof FormData, value: any) => {

@@ -24,6 +24,7 @@ const LocalityDetails: React.FC<LocalityDetailsProps> = ({ data }) => {
     
     // Converter os dados para o formato do formulário
     const formData = {
+      recordId: data.id, // Add the record ID for updating
       municipality: data.municipality,
       locality: data.locality,
       cycle: data.cycle,
