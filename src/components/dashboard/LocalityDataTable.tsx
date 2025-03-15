@@ -67,8 +67,8 @@ const LocalityDataTable: React.FC<LocalityDataTableProps> = ({ data }) => {
 
   return (
     <AccessLevelGuard 
-      requiredLevel="agente"
-      fallbackMessage="Você precisa ter acesso de agente ou superior para visualizar os dados desta localidade."
+      requiredLevel="supervisor"
+      fallbackMessage="Você precisa ter acesso de supervisor ou superior para visualizar os dados desta localidade."
     >
       <Card>
         <CardHeader>

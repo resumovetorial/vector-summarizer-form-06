@@ -6,7 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 
 interface AccessLevelGuardProps {
   children: React.ReactNode;
-  requiredLevel: 'agente' | 'supervisor' | 'administrador';
+  requiredLevel: 'supervisor' | 'administrador';
   fallbackMessage?: string;
 }
 
