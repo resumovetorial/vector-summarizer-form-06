@@ -1,4 +1,3 @@
-
 import { FormData } from "@/types/vectorForm";
 import { LocalityData } from "@/types/dashboard";
 import { format } from 'date-fns';
@@ -55,13 +54,11 @@ export const formatFormToVectorData = (formData: FormData): LocalityData => {
  * Formats form data for insertion into Supabase
  * @param formData The form data to format
  * @param localityId The locality ID 
- * @param userId The user ID (defaults to a demo value)
  * @returns Object ready for Supabase insertion
  */
 export const formatDataForSupabase = (
   formData: FormData, 
-  localityId: string, 
-  userId: string = '00000000-0000-0000-0000-000000000000'
+  localityId: string
 ) => {
   // Ensure dates are properly formatted
   const startDate = formData.startDate ? format(formData.startDate, 'yyyy-MM-dd') : null;
@@ -79,7 +76,6 @@ export const formatDataForSupabase = (
     inspections: parseInt(formData.inspecionados) || 0,
     deposits_eliminated: parseInt(formData.depositos_eliminados) || 0,
     deposits_treated: parseInt(formData.quantidade_depositos_tratados) || 0,
-    supervisor: userId,
     qt_residencias: parseInt(formData.qt_residencias) || 0,
     qt_comercio: parseInt(formData.qt_comercio) || 0,
     qt_terreno_baldio: parseInt(formData.qt_terreno_baldio) || 0,
@@ -105,8 +101,7 @@ export const formatDataForSupabase = (
     adulticida: formData.adulticida,
     quantidade_cargas: parseInt(formData.quantidade_cargas) || 0,
     total_tec_saude: parseInt(formData.total_tec_saude) || 0,
-    total_dias_trabalhados: parseInt(formData.total_dias_trabalhados) || 0,
-    created_by: userId
+    total_dias_trabalhados: parseInt(formData.total_dias_trabalhados) || 0
   };
 };
 

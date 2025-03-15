@@ -140,7 +140,7 @@ export type Database = {
           b: number
           c: number
           created_at: string
-          created_by: string
+          created_by: string | null
           cycle: string
           d1: number
           d2: number
@@ -167,7 +167,7 @@ export type Database = {
           recuperadas: number
           recusa: number
           start_date: string
-          supervisor: string
+          supervisor: string | null
           total_dias_trabalhados: number
           total_properties: number
           total_tec_saude: number
@@ -184,7 +184,7 @@ export type Database = {
           b?: number
           c?: number
           created_at?: string
-          created_by: string
+          created_by?: string | null
           cycle: string
           d1?: number
           d2?: number
@@ -211,7 +211,7 @@ export type Database = {
           recuperadas?: number
           recusa?: number
           start_date: string
-          supervisor: string
+          supervisor?: string | null
           total_dias_trabalhados?: number
           total_properties: number
           total_tec_saude?: number
@@ -228,7 +228,7 @@ export type Database = {
           b?: number
           c?: number
           created_at?: string
-          created_by?: string
+          created_by?: string | null
           cycle?: string
           d1?: number
           d2?: number
@@ -255,7 +255,7 @@ export type Database = {
           recuperadas?: number
           recusa?: number
           start_date?: string
-          supervisor?: string
+          supervisor?: string | null
           total_dias_trabalhados?: number
           total_properties?: number
           total_tec_saude?: number

@@ -6,14 +6,15 @@ import { supabase } from '@/integrations/supabase/client';
  */
 export const setupRealtimeSupport = async () => {
   try {
-    console.log('Realtime support is already enabled for vector_data table');
-    // The table is already configured for realtime updates
+    console.log('Suporte em tempo real já está habilitado para a tabela vector_data');
+    // A tabela já está configurada para atualizações em tempo real
     // ALTER TABLE public.vector_data REPLICA IDENTITY FULL;
     // ALTER PUBLICATION supabase_realtime ADD TABLE public.vector_data;
   } catch (error) {
-    console.error('Failed to setup realtime support:', error);
+    console.error('Falha ao configurar suporte em tempo real:', error);
   }
 };
 
-// This is just informational since realtime is already configured
+// Isto é apenas informativo, pois o tempo real já está configurado
 setupRealtimeSupport().catch(console.error);
+
