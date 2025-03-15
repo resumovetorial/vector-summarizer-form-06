@@ -95,7 +95,7 @@ export const updateVectorDataInSupabase = async (formData: FormData): Promise<bo
     const dataToUpdate = {
       ...updateData,
       supervisor: user?.id || null,
-      updated_at: new Date() // Ensure the updated_at field is set
+      updated_at: new Date().toISOString() // Convert Date to ISO string format
     };
     
     // Update data in Supabase
