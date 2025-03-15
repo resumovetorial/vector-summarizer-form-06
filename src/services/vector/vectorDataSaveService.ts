@@ -32,14 +32,17 @@ export const saveVectorDataToSupabase = async (formData: FormData): Promise<bool
     // Get current user for supervisor and created_by field
     const { data: { user } } = await supabase.auth.getUser();
 
-    // Add user info to the data - use null if user is not authenticated
-    insertData.supervisor = user?.id || null;
-    insertData.created_by = user?.id || null;
+    // Create a new object with all insertData properties plus supervisor and created_by
+    const dataToInsert = {
+      ...insertData,
+      supervisor: user?.id || null,
+      created_by: user?.id || null
+    };
     
     // Insert data into Supabase
     const { data, error } = await supabase
       .from('vector_data')
-      .insert([insertData]);
+      .insert([dataToInsert]);
     
     if (error) {
       console.error('Erro ao inserir dados no Supabase:', error);

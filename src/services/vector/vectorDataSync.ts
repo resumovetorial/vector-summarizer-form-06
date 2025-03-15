@@ -53,7 +53,7 @@ export const syncDataWithSupabase = async (data: LocalityData[]): Promise<boolea
           inspections: item.inspections,
           deposits_eliminated: item.depositsEliminated,
           deposits_treated: item.depositsTreated,
-          supervisor: user?.id || null,  // Usar null quando não houver usuário autenticado
+          supervisor: user?.id || null,
           qt_residencias: item.qt_residencias,
           qt_comercio: item.qt_comercio,
           qt_terreno_baldio: item.qt_terreno_baldio,
@@ -80,7 +80,7 @@ export const syncDataWithSupabase = async (data: LocalityData[]): Promise<boolea
           quantidade_cargas: item.quantidade_cargas,
           total_tec_saude: item.total_tec_saude,
           total_dias_trabalhados: item.total_dias_trabalhados,
-          created_by: user?.id || null  // Usar null quando não houver usuário autenticado
+          created_by: user?.id || null
         }]);
         
       if (error) {
