@@ -104,12 +104,8 @@ export const createAccessLevel = async (level: Omit<AccessLevel, 'id'>): Promise
       console.log('Usuário não é admin e não tem nível de acesso específico. Tentando criar mesmo assim.');
     }
     
-    // Incluir token de autenticação explicitamente nos cabeçalhos
-    const authHeaders = {
-      apikey: supabase.supabaseKey,
-      Authorization: `Bearer ${data.session.access_token}`
-    };
-    
+    // Não podemos acessar supabaseKey diretamente, mas podemos usar o token de autenticação
+    // que já está configurado no cliente Supabase automaticamente
     console.log('Tentando criar nível de acesso como usuário:', userId);
     console.log('Dados do nível de acesso:', level);
     
