@@ -92,8 +92,7 @@ export const useAccessLevelOperations = (
       
       toast.success("Nível de acesso adicionado com sucesso!");
       
-      // Recarregar a lista para garantir sincronização com o servidor
-      await loadAccessLevels();
+      // Remove the auto reload to prevent infinite loop
     } catch (error: any) {
       console.error("Erro ao adicionar nível de acesso:", error);
       toast.error(`Erro ao adicionar nível de acesso: ${error.message}`);
@@ -154,8 +153,7 @@ export const useAccessLevelOperations = (
       
       toast.success("Nível de acesso atualizado com sucesso!");
       
-      // Recarregar a lista para garantir sincronização com o servidor
-      await loadAccessLevels();
+      // Remove the auto reload to prevent infinite loop
     } catch (error: any) {
       console.error('Erro ao atualizar nível de acesso:', error);
       toast.error(`Erro ao atualizar nível de acesso: ${error.message}`);
@@ -180,8 +178,7 @@ export const useAccessLevelOperations = (
       
       toast.success("Nível de acesso removido com sucesso!");
       
-      // Recarregar a lista para garantir sincronização com o servidor
-      await loadAccessLevels();
+      // Remove the auto reload to prevent infinite loop
     } catch (error: any) {
       console.error('Erro ao remover nível de acesso:', error);
       toast.error(`Erro ao remover nível de acesso: ${error.message}`);
