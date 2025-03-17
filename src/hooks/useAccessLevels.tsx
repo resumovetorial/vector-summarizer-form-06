@@ -30,8 +30,10 @@ export const useAccessLevels = () => {
     try {
       setIsLoading(true);
       const levels = await fetchAccessLevels();
+      console.log('Níveis de acesso carregados:', levels);
       setAccessLevels(levels);
     } catch (error: any) {
+      console.error('Erro ao carregar níveis de acesso:', error);
       toast.error(`Erro ao carregar níveis de acesso: ${error.message}`);
     } finally {
       setIsLoading(false);
@@ -59,16 +61,45 @@ export const useAccessLevels = () => {
         return;
       }
       
+      // Validar dados do formulário
+      if (!formName.trim()) {
+        toast.error("O nome do nível de acesso é obrigatório.");
+        setIsLoading(false);
+        return;
+      }
+      
+      // Dividir as permissões por vírgula e remover espaços em branco
+      const permissionsArray = formPermissions 
+        ? formPermissions.split(',').map(p => p.trim()).filter(p => p !== '')
+        : [];
+      
+      // Se não houver permissões, adicionar 'form' como padrão
+      if (permissionsArray.length === 0) {
+        permissionsArray.push('form');
+      }
+      
+      console.log('Tentando criar nível de acesso:', {
+        name: formName,
+        description: formDescription,
+        permissions: permissionsArray
+      });
+      
       const newLevel = await createAccessLevel({
         name: formName,
         description: formDescription,
-        permissions: formPermissions.split(',').map(p => p.trim()),
+        permissions: permissionsArray,
       });
       
-      setAccessLevels([...accessLevels, newLevel]);
+      console.log('Nível de acesso criado com sucesso:', newLevel);
+      
+      // Atualizar a lista de níveis de acesso
+      setAccessLevels(prev => [...prev, newLevel]);
       setIsAddDialogOpen(false);
       resetForm();
       toast.success("Nível de acesso adicionado com sucesso!");
+      
+      // Recarregar a lista para garantir sincronização com o servidor
+      loadAccessLevels();
     } catch (error: any) {
       console.error("Erro completo:", error);
       toast.error(`Erro ao adicionar nível de acesso: ${error.message}`);
@@ -88,13 +119,31 @@ export const useAccessLevels = () => {
         return;
       }
       
+      // Validar dados do formulário
+      if (!formName.trim()) {
+        toast.error("O nome do nível de acesso é obrigatório.");
+        setIsLoading(false);
+        return;
+      }
+      
+      // Dividir as permissões por vírgula e remover espaços em branco
+      const permissionsArray = formPermissions 
+        ? formPermissions.split(',').map(p => p.trim()).filter(p => p !== '')
+        : [];
+      
+      // Se não houver permissões, adicionar 'form' como padrão
+      if (permissionsArray.length === 0) {
+        permissionsArray.push('form');
+      }
+      
       const updatedLevel = await updateAccessLevel({
         ...selectedLevel,
         name: formName,
         description: formDescription,
-        permissions: formPermissions.split(',').map(p => p.trim()),
+        permissions: permissionsArray,
       });
       
+      // Atualizar a lista de níveis de acesso
       const updatedLevels = accessLevels.map(level => 
         level.id === selectedLevel.id ? updatedLevel : level
       );
@@ -103,8 +152,12 @@ export const useAccessLevels = () => {
       setIsEditDialogOpen(false);
       resetForm();
       toast.success("Nível de acesso atualizado com sucesso!");
+      
+      // Recarregar a lista para garantir sincronização com o servidor
+      loadAccessLevels();
     } catch (error: any) {
       toast.error(`Erro ao atualizar nível de acesso: ${error.message}`);
+      console.error('Erro ao atualizar nível de acesso:', error);
     } finally {
       setIsLoading(false);
     }
@@ -123,8 +176,12 @@ export const useAccessLevels = () => {
       
       setAccessLevels(accessLevels.filter(l => l.id !== level.id));
       toast.success("Nível de acesso removido com sucesso!");
+      
+      // Recarregar a lista para garantir sincronização com o servidor
+      loadAccessLevels();
     } catch (error: any) {
       toast.error(`Erro ao remover nível de acesso: ${error.message}`);
+      console.error('Erro ao remover nível de acesso:', error);
     } finally {
       setIsLoading(false);
     }

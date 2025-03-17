@@ -16,7 +16,7 @@ export const fetchAccessLevels = async (): Promise<AccessLevel[]> => {
     }
     
     // Log the access levels we've fetched
-    console.log('Fetched access levels:', data);
+    console.log('Níveis de acesso encontrados:', data);
     
     // Convert the data to match our AccessLevel type
     return data.map(level => ({

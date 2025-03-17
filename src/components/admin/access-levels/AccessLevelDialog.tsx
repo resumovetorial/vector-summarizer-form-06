@@ -64,13 +64,16 @@ const AccessLevelDialog: React.FC<AccessLevelDialogProps> = ({
               onChange={(e) => setFormPermissions(e.target.value)}
               placeholder="dashboard, form, admin"
             />
+            <p className="text-xs text-muted-foreground">
+              Exemplos: dashboard, form, admin, reports, settings
+            </p>
           </div>
           <div className="flex justify-end space-x-2 pt-4">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
+            <Button variant="outline" onClick={() => onOpenChange(false)} type="button">
               Cancelar
             </Button>
-            <Button onClick={onSubmit} disabled={isLoading}>
-              {title === "Adicionar Nível de Acesso" ? "Adicionar Nível" : "Salvar Alterações"}
+            <Button onClick={onSubmit} disabled={isLoading} type="button">
+              {isLoading ? "Processando..." : title === "Adicionar Nível de Acesso" ? "Adicionar Nível" : "Salvar Alterações"}
             </Button>
           </div>
         </div>
