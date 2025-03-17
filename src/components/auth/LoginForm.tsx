@@ -101,9 +101,7 @@ const LoginForm: React.FC = () => {
         </form>
       </CardContent>
       <CardFooter className="flex justify-center">
-        <p className="text-sm text-muted-foreground">
-          * No modo de demonstração, qualquer senha é aceita
-        </p>
+        {/* Removed the demonstration mode message */}
       </CardFooter>
     </Card>
   );
