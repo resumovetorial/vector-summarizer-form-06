@@ -67,11 +67,11 @@ export const createNewUser = async (
   
   // Create or update the profile in Supabase
   try {
-    // Parse the access level to make sure it's a valid UUID
-    let accessLevelId: string | null = null;
+    // Obter o UUID do nível de acesso do banco de dados
+    let accessLevelUuid: string | null = null;
     
     try {
-      // Try to get the access level as UUID from the DB
+      // Primeira tentativa: buscar o nível de acesso pelo ID numérico
       const { data: accessLevel, error: accessLevelError } = await supabase
         .from('access_levels')
         .select('id')
@@ -79,21 +79,36 @@ export const createNewUser = async (
         .single();
       
       if (!accessLevelError && accessLevel) {
-        accessLevelId = accessLevel.id;
+        accessLevelUuid = accessLevel.id;
+        console.log('Access level found by ID:', accessLevelUuid);
       } else {
-        console.warn('Access level not found by ID, using default:', accessLevelIdNum);
+        // Segunda tentativa: listar todos os níveis e procurar pelo ID numérico
+        const { data: allLevels, error: allLevelsError } = await supabase
+          .from('access_levels')
+          .select('id, name')
+          .order('created_at', { ascending: true });
+        
+        if (!allLevelsError && allLevels && allLevels.length > 0) {
+          // Pegar o nível correspondente à posição do array (assumindo que os IDs são sequenciais)
+          // ou o primeiro nível se não for possível encontrar
+          const targetIndex = accessLevelIdNum - 1;
+          const targetLevel = targetIndex >= 0 && targetIndex < allLevels.length 
+            ? allLevels[targetIndex] 
+            : allLevels[0];
+          
+          accessLevelUuid = targetLevel.id;
+          console.log(`Using access level by position: ${targetLevel.name} (${accessLevelUuid})`);
+        } else {
+          console.warn('No access levels found, using null');
+        }
       }
     } catch (err) {
       console.error('Error fetching access level:', err);
     }
     
-    // If we couldn't get a valid UUID, use the numerical ID
-    if (!accessLevelId) {
-      accessLevelId = accessLevelIdNum.toString();
-    }
+    console.log('Final access level UUID for profile:', accessLevelUuid);
     
-    console.log('Using access level ID:', accessLevelId);
-    
+    // Criar ou atualizar o perfil com o UUID do nível de acesso
     const { error: profileError } = await supabase
       .from('profiles')
       .upsert({ 
@@ -101,7 +116,7 @@ export const createNewUser = async (
         username: formData.name,
         role: formData.role,
         active: formData.active,
-        access_level_id: accessLevelId
+        access_level_id: accessLevelUuid  // Use o UUID, não o ID numérico
       }, {
         onConflict: 'id'
       });
@@ -146,7 +161,7 @@ export const createNewUser = async (
       }
     }
     
-    console.log("Created/updated profile successfully with access level:", accessLevelId);
+    console.log("Created/updated profile successfully with access level:", accessLevelUuid);
   } catch (error: any) {
     console.error('Erro na operação de upsert do perfil:', error);
     toast.error(`Erro na criação do perfil: ${error.message}`);
