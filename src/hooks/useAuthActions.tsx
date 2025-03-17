@@ -51,6 +51,13 @@ export function useAuthActions(
         isAuthenticated: true
       };
 
+      // Configuração manual da sessão do Supabase para modo de demonstração
+      // Isso garantirá que o token seja configurado para requisições subsequentes
+      await supabase.auth.setSession({
+        access_token: 'demo_access_token_' + Date.now(),
+        refresh_token: 'demo_refresh_token',
+      });
+      
       // Simulação de login no Supabase para obter um token válido
       try {
         // Tentar fazer login real no Supabase (vai falhar em modo de demo, mas não tem problema)
