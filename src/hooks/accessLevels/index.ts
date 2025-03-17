@@ -1,74 +1,78 @@
 
-import { useEffect } from 'react';
+// Main access levels hooks export
 import { useAccessLevelsState } from './useAccessLevelsState';
 import { useAccessLevelOperations } from './useAccessLevelOperations';
 import { useAccessLevelsPermissions } from './useAccessLevelsPermissions';
 
 /**
- * Main hook for accessing and managing access levels
+ * Hook for managing access levels
  */
 export const useAccessLevels = () => {
-  const state = useAccessLevelsState();
-  
-  const operations = useAccessLevelOperations(
-    state.accessLevels,
-    state.setAccessLevels,
-    state.setIsLoading,
-    state.resetForm,
-    state.setIsAddDialogOpen,
-    state.setIsEditDialogOpen,
-    state.selectedLevel
-  );
-  
-  const permissions = useAccessLevelsPermissions();
+  // Access level state management
+  const { 
+    accessLevels, 
+    setAccessLevels, 
+    isLoading, 
+    setIsLoading,
+    selectedLevel,
+    setSelectedLevel,
+    isAddDialogOpen,
+    setIsAddDialogOpen, 
+    isEditDialogOpen,
+    setIsEditDialogOpen,
+    formName,
+    setFormName,
+    formDescription,
+    setFormDescription,
+    formPermissions,
+    setFormPermissions,
+    resetForm
+  } = useAccessLevelsState();
 
-  // Load access levels when the component mounts
-  useEffect(() => {
-    operations.loadAccessLevels();
-  }, [operations.loadAccessLevels]);
-  
-  // Wrapper functions that use the state values
-  const handleAddLevel = async () => {
-    await operations.handleAddLevel(
-      state.formName,
-      state.formDescription,
-      state.formPermissions
-    );
-  };
-  
-  const handleEditLevel = async () => {
-    await operations.handleEditLevel(
-      state.formName,
-      state.formDescription,
-      state.formPermissions
-    );
-  };
+  // Access level operations (CRUD)
+  const {
+    loadAccessLevels,
+    handleAddLevel,
+    handleEditLevel,
+    handleDeleteLevel
+  } = useAccessLevelOperations(
+    accessLevels,
+    setAccessLevels,
+    setIsLoading,
+    resetForm,
+    setIsAddDialogOpen,
+    setIsEditDialogOpen,
+    selectedLevel
+  );
+
+  // User permissions for access levels
+  const { isAdmin } = useAccessLevelsPermissions();
 
   return {
     // State
-    accessLevels: state.accessLevels,
-    isLoading: state.isLoading,
-    isAddDialogOpen: state.isAddDialogOpen,
-    isEditDialogOpen: state.isEditDialogOpen,
-    formName: state.formName,
-    formDescription: state.formDescription,
-    formPermissions: state.formPermissions,
-    selectedLevel: state.selectedLevel,
-    
-    // State setters
-    setIsAddDialogOpen: state.setIsAddDialogOpen,
-    setIsEditDialogOpen: state.setIsEditDialogOpen,
-    setFormName: state.setFormName,
-    setFormDescription: state.setFormDescription,
-    setFormPermissions: state.setFormPermissions,
-    
+    accessLevels,
+    isLoading,
+    selectedLevel,
+    setSelectedLevel,
+    isAddDialogOpen,
+    setIsAddDialogOpen,
+    isEditDialogOpen,
+    setIsEditDialogOpen,
+    formName,
+    setFormName,
+    formDescription,
+    setFormDescription,
+    formPermissions,
+    setFormPermissions,
+    resetForm,
     // Operations
+    loadAccessLevels,
     handleAddLevel,
     handleEditLevel,
-    handleDeleteLevel: operations.handleDeleteLevel,
-    openEditDialog: state.openEditDialog,
-    
+    handleDeleteLevel,
     // Permissions
-    isAdmin: permissions.isAdmin
+    isAdmin
   };
 };
+
+export { useAccessLevelsPermissions } from './useAccessLevelsPermissions';

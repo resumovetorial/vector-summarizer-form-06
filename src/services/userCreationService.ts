@@ -27,47 +27,73 @@ export const createNewUser = async (
     
   if (searchError) {
     console.error('Erro ao verificar existência do usuário:', searchError);
-    // Continue without throwing to maintain demo functionality
-    console.warn("Continuing in demo mode despite search error");
+    toast.error(`Erro ao verificar usuário: ${searchError.message}`);
+    throw new Error(searchError.message);
   }
 
   let userId: string;
+  let userCreated = false;
   
   if (existingUsers && existingUsers.length > 0) {
     // User already exists, use their ID
     userId = existingUsers[0].id;
     console.log("User already exists, using ID:", userId);
   } else {
-    // For demo purposes only - in a real app this would be an invitation flow
-    // This part will fail without admin privileges, which is expected
+    // Create a new user with Auth API
     try {
       const { data, error } = await supabase.auth.admin.createUser({
         email: formData.email,
-        password: 'temporary-password', // This would be randomized in a real app
+        password: 'temporary-password',
         email_confirm: true
       });
       
       if (error) throw error;
       userId = data.user.id;
+      userCreated = true;
       console.log("Created new user with ID:", userId);
     } catch (adminError: any) {
-      console.error("Admin user creation failed (expected without admin rights):", adminError);
+      console.error("Admin user creation error:", adminError);
       
-      // Since we can't create users without admin rights, we'll simulate it
-      // In a real app, you would implement a proper invitation flow
-      const fakeUserId = crypto.randomUUID();
-      userId = fakeUserId;
-      
-      // Show user-friendly message
-      toast.info("No modo de demonstração, os usuários seriam convidados por email. Simulando criação de usuário com ID temporário.");
+      // If we can't create the user with admin rights, create a demo user
+      if (process.env.NODE_ENV !== 'production') {
+        const fakeUserId = crypto.randomUUID();
+        userId = fakeUserId;
+        toast.info("No modo de demonstração, os usuários seriam convidados por email. Simulando criação de usuário com ID temporário.");
+      } else {
+        throw new Error(`Erro ao criar usuário: ${adminError.message}`);
+      }
     }
   }
   
   // Create or update the profile in Supabase
-  // Note: This will likely fail in demo mode due to RLS, which is expected
-  // We'll catch the error and continue with client-side only changes
-  let profileCreated = false;
   try {
+    // Parse the access level to make sure it's a valid UUID
+    let accessLevelId: string | null = null;
+    
+    try {
+      // Try to get the access level as UUID from the DB
+      const { data: accessLevel, error: accessLevelError } = await supabase
+        .from('access_levels')
+        .select('id')
+        .eq('id', accessLevelIdNum)
+        .single();
+      
+      if (!accessLevelError && accessLevel) {
+        accessLevelId = accessLevel.id;
+      } else {
+        console.warn('Access level not found by ID, using default:', accessLevelIdNum);
+      }
+    } catch (err) {
+      console.error('Error fetching access level:', err);
+    }
+    
+    // If we couldn't get a valid UUID, use the numerical ID
+    if (!accessLevelId) {
+      accessLevelId = accessLevelIdNum.toString();
+    }
+    
+    console.log('Using access level ID:', accessLevelId);
+    
     const { error: profileError } = await supabase
       .from('profiles')
       .upsert({ 
@@ -75,6 +101,7 @@ export const createNewUser = async (
         username: formData.name,
         role: formData.role,
         active: formData.active,
+        access_level_id: accessLevelId
       }, {
         onConflict: 'id'
       });
@@ -84,12 +111,46 @@ export const createNewUser = async (
       throw new Error(profileError.message);
     }
     
-    profileCreated = true;
-    console.log("Created/updated profile successfully");
+    // If user has localities, assign them
+    if (formData.localities && formData.localities.length > 0) {
+      for (const localityName of formData.localities) {
+        try {
+          // Get locality ID
+          const { data: locality, error: localityError } = await supabase
+            .from('localities')
+            .select('id')
+            .eq('name', localityName)
+            .maybeSingle();
+            
+          if (localityError) {
+            console.error(`Erro ao buscar localidade ${localityName}:`, localityError);
+            continue;
+          }
+          
+          if (locality) {
+            // Create locality access
+            const { error: accessError } = await supabase
+              .from('locality_access')
+              .insert({
+                user_id: userId,
+                locality_id: locality.id
+              });
+              
+            if (accessError) {
+              console.error(`Erro ao atribuir localidade ${localityName}:`, accessError);
+            }
+          }
+        } catch (err) {
+          console.error(`Erro ao processar localidade ${localityName}:`, err);
+        }
+      }
+    }
+    
+    console.log("Created/updated profile successfully with access level:", accessLevelId);
   } catch (error: any) {
     console.error('Erro na operação de upsert do perfil:', error);
-    // Continue with the flow despite the error to maintain demo functionality
-    toast.error(`Erro na criação do perfil no Supabase: ${error.message}. Continuando em modo de demonstração.`);
+    toast.error(`Erro na criação do perfil: ${error.message}`);
+    throw error;
   }
   
   // Create new user object for client-side state
@@ -104,10 +165,10 @@ export const createNewUser = async (
     assignedLocalities: formData.localities
   };
   
-  if (profileCreated) {
-    toast.success("Usuário criado com sucesso!");
+  if (userCreated) {
+    toast.success("Usuário criado com sucesso! Um email de convite foi enviado.");
   } else {
-    toast.info("Usuário criado em modo de demonstração apenas.");
+    toast.success("Usuário atualizado com sucesso!");
   }
   
   return { userId, newUser };

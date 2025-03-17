@@ -33,11 +33,11 @@ export const useUsers = () => {
           return;
         }
         
-        // Fetch real users from Supabase
+        // Fetch real users from Supabase with their access levels
         try {
           const { data: profiles, error } = await supabase
             .from('profiles')
-            .select('id, username, role, active');
+            .select('id, username, role, active, access_level_id');
           
           if (error) {
             throw error;
@@ -67,24 +67,48 @@ export const useUsers = () => {
               console.log("Error fetching auth users (expected for non-admin access):", authError);
             }
 
+            // Fetch assigned localities for each profile
+            const localityMap = new Map<string, string[]>();
+            
+            try {
+              const { data: localityAccess, error: localityError } = await supabase
+                .from('locality_access')
+                .select('user_id, localities(name)');
+                
+              if (!localityError && localityAccess) {
+                console.log("Locality access data:", localityAccess);
+                
+                // Group localities by user ID
+                localityAccess.forEach((access: any) => {
+                  if (access.user_id && access.localities?.name) {
+                    if (!localityMap.has(access.user_id)) {
+                      localityMap.set(access.user_id, []);
+                    }
+                    localityMap.get(access.user_id)?.push(access.localities.name);
+                  }
+                });
+              }
+            } catch (localityError) {
+              console.error("Error fetching locality access:", localityError);
+            }
+
             // Convert Supabase profiles to User format
             const realUsers: User[] = profiles.map((profile, index) => {
-              // Determine default access level - use first one in the list
-              const defaultAccessLevelId = fetchedAccessLevels[0].id;
-              
-              // Check if profile has admin role, then use admin access level if exists
-              let accessLevelId = defaultAccessLevelId;
-              if (profile.role === 'admin') {
-                const adminLevel = fetchedAccessLevels.find(
-                  level => level.name.toLowerCase() === 'administrador'
-                );
-                if (adminLevel) {
-                  accessLevelId = adminLevel.id;
-                }
+              // Get the access level ID - either use the one stored in the profile or default to the first one
+              let accessLevelId = profile.access_level_id ? 
+                fetchedAccessLevels.find(level => level.id.toString() === profile.access_level_id)?.id : 
+                fetchedAccessLevels[0].id;
+                
+              // If access level is not found, use the first one
+              if (!accessLevelId) {
+                accessLevelId = fetchedAccessLevels[0].id;
               }
               
               // Get email from auth users if available, or use username
               const email = emailMap[profile.id] || profile.username || `usuario${index + 1}@exemplo.com`;
+              
+              // Get assigned localities
+              const assignedLocalities = localityMap.get(profile.id) || [];
               
               return {
                 id: index + 1,
@@ -94,7 +118,7 @@ export const useUsers = () => {
                 role: profile.role || 'Usuário',
                 accessLevelId: accessLevelId,
                 active: profile.active ?? true,
-                assignedLocalities: []
+                assignedLocalities: assignedLocalities
               };
             });
             
