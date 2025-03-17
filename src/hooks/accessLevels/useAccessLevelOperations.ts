@@ -81,8 +81,10 @@ export const useAccessLevelOperations = (
       
       console.log('Nível de acesso criado com sucesso:', newLevel);
       
-      // Atualizar a lista de níveis de acesso
-      setAccessLevels(prev => [...prev, newLevel]);
+      // Atualizar a lista de níveis de acesso - Fix the TypeScript error here
+      // Instead of using a function to update the state, create a new array
+      const updatedLevels = [...accessLevels, newLevel];
+      setAccessLevels(updatedLevels);
       
       // Fechar o diálogo e resetar o formulário
       setIsAddDialogOpen(false);
@@ -173,7 +175,8 @@ export const useAccessLevelOperations = (
       await deleteAccessLevel(level.name);
       
       // Atualizar a lista de níveis de acesso
-      setAccessLevels(accessLevels.filter(l => l.id !== level.id));
+      const filteredLevels = accessLevels.filter(l => l.id !== level.id);
+      setAccessLevels(filteredLevels);
       
       toast.success("Nível de acesso removido com sucesso!");
       
