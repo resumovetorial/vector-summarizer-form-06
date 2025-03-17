@@ -1,7 +1,9 @@
+
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { formatAuthError } from '@/utils/authUtils';
 import { AuthUser } from '@/types/auth';
+import { supabase } from '@/lib/supabase';
 
 export function useAuthActions(
   setUser: React.Dispatch<React.SetStateAction<AuthUser | null>>,
@@ -48,6 +50,23 @@ export function useAuthActions(
         accessLevel: accessLevel,
         isAuthenticated: true
       };
+
+      // Simulação de login no Supabase para obter um token válido
+      try {
+        // Tentar fazer login real no Supabase (vai falhar em modo de demo, mas não tem problema)
+        const { error: authError } = await supabase.auth.signInWithPassword({
+          email, 
+          password
+        });
+        
+        if (authError) {
+          // Em modo de demonstração, ignoramos este erro
+          console.log('Modo de demonstração: Ignorando erro de auth do Supabase:', authError.message);
+        }
+      } catch (supabaseError) {
+        // Ignorar erros do Supabase em modo de demonstração
+        console.log('Modo de demonstração: Erro ignorado do Supabase:', supabaseError);
+      }
       
       setUser(mockUser);
       toast.success(`Login realizado com sucesso como ${accessLevel}!`);

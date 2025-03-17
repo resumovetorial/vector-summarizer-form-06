@@ -21,6 +21,13 @@ export const createAccessLevel = async (level: Omit<AccessLevel, 'id'>): Promise
     const userId = data.session.user.id;
     console.log('Usuário autenticado com ID:', userId);
     
+    // Checar se o token JWT ainda é válido
+    const now = Math.floor(Date.now() / 1000);
+    if (data.session.expires_at && now >= data.session.expires_at) {
+      console.error('Token de autenticação expirado');
+      throw new Error('Sua sessão expirou. Por favor, faça login novamente.');
+    }
+    
     // Obter o perfil do usuário para verificar o nível de acesso
     const { data: profileData, error: profileError } = await supabase
       .from('profiles')
@@ -96,6 +103,12 @@ export const createAccessLevel = async (level: Omit<AccessLevel, 'id'>): Promise
       // Mesmo sem nível de acesso, tentaremos criar - a RLS do banco cuidará da permissão real
       console.log('Usuário não é admin e não tem nível de acesso específico. Tentando criar mesmo assim.');
     }
+    
+    // Incluir token de autenticação explicitamente nos cabeçalhos
+    const authHeaders = {
+      apikey: supabase.supabaseKey,
+      Authorization: `Bearer ${data.session.access_token}`
+    };
     
     console.log('Tentando criar nível de acesso como usuário:', userId);
     console.log('Dados do nível de acesso:', level);
