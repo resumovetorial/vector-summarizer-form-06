@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { AccessLevel } from '@/types/admin';
 import { 
@@ -22,13 +22,10 @@ export const useAccessLevels = () => {
   const [formDescription, setFormDescription] = useState('');
   const [formPermissions, setFormPermissions] = useState('');
 
-  useEffect(() => {
-    loadAccessLevels();
-  }, []);
-
-  const loadAccessLevels = async () => {
+  const loadAccessLevels = useCallback(async () => {
     try {
       setIsLoading(true);
+      console.log('Carregando níveis de acesso...');
       const levels = await fetchAccessLevels();
       console.log('Níveis de acesso carregados:', levels);
       setAccessLevels(levels);
@@ -38,7 +35,11 @@ export const useAccessLevels = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadAccessLevels();
+  }, [loadAccessLevels]);
 
   // Verificar se o usuário tem permissão para gerenciar níveis de acesso (admin ou supervisor)
   const hasPermissionToManage = (): boolean => {
@@ -54,19 +55,14 @@ export const useAccessLevels = () => {
 
   const handleAddLevel = async () => {
     try {
-      setIsLoading(true);
-      
-      if (!hasPermissionToManage()) {
-        toast.error("Apenas administradores e supervisores podem adicionar níveis de acesso.");
-        return;
-      }
-      
       // Validar dados do formulário
       if (!formName.trim()) {
         toast.error("O nome do nível de acesso é obrigatório.");
-        setIsLoading(false);
         return;
       }
+      
+      setIsLoading(true);
+      console.log('Adicionando nível de acesso...');
       
       // Dividir as permissões por vírgula e remover espaços em branco
       const permissionsArray = formPermissions 
@@ -78,7 +74,7 @@ export const useAccessLevels = () => {
         permissionsArray.push('form');
       }
       
-      console.log('Tentando criar nível de acesso:', {
+      console.log('Dados do nível a ser criado:', {
         name: formName,
         description: formDescription,
         permissions: permissionsArray
@@ -94,14 +90,17 @@ export const useAccessLevels = () => {
       
       // Atualizar a lista de níveis de acesso
       setAccessLevels(prev => [...prev, newLevel]);
+      
+      // Fechar o diálogo e resetar o formulário
       setIsAddDialogOpen(false);
       resetForm();
+      
       toast.success("Nível de acesso adicionado com sucesso!");
       
       // Recarregar a lista para garantir sincronização com o servidor
-      loadAccessLevels();
+      await loadAccessLevels();
     } catch (error: any) {
-      console.error("Erro completo:", error);
+      console.error("Erro ao adicionar nível de acesso:", error);
       toast.error(`Erro ao adicionar nível de acesso: ${error.message}`);
     } finally {
       setIsLoading(false);
@@ -112,19 +111,14 @@ export const useAccessLevels = () => {
     if (!selectedLevel) return;
     
     try {
-      setIsLoading(true);
-      
-      if (!hasPermissionToManage()) {
-        toast.error("Apenas administradores e supervisores podem editar níveis de acesso.");
-        return;
-      }
-      
       // Validar dados do formulário
       if (!formName.trim()) {
         toast.error("O nome do nível de acesso é obrigatório.");
-        setIsLoading(false);
         return;
       }
+      
+      setIsLoading(true);
+      console.log('Editando nível de acesso...');
       
       // Dividir as permissões por vírgula e remover espaços em branco
       const permissionsArray = formPermissions 
@@ -143,21 +137,26 @@ export const useAccessLevels = () => {
         permissions: permissionsArray,
       });
       
+      console.log('Nível de acesso atualizado:', updatedLevel);
+      
       // Atualizar a lista de níveis de acesso
       const updatedLevels = accessLevels.map(level => 
         level.id === selectedLevel.id ? updatedLevel : level
       );
       
       setAccessLevels(updatedLevels);
+      
+      // Fechar o diálogo e resetar o formulário
       setIsEditDialogOpen(false);
       resetForm();
+      
       toast.success("Nível de acesso atualizado com sucesso!");
       
       // Recarregar a lista para garantir sincronização com o servidor
-      loadAccessLevels();
+      await loadAccessLevels();
     } catch (error: any) {
-      toast.error(`Erro ao atualizar nível de acesso: ${error.message}`);
       console.error('Erro ao atualizar nível de acesso:', error);
+      toast.error(`Erro ao atualizar nível de acesso: ${error.message}`);
     } finally {
       setIsLoading(false);
     }
@@ -166,22 +165,20 @@ export const useAccessLevels = () => {
   const handleDeleteLevel = async (level: AccessLevel) => {
     try {
       setIsLoading(true);
-      
-      if (!hasPermissionToManage()) {
-        toast.error("Apenas administradores e supervisores podem remover níveis de acesso.");
-        return;
-      }
+      console.log('Excluindo nível de acesso:', level);
       
       await deleteAccessLevel(level.name);
       
+      // Atualizar a lista de níveis de acesso
       setAccessLevels(accessLevels.filter(l => l.id !== level.id));
+      
       toast.success("Nível de acesso removido com sucesso!");
       
       // Recarregar a lista para garantir sincronização com o servidor
-      loadAccessLevels();
+      await loadAccessLevels();
     } catch (error: any) {
-      toast.error(`Erro ao remover nível de acesso: ${error.message}`);
       console.error('Erro ao remover nível de acesso:', error);
+      toast.error(`Erro ao remover nível de acesso: ${error.message}`);
     } finally {
       setIsLoading(false);
     }

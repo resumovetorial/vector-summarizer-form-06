@@ -33,19 +33,25 @@ const AccessLevelDialog: React.FC<AccessLevelDialogProps> = ({
   setFormPermissions,
   isLoading,
 }) => {
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit();
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4 pt-4">
+        <form onSubmit={handleSubmit} className="space-y-4 pt-4">
           <div className="space-y-2">
             <Label htmlFor="name">Nome</Label>
             <Input 
               id="name" 
               value={formName} 
               onChange={(e) => setFormName(e.target.value)} 
+              required
             />
           </div>
           <div className="space-y-2">
@@ -69,14 +75,14 @@ const AccessLevelDialog: React.FC<AccessLevelDialogProps> = ({
             </p>
           </div>
           <div className="flex justify-end space-x-2 pt-4">
-            <Button variant="outline" onClick={() => onOpenChange(false)} type="button">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
-            <Button onClick={onSubmit} disabled={isLoading} type="button">
+            <Button type="submit" disabled={isLoading}>
               {isLoading ? "Processando..." : title === "Adicionar Nível de Acesso" ? "Adicionar Nível" : "Salvar Alterações"}
             </Button>
           </div>
-        </div>
+        </form>
       </DialogContent>
     </Dialog>
   );
