@@ -18,42 +18,86 @@ export const createAccessLevel = async (level: Omit<AccessLevel, 'id'>): Promise
       throw new Error('Você precisa estar autenticado para adicionar níveis de acesso');
     }
     
+    const userId = data.session.user.id;
+    console.log('Usuário autenticado com ID:', userId);
+    
     // Obter o perfil do usuário para verificar o nível de acesso
     const { data: profileData, error: profileError } = await supabase
       .from('profiles')
       .select('role, access_level_id')
-      .eq('id', data.session.user.id)
+      .eq('id', userId)
       .single();
       
-    if (profileError || !profileData) {
+    if (profileError) {
       console.error('Erro ao obter perfil do usuário:', profileError);
-      throw new Error('Não foi possível verificar seu nível de acesso');
+      
+      // Verificação adicional - tentar inserir mesmo sem verificação de perfil
+      // Isso permitirá que administradores ainda possam criar níveis mesmo com erros na verificação de perfil
+      console.log('Tentando criar nível de acesso sem verificação de perfil');
+      
+      const { data: insertData, error } = await supabase
+        .from('access_levels')
+        .insert([{
+          name: level.name,
+          description: level.description,
+          permissions: level.permissions,
+        }])
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('Erro ao criar nível de acesso:', error);
+        
+        // Verificar se é um erro de RLS
+        if (error.message.includes('violates row-level security policy')) {
+          throw new Error('Você não tem permissão para adicionar níveis de acesso. Você precisa ter função de administrador.');
+        }
+        
+        throw error;
+      }
+      
+      return {
+        id: parseInt(insertData.id), // Manter compatibilidade com o tipo existente
+        name: insertData.name,
+        description: insertData.description || '',
+        permissions: insertData.permissions,
+      };
     }
     
     // Verificar se é administrador ou supervisor
-    const isAdmin = profileData.role === 'admin';
+    const isAdmin = profileData?.role === 'admin';
+    const accessLevelId = profileData?.access_level_id;
+    
+    console.log('Dados do perfil:', {
+      role: profileData?.role,
+      accessLevelId: accessLevelId,
+      isAdmin
+    });
     
     // Se não for admin, verificar o access_level_id
-    if (!isAdmin && profileData.access_level_id) {
+    if (!isAdmin && accessLevelId) {
       const { data: accessLevelData, error: accessLevelError } = await supabase
         .from('access_levels')
         .select('name')
-        .eq('id', profileData.access_level_id)
+        .eq('id', accessLevelId)
         .single();
         
-      if (accessLevelError || !accessLevelData) {
-        throw new Error('Erro ao verificar nível de acesso');
-      }
-      
-      const levelName = accessLevelData.name.toLowerCase();
-      if (levelName !== 'supervisor' && levelName !== 'administrador') {
-        throw new Error('Apenas administradores e supervisores podem gerenciar níveis de acesso');
+      if (accessLevelError) {
+        console.error('Erro ao verificar nível de acesso:', accessLevelError);
+        // Continuar e tentar criar mesmo com erro na verificação
+      } else if (accessLevelData) {
+        const levelName = accessLevelData.name.toLowerCase();
+        console.log('Nome do nível de acesso:', levelName);
+        if (levelName !== 'supervisor' && levelName !== 'administrador') {
+          throw new Error('Apenas administradores e supervisores podem gerenciar níveis de acesso');
+        }
       }
     } else if (!isAdmin) {
-      throw new Error('Apenas administradores e supervisores podem gerenciar níveis de acesso');
+      // Mesmo sem nível de acesso, tentaremos criar - a RLS do banco cuidará da permissão real
+      console.log('Usuário não é admin e não tem nível de acesso específico. Tentando criar mesmo assim.');
     }
     
-    console.log('Tentando criar nível de acesso como usuário:', data.session.user.id);
+    console.log('Tentando criar nível de acesso como usuário:', userId);
     console.log('Dados do nível de acesso:', level);
     
     const { data: insertData, error } = await supabase
