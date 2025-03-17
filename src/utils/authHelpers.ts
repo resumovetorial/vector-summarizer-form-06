@@ -41,3 +41,23 @@ export const createDemoSession = (email: string, role: string) => {
     expires_in: 3600
   };
 };
+
+/**
+ * Mapeamento de níveis de acesso para permissões padrão
+ */
+export const getDefaultPermissionsForLevel = (level: string): string[] => {
+  const lowerLevel = level.toLowerCase();
+  
+  switch (lowerLevel) {
+    case 'administrador':
+      return ['dashboard', 'form', 'admin', 'reports', 'settings'];
+    case 'supervisor':
+    case 'supervisor geral':
+    case 'supervisor area':
+      return ['dashboard', 'form', 'reports'];
+    case 'agente':
+      return ['form'];
+    default:
+      return ['form']; // Permissão mínima por padrão
+  }
+};
