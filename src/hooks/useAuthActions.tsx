@@ -1,4 +1,3 @@
-
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { formatAuthError } from '@/utils/authUtils';
@@ -56,9 +55,21 @@ export function useAuthActions(
       const currentTime = Math.floor(Date.now() / 1000);
       const expiryTime = currentTime + 3600; // 1 hora de validade
       
-      // Criando um objeto que parece com um payload JWT válido
+      // Criando um token JWT válido - corrigindo a interpolação de strings
+      const payload = {
+        aud: "authenticated",
+        exp: expiryTime,
+        sub: "1",
+        role: role,
+        email: email
+      };
+      
+      // Converte o payload para base64
+      const encodedPayload = btoa(JSON.stringify(payload));
+      
+      // Cria o token JWT com o formato correto (header, payload, signature)
       const demoSession = {
-        access_token: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsInJvbGUiOiJhdXRoZW50aWNhdGVkIn0.eyJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoke2V4cGlyeVRpbWV9LCJzdWIiOiIxIiwicm9sZSI6IiR7cm9sZX0iLCJlbWFpbCI6IiR7ZW1haWx9In0.${btoa(JSON.stringify({role, email}))}`,
+        access_token: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.${encodedPayload}.demo_signature`,
         refresh_token: `demo_refresh_token_${Date.now()}`,
         expires_at: expiryTime,
         expires_in: 3600
