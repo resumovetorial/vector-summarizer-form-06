@@ -26,7 +26,8 @@ export const useAccessLevels = () => {
     setFormDescription,
     formPermissions,
     setFormPermissions,
-    resetForm
+    resetForm,
+    openEditDialog
   } = useAccessLevelsState();
 
   // Access level operations (CRUD)
@@ -65,6 +66,7 @@ export const useAccessLevels = () => {
     formPermissions,
     setFormPermissions,
     resetForm,
+    openEditDialog,
     // Operations
     loadAccessLevels,
     handleAddLevel,

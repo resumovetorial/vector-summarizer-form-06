@@ -63,7 +63,7 @@ const AccessLevels: React.FC = () => {
         formName={formName}
         formDescription={formDescription}
         formPermissions={formPermissions}
-        onSubmit={handleAddLevel}
+        onSubmit={() => handleAddLevel(formName, formDescription, formPermissions)}
         setFormName={setFormName}
         setFormDescription={setFormDescription}
         setFormPermissions={setFormPermissions}
@@ -77,7 +77,7 @@ const AccessLevels: React.FC = () => {
         formName={formName}
         formDescription={formDescription}
         formPermissions={formPermissions}
-        onSubmit={handleEditLevel}
+        onSubmit={() => handleEditLevel(formName, formDescription, formPermissions)}
         setFormName={setFormName}
         setFormDescription={setFormDescription}
         setFormPermissions={setFormPermissions}
