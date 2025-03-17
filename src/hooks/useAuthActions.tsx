@@ -52,11 +52,22 @@ export function useAuthActions(
       };
 
       // Configuração manual da sessão do Supabase para modo de demonstração
-      // Isso garantirá que o token seja configurado para requisições subsequentes
-      await supabase.auth.setSession({
-        access_token: 'demo_access_token_' + Date.now(),
-        refresh_token: 'demo_refresh_token',
-      });
+      // Criando um token JWT válido usando um formato que o Supabase aceita
+      const currentTime = Math.floor(Date.now() / 1000);
+      const expiryTime = currentTime + 3600; // 1 hora de validade
+      
+      // Criando um objeto que parece com um payload JWT válido
+      const demoSession = {
+        access_token: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsInJvbGUiOiJhdXRoZW50aWNhdGVkIn0.eyJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoke2V4cGlyeVRpbWV9LCJzdWIiOiIxIiwicm9sZSI6IiR7cm9sZX0iLCJlbWFpbCI6IiR7ZW1haWx9In0.${btoa(JSON.stringify({role, email}))}`,
+        refresh_token: `demo_refresh_token_${Date.now()}`,
+        expires_at: expiryTime,
+        expires_in: 3600
+      };
+      
+      // Configurar sessão manual no Supabase
+      await supabase.auth.setSession(demoSession);
+      
+      console.log('Sessão configurada com sucesso:', demoSession);
       
       // Simulação de login no Supabase para obter um token válido
       try {

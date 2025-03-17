@@ -35,8 +35,23 @@ export const createAccessLevel = async (level: Omit<AccessLevel, 'id'>): Promise
     // Isso é necessário porque os perfis simulados não correspondem exatamente às estruturas do banco
     const isSimulatedMode = true; // Assumindo modo de demonstração sempre ativo para esse exemplo
     
+    // Verificar o token de acesso atual e seus detalhes
+    console.log('Verificando token de acesso atual:', {
+      token: data.session.access_token ? data.session.access_token.substring(0, 20) + '...' : 'Nenhum',
+      expires_at: data.session.expires_at,
+      expires_in: data.session.expires_in
+    });
+    
     if (isSimulatedMode) {
       console.log('Modo de demonstração ativo - ignorando verificações de permissão detalhadas');
+      
+      // Definir um cabeçalho de autorização personalizado para a solicitação
+      const headers = {
+        Authorization: `Bearer ${data.session.access_token}`,
+        'Content-Type': 'application/json'
+      };
+      
+      console.log('Usando cabeçalhos personalizados para solicitação:', headers);
       
       // Tentar inserir diretamente, confiando nas políticas RLS do Supabase
       const { data: insertData, error } = await supabase
