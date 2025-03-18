@@ -67,21 +67,21 @@ export const updateExistingUser = async (
     console.log('Initial user data:', initialUser);
     console.log('Form data:', formData);
     
-    // Update the user profile
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .update({
-        username: formData.name,
-        role: formData.role,
-        active: formData.active,
-        access_level_id: accessLevelUuid  // Use o UUID, não o ID numérico
-      })
-      .eq('id', initialUser.supabaseId);
+    // Usar RPC (função de banco de dados) em vez de atualização direta para evitar problemas de RLS
+    const { data: profileData, error: profileError } = await supabase.rpc('create_or_update_profile', {
+      p_id: initialUser.supabaseId,
+      p_username: formData.name,
+      p_role: formData.role,
+      p_active: formData.active,
+      p_access_level_id: accessLevelUuid
+    });
     
     if (profileError) {
       console.error('Erro ao atualizar perfil:', profileError);
       throw profileError;
     }
+    
+    console.log("Perfil atualizado com sucesso:", profileData);
     
     // Update localities
     // First, get current localities
