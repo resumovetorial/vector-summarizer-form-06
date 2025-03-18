@@ -96,7 +96,7 @@ export const useUsers = () => {
             const realUsers: User[] = profiles.map((profile, index) => {
               // Get the access level ID - either use the one stored in the profile or default to the first one
               let accessLevelId = profile.access_level_id ? 
-                fetchedAccessLevels.find(level => level.id.toString() === profile.access_level_id)?.id : 
+                fetchedAccessLevels.find(level => level.id === profile.access_level_id)?.id : 
                 fetchedAccessLevels[0].id;
                 
               // If access level is not found, use the first one
