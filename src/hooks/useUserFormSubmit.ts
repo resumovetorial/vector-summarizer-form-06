@@ -1,3 +1,4 @@
+
 import { User, AccessLevel } from '@/types/admin';
 import { toast } from 'sonner';
 import { validateUserForm } from '@/utils/userFormValidation';
@@ -59,6 +60,7 @@ export const useUserFormSubmit = ({
       console.log("Selected user:", initialUser);
       console.log("Selected access level:", selectedAccessLevel);
       console.log("Form access level ID:", accessLevelIdNum);
+      console.log("Form data:", formData);
       
       if (isEditMode && initialUser) {
         const updatedUser = await updateExistingUser(initialUser, formData, accessLevelIdNum);
@@ -75,9 +77,15 @@ export const useUserFormSubmit = ({
           toast.success("Usuário atualizado com sucesso!");
         }
       } else {
-        const { newUser } = await createNewUser(formData, accessLevelIdNum, users);
-        setUsers([...users, newUser]);
-        toast.success("Usuário adicionado com sucesso! Em um ambiente de produção, este usuário receberia um email de convite.");
+        try {
+          const { newUser } = await createNewUser(formData, accessLevelIdNum, users);
+          setUsers(prevUsers => [...prevUsers, newUser]);
+          toast.success("Usuário adicionado com sucesso! Em um ambiente de produção, este usuário receberia um email de convite.");
+        } catch (error) {
+          console.error("Error creating user:", error);
+          toast.error(`Erro ao adicionar usuário: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+          throw error;
+        }
       }
       
       onSuccess();

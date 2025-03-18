@@ -31,10 +31,13 @@ export const createNewUser = async (
     throw new Error(searchError.message);
   }
 
+  if (existingUsers && existingUsers.length > 0) {
+    toast.error(`Usuário com email ${formData.email} já existe`);
+    throw new Error(`Usuário com email ${formData.email} já existe`);
+  }
+
   let userId: string;
-  let userCreated = false;
   
-  // Usar modo de demonstração para desenvolvimento
   try {
     // Create a real auth user via the RPC function
     const { data, error } = await supabase.rpc('create_demo_user', {
@@ -51,7 +54,6 @@ export const createNewUser = async (
     
     userId = data;
     console.log("Created demo user with ID:", userId);
-    userCreated = true;
     
     if (!userId) {
       throw new Error("Não foi possível obter o ID do usuário criado");
@@ -62,8 +64,7 @@ export const createNewUser = async (
     throw error;
   }
   
-  console.log("Usando modo de demonstração com ID:", userId);
-  toast.info("No modo de demonstração, os usuários seriam convidados por email. Simulando criação de usuário.");
+  console.log("Usuário criado com ID:", userId);
   
   // Obter o UUID do nível de acesso do banco de dados
   let accessLevelUuid: string | null = null;
@@ -150,6 +151,8 @@ export const createNewUser = async (
               
             if (accessError && accessError.code !== '23505') { // Ignorar erros de violação de unicidade
               console.error(`Erro ao atribuir localidade ${localityName}:`, accessError);
+            } else {
+              console.log(`Localidade ${localityName} atribuída ao usuário ${userId}`);
             }
           }
         } catch (err) {
