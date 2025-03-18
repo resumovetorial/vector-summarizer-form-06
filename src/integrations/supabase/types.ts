@@ -293,6 +293,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_demo_user: {
+        Args: {
+          user_email: string
+          user_password: string
+          user_data?: Json
+        }
+        Returns: string
+      }
       create_or_update_profile: {
         Args: {
           p_id: string
