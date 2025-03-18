@@ -293,6 +293,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_or_update_profile: {
+        Args: {
+          p_id: string
+          p_username: string
+          p_role: string
+          p_active: boolean
+          p_access_level_id: string
+        }
+        Returns: boolean
+      }
       delete_user_and_profile: {
         Args: {
           user_id: string

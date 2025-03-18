@@ -30,7 +30,7 @@ const AccessLevels: React.FC = () => {
     isAdmin
   } = useAccessLevels();
 
-  // Use useEffect with an empty dependency array for one-time initialization
+  // Use useEffect with empty dependency array to load data only once during component mount
   useEffect(() => {
     loadAccessLevels();
     // eslint-disable-next-line react-hooks/exhaustive-deps

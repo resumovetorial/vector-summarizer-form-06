@@ -126,7 +126,7 @@ export const createNewUser = async (
                 locality_id: locality.id
               });
               
-            if (accessError) {
+            if (accessError && accessError.code !== '23505') { // Ignorar erros de violação de unicidade
               console.error(`Erro ao atribuir localidade ${localityName}:`, accessError);
             }
           }
