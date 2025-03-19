@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
@@ -8,7 +7,7 @@ import UserAddDialog from './UserAddDialog';
 import UserEditDialog from './UserEditDialog';
 import UserAccessDialog from './UserAccessDialog';
 import UserManagementActions from './UserManagementActions';
-import { useUsers } from '@/hooks/useUsers';
+import { useUsers } from '@/hooks/users';
 
 const UserManagement: React.FC = () => {
   const { users, setUsers, accessLevels, isLoading, handleDeleteUser, refreshUsers } = useUsers();
@@ -18,7 +17,6 @@ const UserManagement: React.FC = () => {
   const [isAccessDialogOpen, setIsAccessDialogOpen] = useState(false);
   
   const openEditDialog = (user: User) => {
-    // Create a deep copy of the user to avoid reference issues
     const userCopy = JSON.parse(JSON.stringify(user));
     console.log("Opening edit dialog with user:", userCopy);
     setSelectedUser(userCopy);
@@ -26,7 +24,6 @@ const UserManagement: React.FC = () => {
   };
   
   const handleConfigureAccess = (user: User) => {
-    // Create a deep copy of the user to avoid reference issues
     const userCopy = JSON.parse(JSON.stringify(user));
     setSelectedUser(userCopy);
     setIsAccessDialogOpen(true);
@@ -42,7 +39,6 @@ const UserManagement: React.FC = () => {
   };
 
   const handleDialogClose = () => {
-    // Ao fechar o diálogo, recarregar a lista de usuários para garantir que temos os dados mais recentes
     refreshUsers();
     setIsAddDialogOpen(false);
   };
@@ -85,7 +81,6 @@ const UserManagement: React.FC = () => {
         />
       </CardContent>
 
-      {/* Edit User Dialog */}
       <UserEditDialog 
         isOpen={isEditDialogOpen}
         setIsOpen={handleEditDialogClose}
@@ -96,7 +91,6 @@ const UserManagement: React.FC = () => {
         setSelectedUser={setSelectedUser}
       />
 
-      {/* User Access Dialog */}
       <UserAccessDialog 
         isOpen={isAccessDialogOpen}
         setIsOpen={handleAccessDialogClose}
