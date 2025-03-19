@@ -18,6 +18,8 @@ export const createNewUser = async (
   accessLevelIdNum: number,
   users: User[]
 ): Promise<{ userId: string; newUser: User }> => {
+  console.log("Iniciando criação de usuário com dados:", formData);
+  
   // First check if user with this email already exists
   const { data: existingUsers, error: searchError } = await supabase
     .from('profiles')
@@ -27,12 +29,11 @@ export const createNewUser = async (
     
   if (searchError) {
     console.error('Erro ao verificar existência do usuário:', searchError);
-    toast.error(`Erro ao verificar usuário: ${searchError.message}`);
-    throw new Error(searchError.message);
+    throw new Error(`Erro ao verificar usuário: ${searchError.message}`);
   }
 
   if (existingUsers && existingUsers.length > 0) {
-    toast.error(`Usuário com email ${formData.email} já existe`);
+    console.error(`Usuário com email ${formData.email} já existe`);
     throw new Error(`Usuário com email ${formData.email} já existe`);
   }
 
@@ -47,24 +48,20 @@ export const createNewUser = async (
     });
     
     if (error) {
-      console.error("Couldn't create demo user via RPC:", error);
-      toast.error(`Erro ao criar usuário de demonstração: ${error.message}`);
-      throw new Error(error.message);
+      console.error("Não foi possível criar usuário via RPC:", error);
+      throw new Error(`Erro ao criar usuário de demonstração: ${error.message}`);
     } 
     
     userId = data;
-    console.log("Created demo user with ID:", userId);
+    console.log("Usuário criado com ID:", userId);
     
     if (!userId) {
       throw new Error("Não foi possível obter o ID do usuário criado");
     }
   } catch (error: any) {
-    console.error("Error in demo user creation:", error);
-    toast.error(`Erro na criação do usuário: ${error.message}`);
+    console.error("Erro na criação do usuário:", error);
     throw error;
   }
-  
-  console.log("Usuário criado com ID:", userId);
   
   // Obter o UUID do nível de acesso do banco de dados
   let accessLevelUuid: string | null = null;
@@ -79,7 +76,7 @@ export const createNewUser = async (
     
     if (!accessLevelError && accessLevel) {
       accessLevelUuid = accessLevel.id;
-      console.log('Access level found by ID:', accessLevelUuid);
+      console.log('Nível de acesso encontrado pelo ID:', accessLevelUuid);
     } else {
       // Segunda tentativa: listar todos os níveis e procurar pelo ID numérico
       const { data: allLevels, error: allLevelsError } = await supabase
@@ -96,19 +93,19 @@ export const createNewUser = async (
           : allLevels[0];
         
         accessLevelUuid = targetLevel.id;
-        console.log(`Using access level by position: ${targetLevel.name} (${accessLevelUuid})`);
+        console.log(`Usando nível de acesso por posição: ${targetLevel.name} (${accessLevelUuid})`);
       } else {
-        console.warn('No access levels found, using null');
+        console.warn('Nenhum nível de acesso encontrado, usando null');
       }
     }
   } catch (err) {
-    console.error('Error fetching access level:', err);
+    console.error('Erro ao buscar nível de acesso:', err);
   }
   
-  console.log('Final access level UUID for profile:', accessLevelUuid);
+  console.log('UUID do nível de acesso para o perfil:', accessLevelUuid);
   
   try {
-    // Now create/update the profile with the RPC function
+    // Criar/atualizar o perfil com a função RPC
     const { data: profileData, error: profileError } = await supabase.rpc('create_or_update_profile', {
       p_id: userId,
       p_username: formData.name,
@@ -119,21 +116,23 @@ export const createNewUser = async (
     
     if (profileError) {
       console.error('Erro ao criar/atualizar perfil:', profileError);
-      throw new Error(profileError.message);
+      throw new Error(`Erro ao criar perfil: ${profileError.message}`);
     }
     
     console.log("Perfil criado/atualizado com sucesso:", profileData);
     
-    // If user has localities, assign them
+    // Se o usuário tem localidades, atribuí-las
     if (formData.localities && formData.localities.length > 0) {
+      console.log("Atribuindo localidades:", formData.localities);
+      
       for (const localityName of formData.localities) {
         try {
-          // Get locality ID
+          // Obter ID da localidade
           const { data: locality, error: localityError } = await supabase
             .from('localities')
             .select('id')
             .eq('name', localityName)
-            .maybeSingle();
+            .single();
             
           if (localityError) {
             console.error(`Erro ao buscar localidade ${localityName}:`, localityError);
@@ -141,7 +140,7 @@ export const createNewUser = async (
           }
           
           if (locality) {
-            // Create locality access
+            // Criar acesso à localidade
             const { error: accessError } = await supabase
               .from('locality_access')
               .insert({
@@ -154,6 +153,8 @@ export const createNewUser = async (
             } else {
               console.log(`Localidade ${localityName} atribuída ao usuário ${userId}`);
             }
+          } else {
+            console.error(`Localidade ${localityName} não encontrada`);
           }
         } catch (err) {
           console.error(`Erro ao processar localidade ${localityName}:`, err);
@@ -162,13 +163,13 @@ export const createNewUser = async (
     }
   } catch (error: any) {
     console.error('Erro na operação de criação do perfil:', error);
-    toast.error(`Erro na criação do perfil: ${error.message}`);
     throw error;
   }
   
-  // Create new user object for client-side state
+  // Criar objeto de usuário para o estado do cliente
+  const newUserId = users.length > 0 ? Math.max(...users.map(u => u.id)) + 1 : 1;
   const newUser: User = {
-    id: users.length > 0 ? Math.max(...users.map(u => u.id)) + 1 : 1,
+    id: newUserId,
     supabaseId: userId,
     name: formData.name,
     email: formData.email,
@@ -178,7 +179,7 @@ export const createNewUser = async (
     assignedLocalities: formData.localities
   };
   
-  toast.success("Usuário criado com sucesso! Um email de convite seria enviado em produção.");
+  console.log("Usuário criado com sucesso:", newUser);
   
   return { userId, newUser };
 };

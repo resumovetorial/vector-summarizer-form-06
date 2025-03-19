@@ -18,7 +18,7 @@ export const useUsers = () => {
         let fetchedAccessLevels: AccessLevel[] = [];
         try {
           fetchedAccessLevels = await fetchAccessLevels();
-          console.log("Fetched access levels:", fetchedAccessLevels);
+          console.log("Níveis de acesso obtidos:", fetchedAccessLevels);
           
           // Set access levels (including all defined levels)
           setAccessLevels(fetchedAccessLevels);
@@ -43,7 +43,7 @@ export const useUsers = () => {
             throw error;
           }
 
-          console.log("Raw profiles data:", profiles);
+          console.log("Dados brutos dos perfis:", profiles);
 
           if (profiles && profiles.length > 0) {
             // Get auth users to combine with profiles if possible
@@ -53,7 +53,7 @@ export const useUsers = () => {
               const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
               
               if (!authError && authUsers?.users) {
-                console.log("Auth users data:", authUsers.users);
+                console.log("Dados dos usuários de autenticação:", authUsers.users);
                 // Create a mapping of user IDs to emails
                 authUsers.users.forEach((user: any) => {
                   if (user.id && user.email) {
@@ -61,10 +61,10 @@ export const useUsers = () => {
                   }
                 });
               } else {
-                console.log("Could not fetch auth users (expected for non-admin access):", authError);
+                console.log("Não foi possível obter usuários de autenticação (esperado para acesso não-admin):", authError);
               }
             } catch (authError) {
-              console.log("Error fetching auth users (expected for non-admin access):", authError);
+              console.log("Erro ao buscar usuários de autenticação (esperado para acesso não-admin):", authError);
             }
 
             // Fetch assigned localities for each profile
@@ -76,7 +76,7 @@ export const useUsers = () => {
                 .select('user_id, localities(name)');
                 
               if (!localityError && localityAccess) {
-                console.log("Locality access data:", localityAccess);
+                console.log("Dados de acesso às localidades:", localityAccess);
                 
                 // Group localities by user ID
                 localityAccess.forEach((access: any) => {
@@ -89,7 +89,7 @@ export const useUsers = () => {
                 });
               }
             } catch (localityError) {
-              console.error("Error fetching locality access:", localityError);
+              console.error("Erro ao buscar acessos às localidades:", localityError);
             }
 
             // Convert Supabase profiles to User format
@@ -122,10 +122,10 @@ export const useUsers = () => {
               };
             });
             
-            console.log("Converted users:", realUsers);
+            console.log("Usuários convertidos:", realUsers);
             setUsers(realUsers);
           } else {
-            console.log("No profiles found, showing empty list");
+            console.log("Nenhum perfil encontrado, mostrando lista vazia");
             setUsers([]);
           }
         } catch (profileError) {

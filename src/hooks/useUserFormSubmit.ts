@@ -36,13 +36,18 @@ export const useUserFormSubmit = ({
   setFormErrors
 }: UseUserFormSubmitProps) => {
   const handleSubmit = async () => {
+    console.log("Iniciando submissão do formulário com dados:", formData);
+    
     if (!validateUserForm(
       formData.name, 
       formData.email, 
       formData.role, 
       formData.accessLevel,
       setFormErrors
-    )) return;
+    )) {
+      console.log("Validação falhou");
+      return;
+    }
 
     setIsLoading(true);
     
@@ -57,10 +62,10 @@ export const useUserFormSubmit = ({
         throw new Error("Nível de acesso selecionado não é válido");
       }
       
-      console.log("Selected user:", initialUser);
-      console.log("Selected access level:", selectedAccessLevel);
-      console.log("Form access level ID:", accessLevelIdNum);
-      console.log("Form data:", formData);
+      console.log("Usuário selecionado:", initialUser);
+      console.log("Nível de acesso selecionado:", selectedAccessLevel);
+      console.log("ID do nível de acesso no formulário:", accessLevelIdNum);
+      console.log("Dados do formulário:", formData);
       
       if (isEditMode && initialUser) {
         const updatedUser = await updateExistingUser(initialUser, formData, accessLevelIdNum);
@@ -78,11 +83,14 @@ export const useUserFormSubmit = ({
         }
       } else {
         try {
+          console.log("Criando novo usuário...");
           const { newUser } = await createNewUser(formData, accessLevelIdNum, users);
+          
+          console.log("Usuário criado, atualizando estado:", newUser);
           setUsers(prevUsers => [...prevUsers, newUser]);
           toast.success("Usuário adicionado com sucesso! Em um ambiente de produção, este usuário receberia um email de convite.");
         } catch (error) {
-          console.error("Error creating user:", error);
+          console.error("Erro ao criar usuário:", error);
           toast.error(`Erro ao adicionar usuário: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
           throw error;
         }
