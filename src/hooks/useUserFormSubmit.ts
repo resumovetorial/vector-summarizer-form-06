@@ -80,6 +80,7 @@ export const useUserFormSubmit = ({
           
           setUsers(updatedUsers);
           toast.success("Usuário atualizado com sucesso!");
+          onSuccess();
         }
       } else {
         try {
@@ -87,8 +88,28 @@ export const useUserFormSubmit = ({
           const { newUser } = await createNewUser(formData, accessLevelIdNum, users);
           
           console.log("Usuário criado, atualizando estado:", newUser);
-          // É importante criar uma nova referência para o array para garantir que o React renderize novamente
-          setUsers(prevUsers => [...prevUsers, newUser]);
+          
+          // Importante: Certifique-se de que a UI seja atualizada com o novo usuário
+          setUsers(prevUsers => {
+            // Verifique se o usuário já existe para evitar duplicação
+            const exists = prevUsers.some(user => 
+              user.supabaseId === newUser.supabaseId || 
+              user.email === newUser.email
+            );
+            
+            if (exists) {
+              console.log("Usuário já existe no estado, atualizando...");
+              return prevUsers.map(user => 
+                (user.supabaseId === newUser.supabaseId || user.email === newUser.email) 
+                  ? newUser 
+                  : user
+              );
+            }
+            
+            console.log("Adicionando novo usuário ao estado:", newUser);
+            return [...prevUsers, newUser];
+          });
+          
           toast.success("Usuário adicionado com sucesso! Em um ambiente de produção, este usuário receberia um email de convite.");
           
           // Chama o callback de sucesso para fechar o modal ou realizar outras ações

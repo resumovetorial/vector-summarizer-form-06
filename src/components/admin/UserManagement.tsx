@@ -11,7 +11,7 @@ import UserManagementActions from './UserManagementActions';
 import { useUsers } from '@/hooks/useUsers';
 
 const UserManagement: React.FC = () => {
-  const { users, setUsers, accessLevels, isLoading, handleDeleteUser } = useUsers();
+  const { users, setUsers, accessLevels, isLoading, handleDeleteUser, refreshUsers } = useUsers();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -41,6 +41,22 @@ const UserManagement: React.FC = () => {
     }
   };
 
+  const handleDialogClose = () => {
+    // Ao fechar o diálogo, recarregar a lista de usuários para garantir que temos os dados mais recentes
+    refreshUsers();
+    setIsAddDialogOpen(false);
+  };
+
+  const handleEditDialogClose = () => {
+    setIsEditDialogOpen(false);
+    refreshUsers();
+  };
+
+  const handleAccessDialogClose = () => {
+    setIsAccessDialogOpen(false);
+    refreshUsers();
+  };
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
@@ -49,10 +65,11 @@ const UserManagement: React.FC = () => {
           isAddDialogOpen={isAddDialogOpen}
           setIsAddDialogOpen={setIsAddDialogOpen}
           isLoading={isLoading}
+          onRefresh={refreshUsers}
         />
         <UserAddDialog 
           isOpen={isAddDialogOpen}
-          setIsOpen={setIsAddDialogOpen}
+          setIsOpen={handleDialogClose}
           users={users}
           setUsers={setUsers}
           accessLevels={accessLevels}
@@ -71,7 +88,7 @@ const UserManagement: React.FC = () => {
       {/* Edit User Dialog */}
       <UserEditDialog 
         isOpen={isEditDialogOpen}
-        setIsOpen={setIsEditDialogOpen}
+        setIsOpen={handleEditDialogClose}
         users={users}
         setUsers={setUsers}
         accessLevels={accessLevels}
@@ -82,7 +99,7 @@ const UserManagement: React.FC = () => {
       {/* User Access Dialog */}
       <UserAccessDialog 
         isOpen={isAccessDialogOpen}
-        setIsOpen={setIsAccessDialogOpen}
+        setIsOpen={handleAccessDialogClose}
         users={users}
         setUsers={setUsers}
         selectedUser={selectedUser}

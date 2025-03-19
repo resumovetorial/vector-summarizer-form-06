@@ -1,29 +1,43 @@
 
 import React from 'react';
-import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogTrigger } from '@/components/ui/dialog';
+import { PlusCircle, RefreshCw } from 'lucide-react';
 
 interface UserManagementActionsProps {
   isAddDialogOpen: boolean;
-  setIsAddDialogOpen: (open: boolean) => void;
+  setIsAddDialogOpen: (isOpen: boolean) => void;
   isLoading: boolean;
+  onRefresh?: () => void;
 }
 
-const UserManagementActions: React.FC<UserManagementActionsProps> = ({
-  isAddDialogOpen,
+const UserManagementActions: React.FC<UserManagementActionsProps> = ({ 
+  isAddDialogOpen, 
   setIsAddDialogOpen,
-  isLoading
+  isLoading,
+  onRefresh
 }) => {
   return (
-    <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-      <DialogTrigger asChild>
-        <Button className="ml-auto" disabled={isLoading}>
-          <Plus className="h-4 w-4 mr-2" />
-          Novo Usuário
+    <div className="flex space-x-2">
+      {onRefresh && (
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={onRefresh} 
+          disabled={isLoading}
+        >
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Atualizar Lista
         </Button>
-      </DialogTrigger>
-    </Dialog>
+      )}
+      <Button 
+        size="sm" 
+        onClick={() => setIsAddDialogOpen(true)}
+        disabled={isLoading || isAddDialogOpen}
+      >
+        <PlusCircle className="h-4 w-4 mr-2" />
+        Adicionar Usuário
+      </Button>
+    </div>
   );
 };
 
