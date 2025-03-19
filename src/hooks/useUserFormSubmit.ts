@@ -87,16 +87,18 @@ export const useUserFormSubmit = ({
           const { newUser } = await createNewUser(formData, accessLevelIdNum, users);
           
           console.log("Usuário criado, atualizando estado:", newUser);
+          // É importante criar uma nova referência para o array para garantir que o React renderize novamente
           setUsers(prevUsers => [...prevUsers, newUser]);
           toast.success("Usuário adicionado com sucesso! Em um ambiente de produção, este usuário receberia um email de convite.");
+          
+          // Chama o callback de sucesso para fechar o modal ou realizar outras ações
+          onSuccess();
         } catch (error) {
           console.error("Erro ao criar usuário:", error);
           toast.error(`Erro ao adicionar usuário: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
           throw error;
         }
       }
-      
-      onSuccess();
     } catch (error: any) {
       toast.error(`Erro ao ${isEditMode ? 'atualizar' : 'adicionar'} usuário: ${error.message}`);
       console.error(`Erro na ${isEditMode ? 'atualização' : 'adição'}:`, error);

@@ -62,6 +62,23 @@ export const useUsers = () => {
                 });
               } else {
                 console.log("Não foi possível obter usuários de autenticação (esperado para acesso não-admin):", authError);
+                
+                // Tentar obter emails através da tabela de auth.users diretamente
+                try {
+                  const { data: authData, error: authQueryError } = await supabase
+                    .from('auth.users')
+                    .select('id, email');
+                    
+                  if (!authQueryError && authData) {
+                    authData.forEach((user: any) => {
+                      if (user.id && user.email) {
+                        emailMap[user.id] = user.email;
+                      }
+                    });
+                  }
+                } catch (e) {
+                  console.log("Erro ao acessar auth.users diretamente:", e);
+                }
               }
             } catch (authError) {
               console.log("Erro ao buscar usuários de autenticação (esperado para acesso não-admin):", authError);
@@ -94,14 +111,16 @@ export const useUsers = () => {
 
             // Convert Supabase profiles to User format
             const realUsers: User[] = profiles.map((profile, index) => {
-              // Get the access level ID - either use the one stored in the profile or default to the first one
-              let accessLevelId = profile.access_level_id ? 
-                fetchedAccessLevels.find(level => level.id === profile.access_level_id)?.id : 
-                fetchedAccessLevels[0].id;
-                
-              // If access level is not found, use the first one
-              if (!accessLevelId) {
-                accessLevelId = fetchedAccessLevels[0].id;
+              // Find the numeric ID for the access level
+              let accessLevelUuid = profile.access_level_id;
+              let accessLevelId = 1; // Default to first level
+              
+              if (accessLevelUuid) {
+                // Find the matching access level by UUID
+                const matchingLevel = fetchedAccessLevels.find(level => level.id === accessLevelUuid);
+                if (matchingLevel) {
+                  accessLevelId = matchingLevel.id;
+                }
               }
               
               // Get email from auth users if available, or use username
