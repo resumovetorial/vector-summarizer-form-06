@@ -38,6 +38,10 @@ setupRealtimeSupport().catch(console.error);
 export const subscribeToVectorDataChanges = (callback: (payload: any) => void) => {
   console.log('Assinando canal de atualizações em tempo real para vector_data');
   
+  // Obter o usuário autenticado de forma síncrona
+  const user = supabase.auth.getUser ? supabase.auth.getUser() : null;
+  const userId = user ? user.data?.user?.id : '';
+  
   const channel = supabase.channel('vector-data-changes')
     .on(
       'postgres_changes',
@@ -45,7 +49,7 @@ export const subscribeToVectorDataChanges = (callback: (payload: any) => void) =
         event: '*', // Escutar inserts, updates e deletes
         schema: 'public',
         table: 'vector_data',
-        filter: `id=eq.${supabase.auth.getUser() ? supabase.auth.getUser().data.user?.id : ''}`
+        filter: `id=eq.${userId}`
       },
       (payload) => {
         console.log('Recebida atualização em tempo real:', payload);
