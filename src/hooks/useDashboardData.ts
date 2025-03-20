@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { LocalityData } from '@/types/dashboard';
 import { fetchDashboardData } from '@/services/dashboardService';
 import { toast } from "sonner";
@@ -29,16 +29,22 @@ export const useDashboardData = () => {
   };
 
   const updateDashboardData = useCallback((newData: LocalityData) => {
+    console.log("Attempting to update dashboard data with:", newData);
+    
     setDashboardData(prevData => {
       // First check if we have an ID to match
       if (newData.id) {
+        console.log("Searching for record with ID:", newData.id);
         const existingIndex = prevData.findIndex(item => item.id === newData.id);
         
         if (existingIndex >= 0) {
-          console.log("Updating existing record by ID:", newData.id);
+          console.log("Found record by ID at index:", existingIndex);
           const updatedData = [...prevData];
-          updatedData[existingIndex] = newData;
+          updatedData[existingIndex] = { ...newData };
+          console.log("Updated data at index:", updatedData[existingIndex]);
           return updatedData;
+        } else {
+          console.log("Record with ID not found in current dataset:", newData.id);
         }
       }
       
@@ -53,16 +59,22 @@ export const useDashboardData = () => {
       );
       
       if (existingIndex >= 0) {
-        console.log("Updating existing record by matched fields");
+        console.log("Found record by matched fields at index:", existingIndex);
         const updatedData = [...prevData];
-        updatedData[existingIndex] = newData;
+        updatedData[existingIndex] = { ...newData };
+        console.log("Updated data by matched fields:", updatedData[existingIndex]);
         return updatedData;
       } else {
-        console.log("Adding new record to dashboard data");
+        console.log("Adding new record to dashboard data:", newData);
         return [...prevData, newData];
       }
     });
   }, []);
+
+  // Inicializar dados quando o componente for montado ou o ano mudar
+  useEffect(() => {
+    refreshData();
+  }, [year]);
 
   return {
     isLoading,

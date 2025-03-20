@@ -72,6 +72,8 @@ export const updateVectorDataInSupabase = async (formData: FormData): Promise<bo
       throw new Error("ID do registro não fornecido para atualização");
     }
     
+    console.log("Atualizando registro com ID:", formData.recordId);
+    
     // Get or create locality
     const localityId = await findOrCreateLocality(formData.locality);
     
@@ -113,11 +115,40 @@ export const updateVectorDataInSupabase = async (formData: FormData): Promise<bo
     
     console.log('Dados atualizados com sucesso no Supabase:', data);
     toast.success('Dados atualizados com sucesso no banco de dados');
+    
     return true;
     
   } catch (error: any) {
     console.error('Erro na operação de atualização do Supabase:', error);
     toast.error(`Erro ao atualizar os dados. Verifique sua conexão e tente novamente.`);
     return false;
+  }
+};
+
+// Função para buscar dados de um registro específico por ID
+export const fetchVectorDataById = async (recordId: string) => {
+  try {
+    console.log("Buscando registro com ID:", recordId);
+    
+    const { data, error } = await supabase
+      .from('vector_data')
+      .select(`
+        *,
+        localities(name)
+      `)
+      .eq('id', recordId)
+      .single();
+    
+    if (error) {
+      console.error('Erro ao buscar dados do registro:', error);
+      throw error;
+    }
+    
+    console.log('Dados do registro obtidos com sucesso:', data);
+    return data;
+    
+  } catch (error) {
+    console.error('Erro ao buscar dados do registro:', error);
+    return null;
   }
 };

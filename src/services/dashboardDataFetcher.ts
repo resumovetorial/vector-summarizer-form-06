@@ -27,21 +27,12 @@ export const fetchDashboardData = async (year: string = "2024"): Promise<Localit
     
     if (error) {
       console.error('Erro ao buscar dados do Supabase:', error);
-      // Fallback to localStorage
-      const savedData = await getSavedVectorData();
-      if (savedData && savedData.length > 0) {
-        console.log("Usando dados salvos do localStorage:", savedData);
-        // Filter by year
-        return filterDataByYear(savedData, year);
-      }
-      
-      // Last fallback to mocked data
-      console.log("Usando dados simulados");
-      return filterDataByYear(mockDashboardData, year);
+      throw error;
     }
     
     if (data && data.length > 0) {
-      console.log("Dados obtidos do Supabase:", data);
+      console.log("Dados obtidos do Supabase:", data.length, "registros");
+      
       // Convert Supabase data to LocalityData format with locality names
       const convertedData = data.map(item => ({
         id: item.id, // Include the record ID
@@ -85,24 +76,33 @@ export const fetchDashboardData = async (year: string = "2024"): Promise<Localit
         total_dias_trabalhados: item.total_dias_trabalhados
       }));
       
+      // Verificar dados convertidos
+      console.log("Primeiro registro convertido:", convertedData[0]);
+      
       toast.success(`${convertedData.length} registros carregados do servidor`);
       return filterDataByYear(convertedData, year);
-    }
-    
-    // Fallback to localStorage
-    const savedData = await getSavedVectorData();
-    if (savedData && savedData.length > 0) {
-      console.log("Usando dados salvos do localStorage:", savedData);
-      // Filter by year
-      return filterDataByYear(savedData, year);
+    } else {
+      console.log("Nenhum dado encontrado no Supabase");
     }
   } catch (error) {
     console.error('Erro na operação do Supabase:', error);
-    // Fallback to localStorage
-    toast.error('Erro ao conectar com o banco de dados');
+    toast.error('Erro ao conectar com o banco de dados. Tentando alternativas...');
+  }
+  
+  // Fallback to localStorage
+  try {
+    const savedData = await getSavedVectorData();
+    if (savedData && savedData.length > 0) {
+      console.log("Usando dados salvos do localStorage:", savedData.length, "registros");
+      toast.warning("Usando dados locais (sem conexão com o servidor)");
+      return filterDataByYear(savedData, year);
+    }
+  } catch (localError) {
+    console.error("Erro ao acessar dados locais:", localError);
   }
   
   // If no data was obtained, use mocked data
   console.log("Usando dados simulados");
+  toast.warning("Usando dados simulados para demonstração");
   return filterDataByYear(mockDashboardData, year);
 };

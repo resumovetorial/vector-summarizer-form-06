@@ -1,49 +1,37 @@
 
 import { useEffect, useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { LocalityData } from '@/types/dashboard';
+import { RealtimeChannel } from '@supabase/supabase-js';
+import { subscribeToVectorDataChanges } from '@/services/dashboardRealtimeService';
 
 export const useRealtimeUpdates = (
-  callback: (payload?: any) => void,
+  handleUpdate: (payload: any) => void,
   dependencies: any[] = []
 ) => {
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [channel, setChannel] = useState<RealtimeChannel | null>(null);
 
   useEffect(() => {
-    console.log("Configurando assinatura Realtime para a tabela vector_data");
+    console.log('Configurando assinatura de tempo real');
     
-    // Since the table is already configured for realtime in Supabase (as indicated by the SQL error),
-    // we don't need to try enabling it again. The publication is already active.
+    // Criar canal de tempo real
+    const realtimeChannel = subscribeToVectorDataChanges((payload) => {
+      console.log('Recebida atualização em tempo real (hook):', payload);
+      handleUpdate(payload);
+    });
     
-    // Inscrever-se para mudanças na tabela vector_data
-    const channel = supabase
-      .channel('schema-db-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'vector_data'
-        },
-        (payload) => {
-          console.log('Mudança recebida!', payload);
-          callback(payload);
-        }
-      )
-      .subscribe((status) => {
-        console.log("Status da assinatura Realtime:", status);
-        setIsSubscribed(status === 'SUBSCRIBED');
-      });
+    setChannel(realtimeChannel);
+    setIsSubscribed(true);
     
-    // Função de limpeza
+    // Cleanup ao desmontar
     return () => {
-      console.log("Limpando assinatura realtime");
-      setIsSubscribed(false);
-      supabase.removeChannel(channel);
+      console.log('Limpando assinatura de tempo real');
+      if (realtimeChannel) {
+        realtimeChannel.unsubscribe();
+        setIsSubscribed(false);
+      }
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, dependencies);
 
-  return { isSubscribed };
+  return { isSubscribed, channel };
 };
-
-export default useRealtimeUpdates;

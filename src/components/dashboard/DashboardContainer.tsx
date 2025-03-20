@@ -51,79 +51,94 @@ const DashboardContainer: React.FC<DashboardContainerProps> = ({
     setIsExporting
   });
 
-  const handleRealtimeUpdate = useCallback((payload: any) => {
+  const handleRealtimeUpdate = useCallback(async (payload: any) => {
     if (!payload || !payload.new) {
-      console.log('Received empty realtime update');
+      console.log('Recebida atualização em tempo real vazia');
       return;
     }
     
     const item = payload.new;
-    console.log('Received realtime update:', item);
+    console.log('Recebida atualização em tempo real:', item);
+    console.log('Tipo de evento:', payload.eventType);
     
-    const newData: LocalityData = {
-      id: item.id,
-      municipality: item.municipality,
-      locality: item.locality_id,
-      cycle: item.cycle,
-      epidemiologicalWeek: item.epidemiological_week,
-      workModality: item.work_modality,
-      startDate: item.start_date,
-      endDate: item.end_date,
-      totalProperties: item.total_properties,
-      inspections: item.inspections,
-      depositsEliminated: item.deposits_eliminated,
-      depositsTreated: item.deposits_treated,
-      supervisor: item.supervisor,
-      qt_residencias: item.qt_residencias,
-      qt_comercio: item.qt_comercio,
-      qt_terreno_baldio: item.qt_terreno_baldio,
-      qt_pe: item.qt_pe,
-      qt_outros: item.qt_outros,
-      qt_total: item.qt_total,
-      tratamento_focal: item.tratamento_focal,
-      tratamento_perifocal: item.tratamento_perifocal,
-      amostras_coletadas: item.amostras_coletadas,
-      recusa: item.recusa,
-      fechadas: item.fechadas,
-      recuperadas: item.recuperadas,
-      a1: item.a1,
-      a2: item.a2,
-      b: item.b,
-      c: item.c,
-      d1: item.d1,
-      d2: item.d2,
-      e: item.e,
-      larvicida: item.larvicida,
-      quantidade_larvicida: item.quantidade_larvicida,
-      quantidade_depositos_tratados: item.quantidade_depositos_tratados,
-      adulticida: item.adulticida,
-      quantidade_cargas: item.quantidade_cargas,
-      total_tec_saude: item.total_tec_saude,
-      total_dias_trabalhados: item.total_dias_trabalhados
-    };
-    
-    const fetchLocalityName = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('localities')
-          .select('name')
-          .eq('id', item.locality_id)
-          .single();
-        
-        if (data && !error) {
-          newData.locality = data.name;
-          toast.success(`Dados de ${data.name} atualizados`);
-        }
-        
-        updateDashboardData(newData);
-      } catch (err) {
-        console.error('Error fetching locality name:', err);
-        updateDashboardData(newData);
+    try {
+      // Buscar nome da localidade
+      const { data: localityData, error: localityError } = await supabase
+        .from('localities')
+        .select('name')
+        .eq('id', item.locality_id)
+        .single();
+      
+      if (localityError) {
+        console.error('Erro ao buscar nome da localidade:', localityError);
+        throw localityError;
       }
-    };
-    
-    fetchLocalityName();
-  }, [updateDashboardData]);
+      
+      const localityName = localityData?.name || 'Localidade desconhecida';
+      
+      // Converter para o formato LocalityData
+      const newData: LocalityData = {
+        id: item.id,
+        municipality: item.municipality,
+        locality: localityName,
+        cycle: item.cycle,
+        epidemiologicalWeek: item.epidemiological_week,
+        workModality: item.work_modality,
+        startDate: item.start_date,
+        endDate: item.end_date,
+        totalProperties: item.total_properties,
+        inspections: item.inspections,
+        depositsEliminated: item.deposits_eliminated,
+        depositsTreated: item.deposits_treated,
+        supervisor: item.supervisor,
+        qt_residencias: item.qt_residencias,
+        qt_comercio: item.qt_comercio,
+        qt_terreno_baldio: item.qt_terreno_baldio,
+        qt_pe: item.qt_pe,
+        qt_outros: item.qt_outros,
+        qt_total: item.qt_total,
+        tratamento_focal: item.tratamento_focal,
+        tratamento_perifocal: item.tratamento_perifocal,
+        amostras_coletadas: item.amostras_coletadas,
+        recusa: item.recusa,
+        fechadas: item.fechadas,
+        recuperadas: item.recuperadas,
+        a1: item.a1,
+        a2: item.a2,
+        b: item.b,
+        c: item.c,
+        d1: item.d1,
+        d2: item.d2,
+        e: item.e,
+        larvicida: item.larvicida,
+        quantidade_larvicida: item.quantidade_larvicida,
+        quantidade_depositos_tratados: item.quantidade_depositos_tratados,
+        adulticida: item.adulticida,
+        quantidade_cargas: item.quantidade_cargas,
+        total_tec_saude: item.total_tec_saude,
+        total_dias_trabalhados: item.total_dias_trabalhados
+      };
+      
+      // Atualizar o estado
+      updateDashboardData(newData);
+      
+      // Notificar o usuário sobre a atualização
+      const eventTypeMessages = {
+        INSERT: `Novos dados para ${localityName} foram adicionados`,
+        UPDATE: `Dados de ${localityName} foram atualizados`,
+        DELETE: `Dados de ${localityName} foram removidos`
+      };
+      
+      toast.success(eventTypeMessages[payload.eventType as keyof typeof eventTypeMessages] || 'Dados atualizados');
+      
+      // Se a localidade atual for a mesma que foi atualizada, atualize a visualização
+      if (selectedLocality === localityName) {
+        handleLocalityChange(localityName);
+      }
+    } catch (error) {
+      console.error('Erro ao processar atualização em tempo real:', error);
+    }
+  }, [updateDashboardData, selectedLocality, handleLocalityChange]);
 
   const { isSubscribed } = useRealtimeUpdates(handleRealtimeUpdate, []);
 
