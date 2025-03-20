@@ -19,7 +19,6 @@ export const setupRealtimeSupport = async () => {
       throw error;
     }
     
-    // A tabela já está configurada para atualizações em tempo real
     console.log('Suporte em tempo real já está habilitado para a tabela vector_data');
     // ALTER TABLE public.vector_data REPLICA IDENTITY FULL;
     // ALTER PUBLICATION supabase_realtime ADD TABLE public.vector_data;
@@ -45,7 +44,8 @@ export const subscribeToVectorDataChanges = (callback: (payload: any) => void) =
       {
         event: '*', // Escutar inserts, updates e deletes
         schema: 'public',
-        table: 'vector_data'
+        table: 'vector_data',
+        filter: `id=eq.${supabase.auth.getUser() ? supabase.auth.getUser().data.user?.id : ''}`
       },
       (payload) => {
         console.log('Recebida atualização em tempo real:', payload);

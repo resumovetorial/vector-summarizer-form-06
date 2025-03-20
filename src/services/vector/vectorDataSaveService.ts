@@ -116,6 +116,9 @@ export const updateVectorDataInSupabase = async (formData: FormData): Promise<bo
     console.log('Dados atualizados com sucesso no Supabase:', data);
     toast.success('Dados atualizados com sucesso no banco de dados');
     
+    // Força uma pequena pausa para garantir que a operação seja completada no banco
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
     return true;
     
   } catch (error: any) {

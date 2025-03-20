@@ -14,18 +14,27 @@ export const useRealtimeUpdates = (
   useEffect(() => {
     console.log('Configurando assinatura de tempo real');
     
+    // Limpar qualquer assinatura anterior
+    if (channel) {
+      console.log('Cancelando assinatura anterior');
+      channel.unsubscribe();
+    }
+    
     // Criar canal de tempo real
     const realtimeChannel = subscribeToVectorDataChanges((payload) => {
       console.log('Recebida atualização em tempo real (hook):', payload);
       
       if (payload && payload.new) {
         console.log('Novos dados recebidos:', payload.new);
+        
         // Garantir que os dados sejam passados corretamente
         handleUpdate(payload);
         
         // Notificar o usuário sobre a atualização
         if (payload.eventType === 'UPDATE') {
           toast.success(`Dados de ${payload.new.localities?.name || 'localidade'} atualizados`);
+        } else if (payload.eventType === 'INSERT') {
+          toast.success(`Novos dados de ${payload.new.localities?.name || 'localidade'} adicionados`);
         }
       }
     });

@@ -45,21 +45,15 @@ export const useDashboardData = () => {
           updatedData[existingIndex] = { ...newData };
           console.log("Dados atualizados no índice:", existingIndex, updatedData[existingIndex]);
           return updatedData;
-        } else {
-          console.log("Registro com ID não encontrado no dataset atual:", newData.id);
-          console.log("Adicionando novo registro ao dataset");
-          return [...prevData, newData];
-        }
+        } 
       }
       
-      // Se não tiver ID, verificar por múltiplos campos
+      // Caso não encontre pelo ID, tenta encontrar pela combinação de campos
       const existingIndex = prevData.findIndex(
         item => 
           item.locality === newData.locality && 
           item.cycle === newData.cycle && 
-          item.epidemiologicalWeek === newData.epidemiologicalWeek &&
-          item.startDate === newData.startDate &&
-          item.endDate === newData.endDate
+          item.epidemiologicalWeek === newData.epidemiologicalWeek
       );
       
       if (existingIndex >= 0) {
@@ -68,16 +62,19 @@ export const useDashboardData = () => {
         updatedData[existingIndex] = { ...newData };
         console.log("Dados atualizados por campos correspondentes:", updatedData[existingIndex]);
         return updatedData;
-      } else {
-        console.log("Adicionando novo registro aos dados do dashboard:", newData);
-        return [...prevData, newData];
       }
+      
+      // Se não encontrou o registro para atualizar, apenas retorna os dados atuais
+      // Não vamos adicionar novos dados aqui, pois isso deve acontecer apenas com refreshData
+      console.log("Registro não encontrado para atualização, mantendo dados existentes");
+      return prevData;
     });
 
     // Forçar uma atualização completa após edição
+    // Aumentamos o tempo para garantir que a operação no banco tenha sido concluída
     setTimeout(() => {
       refreshData();
-    }, 1000);
+    }, 2000);
   }, [year]);
 
   // Inicializar dados quando o componente for montado ou o ano mudar
