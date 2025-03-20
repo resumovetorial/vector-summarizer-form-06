@@ -42,7 +42,8 @@ export const saveVectorDataToSupabase = async (formData: FormData): Promise<bool
     // Insert data into Supabase
     const { data, error } = await supabase
       .from('vector_data')
-      .insert([dataToInsert]);
+      .insert([dataToInsert])
+      .select();
     
     if (error) {
       console.error('Erro ao inserir dados no Supabase:', error);
@@ -102,7 +103,8 @@ export const updateVectorDataInSupabase = async (formData: FormData): Promise<bo
     const { data, error } = await supabase
       .from('vector_data')
       .update(dataToUpdate)
-      .eq('id', formData.recordId);
+      .eq('id', formData.recordId)
+      .select();
     
     if (error) {
       console.error('Erro ao atualizar dados no Supabase:', error);

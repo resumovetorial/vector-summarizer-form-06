@@ -36,15 +36,16 @@ const VectorSummarizerForm: React.FC = () => {
     calculateTotal
   } = useVectorForm();
   
-  // Carregar dados para edição quando disponíveis
+  // Load edit data when available
   useEffect(() => {
     if (editMode && vectorDataToEdit) {
+      console.log("Loading data for editing:", vectorDataToEdit);
       setFormData(vectorDataToEdit);
       toast.info("Dados carregados para edição");
       
       // Log the recordId to verify it was properly loaded
       if (vectorDataToEdit.recordId) {
-        console.log("Editando registro com ID:", vectorDataToEdit.recordId);
+        console.log("Editing record with ID:", vectorDataToEdit.recordId);
       }
     }
   }, [editMode, vectorDataToEdit, setFormData]);
@@ -57,6 +58,9 @@ const VectorSummarizerForm: React.FC = () => {
             <p className="text-center font-medium">Modo de edição ativo</p>
             <p className="text-center text-sm">
               Você está editando dados da localidade {vectorDataToEdit?.locality}
+              {vectorDataToEdit?.recordId && (
+                <span className="text-xs block">ID: {vectorDataToEdit.recordId}</span>
+              )}
             </p>
           </div>
         )}

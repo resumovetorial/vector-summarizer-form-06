@@ -30,32 +30,35 @@ export const useDashboardData = () => {
 
   const updateDashboardData = useCallback((newData: LocalityData) => {
     setDashboardData(prevData => {
-      // Se tem um ID no novo dado, usamos ele para identificar o registro a ser atualizado
+      // First check if we have an ID to match
       if (newData.id) {
         const existingIndex = prevData.findIndex(item => item.id === newData.id);
         
         if (existingIndex >= 0) {
-          console.log("Atualizando registro existente com ID:", newData.id);
+          console.log("Updating existing record by ID:", newData.id);
           const updatedData = [...prevData];
           updatedData[existingIndex] = newData;
           return updatedData;
         }
       }
       
-      // Verificação alternativa por campos combinados caso não encontremos por ID
+      // Fallback to checking by multiple fields
       const existingIndex = prevData.findIndex(
         item => 
           item.locality === newData.locality && 
           item.cycle === newData.cycle && 
+          item.epidemiologicalWeek === newData.epidemiologicalWeek &&
           item.startDate === newData.startDate &&
           item.endDate === newData.endDate
       );
       
       if (existingIndex >= 0) {
+        console.log("Updating existing record by matched fields");
         const updatedData = [...prevData];
         updatedData[existingIndex] = newData;
         return updatedData;
       } else {
+        console.log("Adding new record to dashboard data");
         return [...prevData, newData];
       }
     });

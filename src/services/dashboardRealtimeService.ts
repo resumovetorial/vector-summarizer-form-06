@@ -15,6 +15,5 @@ export const setupRealtimeSupport = async () => {
   }
 };
 
-// Isto é apenas informativo, pois o tempo real já está configurado
+// This is just informative, as realtime is already configured
 setupRealtimeSupport().catch(console.error);
-
