@@ -35,12 +35,12 @@ export const setupRealtimeSupport = async () => {
 setupRealtimeSupport().catch(console.error);
 
 // Função para assinar o canal de atualizações em tempo real
-export const subscribeToVectorDataChanges = (callback: (payload: any) => void) => {
+export const subscribeToVectorDataChanges = async (callback: (payload: any) => void) => {
   console.log('Assinando canal de atualizações em tempo real para vector_data');
   
-  // Obter o usuário autenticado de forma síncrona
-  const user = supabase.auth.getUser ? supabase.auth.getUser() : null;
-  const userId = user ? user.data?.user?.id : '';
+  // Obter o usuário autenticado de forma assíncrona
+  const { data: userData } = await supabase.auth.getUser();
+  const userId = userData?.user?.id || '';
   
   const channel = supabase.channel('vector-data-changes')
     .on(
