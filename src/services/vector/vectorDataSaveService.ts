@@ -97,7 +97,7 @@ export const updateVectorDataInSupabase = async (formData: FormData): Promise<bo
     // Create a new object with all updateData properties plus supervisor
     const dataToUpdate = {
       ...updateData,
-      supervisor: user?.id || null,
+      supervisor: formData.nome_supervisor || user?.id || null,
       updated_at: new Date().toISOString() // Convert Date to ISO string format
     };
     

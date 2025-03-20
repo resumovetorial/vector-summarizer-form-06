@@ -12,9 +12,10 @@ import { fetchVectorDataById } from '@/services/vector/vectorDataSaveService';
 
 interface LocalityDetailsProps {
   data: LocalityData;
+  refreshData?: () => void;
 }
 
-const LocalityDetails: React.FC<LocalityDetailsProps> = ({ data }) => {
+const LocalityDetails: React.FC<LocalityDetailsProps> = ({ data, refreshData }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();

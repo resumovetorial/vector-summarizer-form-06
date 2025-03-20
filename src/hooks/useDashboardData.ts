@@ -29,26 +29,30 @@ export const useDashboardData = () => {
   };
 
   const updateDashboardData = useCallback((newData: LocalityData) => {
-    console.log("Attempting to update dashboard data with:", newData);
+    console.log("Tentando atualizar dados do dashboard com:", newData);
     
     setDashboardData(prevData => {
-      // First check if we have an ID to match
+      // Primeiro, verificar se temos um ID para combinar
       if (newData.id) {
-        console.log("Searching for record with ID:", newData.id);
+        console.log("Procurando registro com ID:", newData.id);
+        // Verificar se já temos este registro pelo ID
         const existingIndex = prevData.findIndex(item => item.id === newData.id);
         
         if (existingIndex >= 0) {
-          console.log("Found record by ID at index:", existingIndex);
+          console.log("Registro encontrado por ID no índice:", existingIndex);
+          // Substituir o registro existente com os novos dados
           const updatedData = [...prevData];
           updatedData[existingIndex] = { ...newData };
-          console.log("Updated data at index:", updatedData[existingIndex]);
+          console.log("Dados atualizados no índice:", existingIndex, updatedData[existingIndex]);
           return updatedData;
         } else {
-          console.log("Record with ID not found in current dataset:", newData.id);
+          console.log("Registro com ID não encontrado no dataset atual:", newData.id);
+          console.log("Adicionando novo registro ao dataset");
+          return [...prevData, newData];
         }
       }
       
-      // Fallback to checking by multiple fields
+      // Se não tiver ID, verificar por múltiplos campos
       const existingIndex = prevData.findIndex(
         item => 
           item.locality === newData.locality && 
@@ -59,17 +63,22 @@ export const useDashboardData = () => {
       );
       
       if (existingIndex >= 0) {
-        console.log("Found record by matched fields at index:", existingIndex);
+        console.log("Registro encontrado por campos correspondentes no índice:", existingIndex);
         const updatedData = [...prevData];
         updatedData[existingIndex] = { ...newData };
-        console.log("Updated data by matched fields:", updatedData[existingIndex]);
+        console.log("Dados atualizados por campos correspondentes:", updatedData[existingIndex]);
         return updatedData;
       } else {
-        console.log("Adding new record to dashboard data:", newData);
+        console.log("Adicionando novo registro aos dados do dashboard:", newData);
         return [...prevData, newData];
       }
     });
-  }, []);
+
+    // Forçar uma atualização completa após edição
+    setTimeout(() => {
+      refreshData();
+    }, 1000);
+  }, [year]);
 
   // Inicializar dados quando o componente for montado ou o ano mudar
   useEffect(() => {
