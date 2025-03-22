@@ -1,3 +1,4 @@
+
 import { User, AccessLevel } from '@/types/admin';
 import { toast } from 'sonner';
 import { validateUserForm } from '@/utils/userFormValidation';
@@ -87,26 +88,8 @@ export const useUserFormSubmit = ({
           
           console.log("Usuário criado, atualizando estado:", newUser);
           
-          // Importante: Certifique-se de que a UI seja atualizada com o novo usuário
-          setUsers(prevUsers => {
-            // Verifique se o usuário já existe para evitar duplicação
-            const exists = prevUsers.some(user => 
-              user.supabaseId === newUser.supabaseId || 
-              user.email === newUser.email
-            );
-            
-            if (exists) {
-              console.log("Usuário já existe no estado, atualizando...");
-              return prevUsers.map(user => 
-                (user.supabaseId === newUser.supabaseId || user.email === newUser.email) 
-                  ? newUser 
-                  : user
-              );
-            }
-            
-            console.log("Adicionando novo usuário ao estado:", newUser);
-            return [...prevUsers, newUser];
-          });
+          // Certifique-se de que a UI seja atualizada com o novo usuário
+          setUsers(prevUsers => [...prevUsers, newUser]);
           
           toast.success("Usuário adicionado com sucesso! Em um ambiente de produção, este usuário receberia um email de convite.");
           
