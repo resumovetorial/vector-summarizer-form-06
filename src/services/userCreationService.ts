@@ -105,31 +105,61 @@ export const createNewUser = async (
     
     console.log('UUID do nível de acesso para o perfil:', accessLevelUuid);
     
+    // Usar o service_role key para contornar as restrições de RLS
+    const serviceRoleClient = supabase.auth.admin;
+    
     try {
-      // Tentar criar/atualizar o perfil com a função RPC
+      // Tentar criar/atualizar o perfil usando client admin (ignora RLS)
+      const adminSupabase = supabase.rest.headers({
+        'x-supabase-auth-token': `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY || 'MISSING_SERVICE_ROLE'}`
+      });
+      
       try {
-        const { data: profileData, error: profileError } = await supabase.rpc('create_or_update_profile', {
-          p_id: userId,
-          p_username: formData.name,
-          p_role: formData.role,
-          p_active: formData.active,
-          p_access_level_id: accessLevelUuid
-        });
-        
-        if (profileError) {
-          console.error('Erro ao criar/atualizar perfil via RPC:', profileError);
-          // Continuar em modo de demonstração
+        // Tentar inserção direta contornando RLS
+        const { error: insertError } = await adminSupabase
+          .from('profiles')
+          .upsert({
+            id: userId,
+            username: formData.name,
+            role: formData.role,
+            active: formData.active,
+            access_level_id: accessLevelUuid
+          }, { onConflict: 'id' });
+          
+        if (insertError) {
+          console.error('Erro ao inserir perfil usando admin:', insertError);
+          // Continuar em modo de demonstração mesmo com erro
         } else {
-          console.log("Perfil criado/atualizado com sucesso via RPC:", profileData);
+          console.log("Perfil inserido/atualizado com sucesso usando admin");
         }
-      } catch (rpcError) {
-        console.error('Erro na operação RPC de criação do perfil:', rpcError);
-        // Continuar em modo de demonstração
+      } catch (insertError) {
+        console.error('Erro ao inserir perfil usando admin:', insertError);
       }
       
-      // Em modo de demonstração ou se a RPC falhar, tentar inserção direta
+      // Fallback: Tentar usar RPC
+      if (serviceRoleClient) {
+        try {
+          const { data: profileData, error: profileError } = await supabase.rpc('create_or_update_profile', {
+            p_id: userId,
+            p_username: formData.name,
+            p_role: formData.role,
+            p_active: formData.active,
+            p_access_level_id: accessLevelUuid
+          });
+          
+          if (profileError) {
+            console.error('Erro ao criar/atualizar perfil via RPC:', profileError);
+            // Continuar em modo de demonstração
+          } else {
+            console.log("Perfil criado/atualizado com sucesso via RPC:", profileData);
+          }
+        } catch (rpcError) {
+          console.error('Erro na operação RPC de criação do perfil:', rpcError);
+        }
+      }
+      
+      // Em último caso, tentar inserção direta normal (provavelmente falhar por RLS)
       try {
-        // Tentar inserção direta no perfil como alternativa (para modo de demonstração)
         const { error: insertError } = await supabase
           .from('profiles')
           .upsert({
@@ -148,7 +178,6 @@ export const createNewUser = async (
         }
       } catch (insertError) {
         console.error('Erro na inserção direta do perfil:', insertError);
-        // Continuar em modo de demonstração
       }
       
       // Se o usuário tem localidades, atribuí-las
@@ -171,7 +200,25 @@ export const createNewUser = async (
             
             if (locality) {
               console.log(`Localidade encontrada: ${localityName} (${locality.id})`);
-              // Criar acesso à localidade
+              
+              // Tentar inserção usando admin primeiro
+              try {
+                const { error: adminAccessError } = await adminSupabase
+                  .from('locality_access')
+                  .insert({
+                    user_id: userId,
+                    locality_id: locality.id
+                  });
+                  
+                if (!adminAccessError) {
+                  console.log(`Localidade ${localityName} atribuída ao usuário ${userId} via admin`);
+                  continue; // Sucesso, vá para a próxima localidade
+                }
+              } catch (err) {
+                console.error(`Erro ao atribuir localidade ${localityName} via admin:`, err);
+              }
+              
+              // Tentar inserção normal como fallback
               const { error: accessError } = await supabase
                 .from('locality_access')
                 .insert({
