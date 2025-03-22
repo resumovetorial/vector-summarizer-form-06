@@ -293,6 +293,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      assign_user_localities: {
+        Args: {
+          p_user_id: string
+          p_locality_ids: string[]
+        }
+        Returns: boolean
+      }
       create_demo_user: {
         Args: {
           user_email: string

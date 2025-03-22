@@ -10,9 +10,14 @@ import UserAccessFormActions from './UserAccessFormActions';
 interface UserAccessFormProps {
   user: User;
   onSave: (localities: string[]) => void;
+  isSubmitting?: boolean;
 }
 
-const UserAccessForm: React.FC<UserAccessFormProps> = ({ user, onSave }) => {
+const UserAccessForm: React.FC<UserAccessFormProps> = ({ 
+  user, 
+  onSave,
+  isSubmitting = false
+}) => {
   const [selectedLocalities, setSelectedLocalities] = useState<string[]>(user.assignedLocalities || []);
   const [searchQuery, setSearchQuery] = useState('');
   
@@ -64,6 +69,7 @@ const UserAccessForm: React.FC<UserAccessFormProps> = ({ user, onSave }) => {
       <UserAccessFormActions
         onCancel={() => onSave(user.assignedLocalities)}
         onSave={() => onSave(selectedLocalities)}
+        isLoading={isSubmitting}
       />
     </div>
   );

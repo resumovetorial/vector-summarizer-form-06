@@ -36,68 +36,81 @@ export const assignLocalityAccess = async (userId: string, localities: string[])
     localityMap.set(loc.name, loc.id);
   });
   
-  // Create batch insert data
-  const localityAccessData = localities
+  // Get locality IDs from the names
+  const localityIds = localities
     .map(name => localityMap.get(name))
-    .filter(id => id !== undefined)
-    .map(localityId => ({
-      user_id: userId,
-      locality_id: localityId
-    }));
+    .filter(id => id !== undefined);
   
-  if (localityAccessData.length === 0) {
+  if (localityIds.length === 0) {
     console.error('Nenhuma localidade válida encontrada para atribuir');
     toast.error("Nenhuma das localidades selecionadas foi encontrada no sistema.");
     return;
   }
   
   try {
-    // Try using RPC function for security bypass (create or implement this function if needed)
-    const { data: rpcResult, error: rpcError } = await supabase.rpc('assign_user_localities', {
-      p_user_id: userId,
-      p_locality_ids: localityAccessData.map(item => item.locality_id)
-    });
-    
-    if (!rpcError) {
-      console.log("Localidades atribuídas com sucesso via RPC:", rpcResult);
-      return;
-    }
-    
-    console.warn("Falha ao atribuir localidades via RPC, tentando inserção direta:", rpcError);
-    
-    // Try direct insert (this may fail due to RLS if user doesn't have proper permissions)
-    const { error: insertError } = await supabase
-      .from('locality_access')
-      .insert(localityAccessData);
-    
-    if (insertError) {
-      console.error("Erro ao atribuir localidades via inserção direta:", insertError);
-      
-      // As final fallback, try one-by-one insertion (for better error tracking)
-      let successCount = 0;
-      for (const entry of localityAccessData) {
-        const { error: singleError } = await supabase
-          .from('locality_access')
-          .insert([entry]);
-        
-        if (!singleError) {
-          successCount++;
-        } else if (singleError.code !== '23505') { // Ignore unique constraint violations
-          console.error(`Erro ao inserir localidade ${entry.locality_id}:`, singleError);
-        }
+    // Use the RPC function to assign localities
+    const { data: rpcResult, error: rpcError } = await supabase.rpc(
+      'assign_user_localities',
+      {
+        p_user_id: userId,
+        p_locality_ids: localityIds
       }
+    );
+    
+    if (rpcError) {
+      console.error("Erro ao atribuir localidades via RPC:", rpcError);
+      toast.error(`Erro ao atribuir localidades: ${rpcError.message}`);
       
-      if (successCount > 0) {
-        console.log(`${successCount} de ${localityAccessData.length} localidades atribuídas com sucesso.`);
+      // Try direct insert as fallback
+      console.log("Tentando inserção direta como fallback...");
+      
+      // Create batch insert data
+      const localityAccessData = localityIds.map(localityId => ({
+        user_id: userId,
+        locality_id: localityId
+      }));
+      
+      // Try direct insert (this may fail due to RLS if user doesn't have proper permissions)
+      const { error: insertError } = await supabase
+        .from('locality_access')
+        .insert(localityAccessData);
+      
+      if (insertError) {
+        console.error("Erro ao atribuir localidades via inserção direta:", insertError);
+        
+        // As final fallback, try one-by-one insertion (for better error tracking)
+        let successCount = 0;
+        for (const entry of localityAccessData) {
+          const { error: singleError } = await supabase
+            .from('locality_access')
+            .insert([entry]);
+          
+          if (!singleError) {
+            successCount++;
+          } else if (singleError.code !== '23505') { // Ignore unique constraint violations
+            console.error(`Erro ao inserir localidade ${entry.locality_id}:`, singleError);
+          }
+        }
+        
+        if (successCount > 0) {
+          console.log(`${successCount} de ${localityAccessData.length} localidades atribuídas com sucesso.`);
+          toast.success("Algumas localidades foram atribuídas com sucesso.");
+        } else {
+          console.error("Falha ao atribuir todas as localidades.");
+          toast.error("Não foi possível atribuir nenhuma localidade. Tente novamente mais tarde.");
+          // In demonstration mode, we'll just pretend it worked
+          console.log("Modo demonstração: fingindo que as localidades foram atribuídas.");
+        }
       } else {
-        console.error("Falha ao atribuir todas as localidades.");
-        // In demonstration mode, we'll just pretend it worked
-        console.log("Modo demonstração: fingindo que as localidades foram atribuídas.");
+        console.log("Localidades atribuídas com sucesso via inserção direta:", localityAccessData);
+        toast.success("Localidades atribuídas com sucesso!");
       }
     } else {
-      console.log("Localidades atribuídas com sucesso via inserção direta:", localityAccessData);
+      console.log("Localidades atribuídas com sucesso via RPC:", rpcResult);
+      toast.success("Localidades atribuídas com sucesso!");
     }
   } catch (error) {
     console.error("Erro inesperado ao atribuir localidades:", error);
+    toast.error("Erro inesperado ao atribuir localidades. Tente novamente mais tarde.");
   }
 };
