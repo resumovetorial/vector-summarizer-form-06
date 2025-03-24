@@ -66,10 +66,14 @@ export const assignLocalityAccess = async (userId: string, localities: string[])
       console.log("Tentando inserção direta como fallback...");
       
       // First, try to delete existing assignments
-      await supabase
+      const { error: deleteError } = await supabase
         .from('locality_access')
         .delete()
         .eq('user_id', userId);
+        
+      if (deleteError) {
+        console.error("Erro ao remover atribuições antigas:", deleteError);
+      }
       
       // Create batch insert data
       const localityAccessData = localityIds.map(localityId => ({
@@ -100,5 +104,48 @@ export const assignLocalityAccess = async (userId: string, localities: string[])
     console.error("Erro inesperado ao atribuir localidades:", error);
     toast.error("Erro inesperado ao atribuir localidades. Tente novamente mais tarde.");
     return false;
+  }
+};
+
+/**
+ * Busca as localidades atribuídas a um usuário
+ */
+export const fetchUserLocalities = async (userId: string): Promise<string[]> => {
+  try {
+    // Primeiro buscar os IDs das localidades atribuídas ao usuário
+    const { data: accessEntries, error: accessError } = await supabase
+      .from('locality_access')
+      .select('locality_id')
+      .eq('user_id', userId);
+      
+    if (accessError) {
+      console.error("Erro ao buscar acessos do usuário:", accessError);
+      return [];
+    }
+    
+    if (!accessEntries || accessEntries.length === 0) {
+      console.log("Usuário não tem localidades atribuídas");
+      return [];
+    }
+    
+    // Extrair os IDs das localidades
+    const localityIds = accessEntries.map(entry => entry.locality_id);
+    
+    // Buscar os nomes das localidades
+    const { data: localities, error: localitiesError } = await supabase
+      .from('localities')
+      .select('name')
+      .in('id', localityIds);
+      
+    if (localitiesError) {
+      console.error("Erro ao buscar nomes das localidades:", localitiesError);
+      return [];
+    }
+    
+    // Retornar os nomes das localidades
+    return localities.map(loc => loc.name);
+  } catch (error) {
+    console.error("Erro ao buscar localidades do usuário:", error);
+    return [];
   }
 };

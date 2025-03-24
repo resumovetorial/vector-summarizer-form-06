@@ -17,16 +17,12 @@ const LocalityDataTable: React.FC<LocalityDataTableProps> = ({ data }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const tableRef = useRef<HTMLDivElement>(null);
   
-  // Mock current user ID - in a real app, this would come from authentication
-  const currentUserId = 2; // Assuming this is a supervisor with limited access
-  
   const { hasAccess, isLoading } = useLocalityAccess({ 
-    localityName: data?.[0]?.locality,
-    userId: currentUserId
+    localityName: data?.[0]?.locality
   });
 
   if (isLoading) {
-    return <div className="text-center py-4">Carregando dados...</div>;
+    return <div className="text-center py-4">Carregando dados de acesso...</div>;
   }
   
   if (!data || data.length === 0) {

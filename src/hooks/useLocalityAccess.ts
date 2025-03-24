@@ -1,33 +1,84 @@
 
 import { useState, useEffect } from 'react';
-import { getUserAccessibleLocalities } from '@/services/adminService';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 interface UseLocalityAccessProps {
   localityName: string;
-  userId?: number; // Make userId optional to allow for custom ID in the future
 }
 
-export const useLocalityAccess = ({ localityName, userId = 2 }: UseLocalityAccessProps) => {
+export const useLocalityAccess = ({ localityName }: UseLocalityAccessProps) => {
   const [accessibleLocalities, setAccessibleLocalities] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasAccess, setHasAccess] = useState(false);
+  const { user } = useAuth();
   
   useEffect(() => {
-    const loadAccessControl = async () => {
+    const loadAccessibleLocalities = async () => {
+      if (!user?.id) {
+        setIsLoading(false);
+        return;
+      }
+      
       try {
-        // In a real application, this would use the actual logged-in user ID
-        const localities = await getUserAccessibleLocalities(userId);
+        setIsLoading(true);
+        
+        // Obter ID da localidade pelo nome
+        const { data: localities, error: localityError } = await supabase
+          .from('localities')
+          .select('id')
+          .eq('name', localityName)
+          .maybeSingle();
+          
+        if (localityError || !localities) {
+          console.error('Erro ao buscar ID da localidade:', localityError);
+          setIsLoading(false);
+          return;
+        }
+        
+        const localityId = localities.id;
+        
+        // Verificar se o usuário tem acesso a esta localidade
+        const { data: access, error: accessError } = await supabase
+          .from('locality_access')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('locality_id', localityId);
+          
+        if (accessError) {
+          console.error('Erro ao verificar acesso do usuário:', accessError);
+          setIsLoading(false);
+          return;
+        }
+        
+        // Usuário tem acesso se houver pelo menos uma entrada na tabela
+        const userHasAccess = access && access.length > 0;
+        setHasAccess(userHasAccess);
+        
+        // Buscar todas as localidades acessíveis para o usuário
+        const { data: userLocalities, error: userLocalitiesError } = await supabase
+          .from('locality_access')
+          .select('localities(name)')
+          .eq('user_id', user.id);
+          
+        if (userLocalitiesError) {
+          console.error('Erro ao buscar localidades do usuário:', userLocalitiesError);
+          setIsLoading(false);
+          return;
+        }
+        
+        // Extrair nomes das localidades
+        const localities = userLocalities.map(entry => entry.localities?.name).filter(Boolean) as string[];
         setAccessibleLocalities(localities);
       } catch (error) {
-        console.error("Failed to load user permissions:", error);
+        console.error('Erro ao verificar acesso às localidades:', error);
       } finally {
         setIsLoading(false);
       }
     };
     
-    loadAccessControl();
-  }, [userId]);
-
-  const hasAccess = localityName ? accessibleLocalities.includes(localityName) : false;
+    loadAccessibleLocalities();
+  }, [user?.id, localityName]);
   
   return { hasAccess, isLoading, accessibleLocalities };
 };

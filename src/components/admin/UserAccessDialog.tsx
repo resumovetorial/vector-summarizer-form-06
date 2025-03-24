@@ -1,10 +1,10 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import UserAccessForm from './UserAccessForm';
 import { User } from '@/types/admin';
 import { toast } from 'sonner';
-import { assignLocalityAccess } from '@/services/user/localityAccessManager';
+import { assignLocalityAccess, fetchUserLocalities } from '@/services/user/localityAccessManager';
 
 interface UserAccessDialogProps {
   isOpen: boolean;
@@ -22,6 +22,43 @@ const UserAccessDialog: React.FC<UserAccessDialogProps> = ({
   selectedUser,
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Estado para armazenar as localidades do usuário
+  const [userLocalities, setUserLocalities] = useState<string[]>([]);
+  
+  // Carregar as localidades do usuário quando o diálogo for aberto
+  useEffect(() => {
+    if (isOpen && selectedUser && selectedUser.supabaseId) {
+      setIsLoading(true);
+      
+      fetchUserLocalities(selectedUser.supabaseId)
+        .then(localities => {
+          console.log("Localidades carregadas do DB:", localities);
+          setUserLocalities(localities);
+          
+          // Atualizar o estado do usuário com as localidades carregadas
+          const updatedUser = {
+            ...selectedUser,
+            assignedLocalities: localities
+          };
+          
+          // Atualizar o usuário na lista de usuários
+          const updatedUsers = users.map(user => 
+            user.id === selectedUser.id ? updatedUser : user
+          );
+          
+          setUsers(updatedUsers);
+        })
+        .catch(error => {
+          console.error("Erro ao carregar localidades:", error);
+          toast.error("Erro ao carregar localidades do usuário");
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
+    }
+  }, [isOpen, selectedUser, users, setUsers]);
 
   const updateUserLocalities = async (userId: number, localities: string[]) => {
     if (!selectedUser) {
@@ -76,6 +113,7 @@ const UserAccessDialog: React.FC<UserAccessDialogProps> = ({
             user={selectedUser} 
             onSave={(localities) => updateUserLocalities(selectedUser.id, localities)} 
             isSubmitting={isSubmitting}
+            isLoading={isLoading}
           />
         )}
       </DialogContent>
