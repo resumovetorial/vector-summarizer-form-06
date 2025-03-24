@@ -24,19 +24,19 @@ export const useLocalityAccess = ({ localityName }: UseLocalityAccessProps) => {
         setIsLoading(true);
         
         // Obter ID da localidade pelo nome
-        const { data: localities, error: localityError } = await supabase
+        const { data: localityData, error: localityError } = await supabase
           .from('localities')
           .select('id')
           .eq('name', localityName)
           .maybeSingle();
           
-        if (localityError || !localities) {
+        if (localityError || !localityData) {
           console.error('Erro ao buscar ID da localidade:', localityError);
           setIsLoading(false);
           return;
         }
         
-        const localityId = localities.id;
+        const localityId = localityData.id;
         
         // Verificar se o usuário tem acesso a esta localidade
         const { data: access, error: accessError } = await supabase
@@ -68,8 +68,11 @@ export const useLocalityAccess = ({ localityName }: UseLocalityAccessProps) => {
         }
         
         // Extrair nomes das localidades
-        const localities = userLocalities.map(entry => entry.localities?.name).filter(Boolean) as string[];
-        setAccessibleLocalities(localities);
+        const localityNames = userLocalities
+          .map(entry => entry.localities?.name)
+          .filter(Boolean) as string[];
+          
+        setAccessibleLocalities(localityNames);
       } catch (error) {
         console.error('Erro ao verificar acesso às localidades:', error);
       } finally {
