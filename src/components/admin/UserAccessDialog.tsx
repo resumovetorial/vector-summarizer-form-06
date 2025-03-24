@@ -24,25 +24,37 @@ const UserAccessDialog: React.FC<UserAccessDialogProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const updateUserLocalities = async (userId: number, localities: string[]) => {
-    if (!selectedUser || !selectedUser.supabaseId) {
+    if (!selectedUser) {
       toast.error("Usuário inválido selecionado.");
+      return;
+    }
+    
+    if (!selectedUser.supabaseId) {
+      toast.error("ID do usuário no Supabase não encontrado.");
       return;
     }
     
     setIsSubmitting(true);
     
     try {
+      console.log("Atualizando localidades para o usuário:", selectedUser);
+      
       // Call the assignLocalityAccess function to update localities in the database
-      await assignLocalityAccess(selectedUser.supabaseId, localities);
+      const success = await assignLocalityAccess(selectedUser.supabaseId, localities);
       
-      // Update the local state to reflect the changes
-      const updatedUsers = users.map(user => 
-        user.id === userId ? { ...user, assignedLocalities: localities } : user
-      );
-      
-      setUsers(updatedUsers);
-      setIsOpen(false);
-      toast.success("Acesso às localidades atualizado com sucesso!");
+      if (success) {
+        // Update the local state to reflect the changes
+        const updatedUsers = users.map(user => 
+          user.id === userId ? { ...user, assignedLocalities: localities } : user
+        );
+        
+        console.log("Estado dos usuários atualizado:", updatedUsers);
+        setUsers(updatedUsers);
+        setIsOpen(false);
+        toast.success("Acesso às localidades atualizado com sucesso!");
+      } else {
+        toast.error("Erro ao atualizar acesso às localidades. Verifique o console para mais detalhes.");
+      }
     } catch (error) {
       console.error("Erro ao atualizar localidades:", error);
       toast.error("Erro ao atualizar acesso às localidades. Tente novamente.");

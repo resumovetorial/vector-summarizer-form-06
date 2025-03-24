@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import UserList from './UserList';
@@ -16,6 +17,11 @@ const UserManagement: React.FC = () => {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isAccessDialogOpen, setIsAccessDialogOpen] = useState(false);
   
+  // Auto-refresh users on mount
+  useEffect(() => {
+    refreshUsers();
+  }, []);
+  
   const openEditDialog = (user: User) => {
     const userCopy = JSON.parse(JSON.stringify(user));
     console.log("Opening edit dialog with user:", userCopy);
@@ -25,6 +31,7 @@ const UserManagement: React.FC = () => {
   
   const handleConfigureAccess = (user: User) => {
     const userCopy = JSON.parse(JSON.stringify(user));
+    console.log("Configuring access for user:", userCopy);
     setSelectedUser(userCopy);
     setIsAccessDialogOpen(true);
   };
@@ -39,17 +46,19 @@ const UserManagement: React.FC = () => {
   };
 
   const handleDialogClose = () => {
-    refreshUsers();
     setIsAddDialogOpen(false);
+    refreshUsers();
   };
 
   const handleEditDialogClose = () => {
     setIsEditDialogOpen(false);
+    setSelectedUser(null);
     refreshUsers();
   };
 
   const handleAccessDialogClose = () => {
     setIsAccessDialogOpen(false);
+    setSelectedUser(null);
     refreshUsers();
   };
 

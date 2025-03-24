@@ -41,6 +41,16 @@ const UserAccessForm: React.FC<UserAccessFormProps> = ({
     setSelectedLocalities([]);
   };
 
+  const handleCancel = () => {
+    // Reset to original localities and close
+    onSave(user.assignedLocalities || []);
+  };
+
+  const handleSave = () => {
+    console.log("Salvando localidades:", selectedLocalities);
+    onSave(selectedLocalities);
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col md:flex-row gap-4">
@@ -67,8 +77,8 @@ const UserAccessForm: React.FC<UserAccessFormProps> = ({
       </div>
       
       <UserAccessFormActions
-        onCancel={() => onSave(user.assignedLocalities)}
-        onSave={() => onSave(selectedLocalities)}
+        onCancel={handleCancel}
+        onSave={handleSave}
         isLoading={isSubmitting}
       />
     </div>

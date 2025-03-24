@@ -63,6 +63,7 @@ export const fetchUsers = async (
 
     // Fetch assigned localities for each profile
     const localityMap = await fetchUserLocalities();
+    console.log("Mapa de localidades por usuário:", localityMap);
     
     // Convert Supabase profiles to User format
     const realUsers: User[] = profiles.map((profile, index) => {
@@ -83,6 +84,7 @@ export const fetchUsers = async (
       
       // Get assigned localities
       const assignedLocalities = localityMap.get(profile.id) || [];
+      console.log(`Localidades para usuário ${profile.id}:`, assignedLocalities);
       
       return {
         id: index + 1,
@@ -109,23 +111,63 @@ export const fetchUserLocalities = async (): Promise<Map<string, string[]>> => {
   const localityMap = new Map<string, string[]>();
   
   try {
+    // First get all localities to build a map of IDs to names
+    const { data: allLocalities, error: localitiesError } = await supabase
+      .from('localities')
+      .select('id, name');
+      
+    if (localitiesError) {
+      console.error("Erro ao buscar todas as localidades:", localitiesError);
+      return localityMap;
+    }
+    
+    if (!allLocalities || allLocalities.length === 0) {
+      console.log("Nenhuma localidade encontrada no sistema");
+      return localityMap;
+    }
+    
+    // Create a map of locality IDs to their names
+    const localityIdToName = new Map();
+    allLocalities.forEach(loc => {
+      localityIdToName.set(loc.id, loc.name);
+    });
+    
+    console.log("Mapa de IDs para nomes de localidades:", Object.fromEntries(localityIdToName));
+    
+    // Now get the locality access entries
     const { data: localityAccess, error: localityError } = await supabase
       .from('locality_access')
-      .select('user_id, localities(name)');
+      .select('user_id, locality_id');
       
-    if (!localityError && localityAccess) {
-      console.log("Dados de acesso às localidades:", localityAccess);
-      
-      // Group localities by user ID
-      localityAccess.forEach((access: any) => {
-        if (access.user_id && access.localities?.name) {
-          if (!localityMap.has(access.user_id)) {
-            localityMap.set(access.user_id, []);
-          }
-          localityMap.get(access.user_id)?.push(access.localities.name);
-        }
-      });
+    if (localityError) {
+      console.error("Erro ao buscar acessos às localidades:", localityError);
+      return localityMap;
     }
+    
+    if (!localityAccess || localityAccess.length === 0) {
+      console.log("Nenhum acesso a localidades encontrado");
+      return localityMap;
+    }
+    
+    console.log("Dados brutos de acesso às localidades:", localityAccess);
+    
+    // Group localities by user ID
+    localityAccess.forEach((access: any) => {
+      if (access.user_id && access.locality_id) {
+        if (!localityMap.has(access.user_id)) {
+          localityMap.set(access.user_id, []);
+        }
+        
+        const localityName = localityIdToName.get(access.locality_id);
+        if (localityName) {
+          localityMap.get(access.user_id)?.push(localityName);
+        }
+      }
+    });
+    
+    console.log("Mapa de localidades por usuário:", Object.fromEntries(
+      Array.from(localityMap.entries()).map(([key, value]) => [key, value])
+    ));
   } catch (localityError) {
     console.error("Erro ao buscar acessos às localidades:", localityError);
   }

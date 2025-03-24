@@ -65,6 +65,7 @@ export const useUserFormSubmit = ({
       console.log("Nível de acesso selecionado:", selectedAccessLevel);
       console.log("ID do nível de acesso no formulário:", accessLevelIdNum);
       console.log("Dados do formulário:", formData);
+      console.log("Localidades selecionadas:", formData.localities);
       
       if (isEditMode && initialUser) {
         const updatedUser = await updateExistingUser(initialUser, formData, accessLevelIdNum);
@@ -84,9 +85,10 @@ export const useUserFormSubmit = ({
       } else {
         try {
           console.log("Criando novo usuário...");
-          const { newUser } = await createNewUser(formData, accessLevelIdNum, users);
+          const { userId, newUser } = await createNewUser(formData, accessLevelIdNum, users);
           
           console.log("Usuário criado, atualizando estado:", newUser);
+          console.log("ID do usuário no Supabase:", userId);
           
           // Certifique-se de que a UI seja atualizada com o novo usuário
           setUsers(prevUsers => [...prevUsers, newUser]);

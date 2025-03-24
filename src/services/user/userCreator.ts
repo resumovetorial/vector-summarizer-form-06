@@ -38,8 +38,13 @@ export const createNewUser = async (
     await createOrUpdateProfile(userId, formData, accessLevelUuid);
     
     // Assign localities if any
+    let localitiesAssigned = true;
     if (formData.localities && formData.localities.length > 0) {
-      await assignLocalityAccess(userId, formData.localities);
+      console.log("Atribuindo localidades ao usuário:", formData.localities);
+      localitiesAssigned = await assignLocalityAccess(userId, formData.localities);
+      if (!localitiesAssigned) {
+        console.warn("Não foi possível atribuir todas as localidades ao usuário");
+      }
     }
     
     // Create user object for the state
@@ -56,7 +61,12 @@ export const createNewUser = async (
     };
     
     console.log("Usuário criado com sucesso:", newUser);
-    toast.success("Usuário adicionado com sucesso! Em um ambiente de produção, este usuário receberia um email de convite.");
+    
+    if (!localitiesAssigned) {
+      toast.warning("Usuário criado com sucesso, mas houve problemas ao atribuir localidades.");
+    } else {
+      toast.success("Usuário adicionado com sucesso! Em um ambiente de produção, este usuário receberia um email de convite.");
+    }
     
     return { userId, newUser };
   } catch (error: any) {
