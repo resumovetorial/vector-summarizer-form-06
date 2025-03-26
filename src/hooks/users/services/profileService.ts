@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 export const fetchProfiles = async () => {
   const { data: profiles, error } = await supabase
     .from('profiles')
-    .select('id, username, role, active, access_level_id');
+    .select('*');
   
   if (error) {
     console.error('Erro ao buscar perfis:', error);
@@ -30,6 +30,9 @@ export const convertProfilesToUsers = (
   emailMap: Record<string, string>,
   localityMap: Map<string, string[]>
 ): User[] => {
+  console.log("Convertendo perfis para usuários. Perfis:", profiles);
+  console.log("Mapa de localidades disponível:", Object.fromEntries(localityMap));
+  
   const users: User[] = profiles.map((profile, index) => {
     // Encontrar o nível de acesso correspondente
     let accessLevelUuid = profile.access_level_id;
@@ -45,9 +48,10 @@ export const convertProfilesToUsers = (
     // Obter email do mapa ou usar nome de usuário
     const email = emailMap[profile.id] || profile.username || `usuario${index + 1}@exemplo.com`;
     
-    // Obter localidades atribuídas
-    const assignedLocalities = localityMap.get(profile.id) || [];
-    console.log(`Localidades para usuário ${profile.id}:`, assignedLocalities);
+    // Obter localidades atribuídas - garantir que profile.id seja uma string
+    const profileId = String(profile.id);
+    const assignedLocalities = localityMap.has(profileId) ? localityMap.get(profileId) || [] : [];
+    console.log(`Localidades para usuário ${profileId}:`, assignedLocalities);
     
     return {
       id: index + 1,

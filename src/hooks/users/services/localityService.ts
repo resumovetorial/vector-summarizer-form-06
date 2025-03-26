@@ -22,31 +22,40 @@ export const fetchUserLocalities = async (): Promise<Map<string, string[]>> => {
       return localityMap;
     }
     
+    console.log("Dados de atribuições de localidade recebidos:", data);
+    
     if (data && data.length > 0) {
       // Agrupar localidades por ID de usuário
       data.forEach(access => {
-        if (access.user_id && access.localities) {
-          // access.localities pode ser um objeto ou um array dependendo do retorno do Supabase
-          let localityName: string | undefined;
-          
-          // Verificar o tipo de dados retornado e extrair o nome da localidade
-          if (typeof access.localities === 'object' && access.localities !== null) {
-            if ('name' in access.localities && typeof access.localities.name === 'string') {
-              // Se for um único objeto com propriedade 'name'
-              localityName = access.localities.name;
-            }
+        if (access.user_id) {
+          // Se o user_id existe
+          if (!localityMap.has(access.user_id)) {
+            localityMap.set(access.user_id, []);
           }
           
-          if (localityName) {
-            if (!localityMap.has(access.user_id)) {
-              localityMap.set(access.user_id, []);
+          // Extrair o nome da localidade com segurança, considerando vários formatos possíveis
+          if (access.localities) {
+            let localityName: string | undefined;
+            
+            if (typeof access.localities === 'object' && access.localities !== null) {
+              // Formato de objeto com propriedade name
+              if ('name' in access.localities && typeof access.localities.name === 'string') {
+                localityName = access.localities.name;
+              }
+            } else if (typeof access.localities === 'string') {
+              // Se for diretamente uma string
+              localityName = access.localities;
             }
-            localityMap.get(access.user_id)?.push(localityName);
+            
+            if (localityName) {
+              localityMap.get(access.user_id)?.push(localityName);
+            }
           }
         }
       });
     }
     
+    console.log("Mapa de localidades por usuário:", Object.fromEntries(localityMap));
     return localityMap;
   } catch (error) {
     console.error("Erro ao buscar localidades dos usuários:", error);
