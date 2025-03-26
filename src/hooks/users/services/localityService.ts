@@ -25,11 +25,16 @@ export const fetchUserLocalities = async (): Promise<Map<string, string[]>> => {
     if (data && data.length > 0) {
       // Agrupar localidades por ID de usuário
       data.forEach(access => {
-        if (access.user_id && access.localities?.name) {
-          if (!localityMap.has(access.user_id)) {
-            localityMap.set(access.user_id, []);
+        if (access.user_id && access.localities) {
+          // Corrigido: access.localities é um objeto com uma propriedade 'name'
+          const localityName = access.localities?.name;
+          
+          if (localityName) {
+            if (!localityMap.has(access.user_id)) {
+              localityMap.set(access.user_id, []);
+            }
+            localityMap.get(access.user_id)?.push(localityName);
           }
-          localityMap.get(access.user_id)?.push(access.localities.name);
         }
       });
     }
