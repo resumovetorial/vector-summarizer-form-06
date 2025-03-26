@@ -30,9 +30,11 @@ export const fetchUserLocalities = async (): Promise<Map<string, string[]>> => {
           let localityName: string | undefined;
           
           // Verificar o tipo de dados retornado e extrair o nome da localidade
-          if (typeof access.localities === 'object' && 'name' in access.localities) {
-            // Se for um único objeto com propriedade 'name'
-            localityName = access.localities.name;
+          if (typeof access.localities === 'object' && access.localities !== null) {
+            if ('name' in access.localities && typeof access.localities.name === 'string') {
+              // Se for um único objeto com propriedade 'name'
+              localityName = access.localities.name;
+            }
           }
           
           if (localityName) {
