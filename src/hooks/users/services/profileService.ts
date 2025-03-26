@@ -12,11 +12,13 @@ export const fetchProfiles = async () => {
     .select('id, username, role, active, access_level_id');
   
   if (error) {
+    console.error('Erro ao buscar perfis:', error);
+    toast.error("Erro ao buscar perfis de usuários");
     throw error;
   }
 
   console.log("Dados brutos dos perfis:", profiles);
-  return profiles;
+  return profiles || [];
 };
 
 /**

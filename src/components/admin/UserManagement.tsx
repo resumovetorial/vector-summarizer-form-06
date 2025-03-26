@@ -9,6 +9,8 @@ import UserEditDialog from './UserEditDialog';
 import UserAccessDialog from './UserAccessDialog';
 import UserManagementActions from './UserManagementActions';
 import { useUsers } from '@/hooks/users';
+import { useRealtimeUpdates } from '@/hooks/useRealtimeUpdates';
+import { supabase } from '@/lib/supabase';
 
 const UserManagement: React.FC = () => {
   const { users, setUsers, accessLevels, isLoading, handleDeleteUser, refreshUsers } = useUsers();
@@ -20,7 +22,46 @@ const UserManagement: React.FC = () => {
   // Auto-refresh users on mount
   useEffect(() => {
     refreshUsers();
-  }, []);
+    
+    // Setup realtime subscription for profiles table changes
+    const channel = supabase
+      .channel('profiles-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'profiles'
+        },
+        () => {
+          console.log('Mudança detectada na tabela profiles, atualizando lista de usuários');
+          refreshUsers();
+        }
+      )
+      .subscribe();
+      
+    // Setup realtime subscription for locality_access changes
+    const localityAccessChannel = supabase
+      .channel('locality-access-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'locality_access'
+        },
+        () => {
+          console.log('Mudança detectada na tabela locality_access, atualizando lista de usuários');
+          refreshUsers();
+        }
+      )
+      .subscribe();
+    
+    return () => {
+      supabase.removeChannel(channel);
+      supabase.removeChannel(localityAccessChannel);
+    };
+  }, [refreshUsers]);
   
   const openEditDialog = (user: User) => {
     const userCopy = JSON.parse(JSON.stringify(user));

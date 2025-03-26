@@ -15,7 +15,7 @@ export const fetchUsers = async (
     // Buscar perfis do Supabase
     const profiles = await fetchProfiles();
     
-    if (!profiles || profiles.length === 0) {
+    if (profiles.length === 0) {
       console.log("Nenhum perfil encontrado, mostrando lista vazia");
       return [];
     }
