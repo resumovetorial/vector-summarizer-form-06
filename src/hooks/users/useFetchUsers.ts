@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { User, AccessLevel } from '@/types/admin';
-import { fetchUsers } from './userFetchService';
+import { fetchUsers } from './services/userFetchService';
 import { fetchAccessLevels } from '@/services/accessLevelService';
 import { toast } from 'sonner';
 

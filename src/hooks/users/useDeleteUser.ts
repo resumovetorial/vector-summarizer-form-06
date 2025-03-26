@@ -1,5 +1,5 @@
 
-import { deleteUser as deleteUserService } from './userDeleteService';
+import { deleteUser as deleteUserService } from './services/userDeleteService';
 import { toast } from 'sonner';
 
 /**
@@ -18,9 +18,7 @@ export const useDeleteUser = () => {
     try {
       const success = await deleteUserService(userId, supabaseId);
       
-      if (success) {
-        toast.success("Usuário removido com sucesso!");
-      } else {
+      if (!success) {
         toast.error("Erro ao excluir usuário. Tente novamente mais tarde.");
       }
       

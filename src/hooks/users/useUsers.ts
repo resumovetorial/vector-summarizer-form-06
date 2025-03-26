@@ -1,6 +1,5 @@
 
 import { useEffect } from 'react';
-import { User } from '@/types/admin';
 import { useFetchUsers } from './useFetchUsers';
 import { useDeleteUser } from './useDeleteUser';
 

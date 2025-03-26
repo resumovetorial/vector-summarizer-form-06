@@ -26,8 +26,14 @@ export const fetchUserLocalities = async (): Promise<Map<string, string[]>> => {
       // Agrupar localidades por ID de usuário
       data.forEach(access => {
         if (access.user_id && access.localities) {
-          // Corrigido: access.localities é um objeto com uma propriedade 'name'
-          const localityName = access.localities?.name;
+          // access.localities pode ser um objeto ou um array dependendo do retorno do Supabase
+          let localityName: string | undefined;
+          
+          // Verificar o tipo de dados retornado e extrair o nome da localidade
+          if (typeof access.localities === 'object' && 'name' in access.localities) {
+            // Se for um único objeto com propriedade 'name'
+            localityName = access.localities.name;
+          }
           
           if (localityName) {
             if (!localityMap.has(access.user_id)) {
