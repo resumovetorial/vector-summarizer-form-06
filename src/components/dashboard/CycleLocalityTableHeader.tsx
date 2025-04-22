@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
@@ -18,6 +17,7 @@ const CycleLocalityTableHeader: React.FC = () => {
         <TableHead className="text-right">Amostras</TableHead>
         <TableHead className="text-right">Fechadas</TableHead>
         <TableHead className="text-right">Recuperadas</TableHead>
+        <TableHead>Ações</TableHead>
       </TableRow>
     </TableHeader>
   );
