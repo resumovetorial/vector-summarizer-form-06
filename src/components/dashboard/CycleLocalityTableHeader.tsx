@@ -18,7 +18,7 @@ const CycleLocalityTableHeader: React.FC = () => {
         <TableHead className="text-right">Amostras</TableHead>
         <TableHead className="text-right">Fechadas</TableHead>
         <TableHead className="text-right">Recuperadas</TableHead>
-        <TableHead className="text-center w-28">Ações</TableHead>
+        <TableHead className="text-center w-[120px]">Ações</TableHead>
       </TableRow>
     </TableHeader>
   );

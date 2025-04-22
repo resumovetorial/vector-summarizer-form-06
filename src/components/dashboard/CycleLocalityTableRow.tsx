@@ -28,14 +28,14 @@ const CycleLocalityTableRow: React.FC<CycleLocalityTableRowProps> = ({ locality 
         <TableCell className="text-right">{locality.amostras_coletadas}</TableCell>
         <TableCell className="text-right">{locality.fechadas}</TableCell>
         <TableCell className="text-right">{locality.recuperadas}</TableCell>
-        <TableCell>
+        <TableCell className="text-center">
           <Button
-            variant="default"
+            variant="primary"
             size="sm"
             onClick={() => setShowDetails(true)}
-            className="flex items-center gap-2 w-full"
+            className="flex items-center justify-center gap-1 w-full bg-blue-600 hover:bg-blue-700"
           >
-            <FileText className="h-4 w-4" />
+            <FileText className="h-3.5 w-3.5" />
             Detalhes
           </Button>
         </TableCell>
