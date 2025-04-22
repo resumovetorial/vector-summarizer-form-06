@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { LocalityData } from '@/types/dashboard';
 import { format } from 'date-fns';
@@ -19,6 +19,8 @@ const LocalityDetailsDialog: React.FC<LocalityDetailsDialogProps> = ({
   onClose,
   locality
 }) => {
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  
   if (!locality) return null;
 
   const formatDate = (dateStr: string) => {
@@ -30,17 +32,23 @@ const LocalityDetailsDialog: React.FC<LocalityDetailsDialogProps> = ({
   };
 
   const scrollToTop = () => {
-    const scrollContainer = document.querySelector('.scroll-content');
-    scrollContainer?.scrollTo({ top: 0, behavior: 'smooth' });
+    if (scrollAreaRef.current) {
+      scrollAreaRef.current.scrollTop = 0;
+    }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-        <DialogHeader className="relative z-10">
+        <DialogHeader className="sticky top-0 bg-background z-10 pb-4 border-b">
           <DialogTitle>Detalhes da Localidade: {locality.locality}</DialogTitle>
         </DialogHeader>
-        <ScrollArea className="flex-1 relative scroll-content">
+        
+        <div 
+          ref={scrollAreaRef}
+          className="flex-1 overflow-y-auto py-4 pr-2"
+          style={{ maxHeight: 'calc(80vh - 80px)' }}
+        >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
             <InfoSection title="Informações Gerais">
               <InfoItem label="Município" value={locality.municipality} />
@@ -99,18 +107,18 @@ const LocalityDetailsDialog: React.FC<LocalityDetailsDialogProps> = ({
               <InfoItem label="Total Dias Trabalhados" value={locality.total_dias_trabalhados} />
             </InfoSection>
           </div>
-          <ScrollBar />
-          <div className="sticky bottom-4 right-4 flex justify-end px-4">
-            <Button
-              variant="secondary"
-              size="icon"
-              className="rounded-full shadow-lg"
-              onClick={scrollToTop}
-            >
-              <ChevronUp className="h-4 w-4" />
-            </Button>
-          </div>
-        </ScrollArea>
+        </div>
+        
+        <div className="sticky bottom-4 right-4 flex justify-end px-4 pt-2 border-t bg-background">
+          <Button
+            variant="secondary"
+            size="icon"
+            className="rounded-full shadow-lg"
+            onClick={scrollToTop}
+          >
+            <ChevronUp className="h-4 w-4" />
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );

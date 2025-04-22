@@ -1,7 +1,9 @@
 
-import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import React, { useRef } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { LocalityData } from '@/types/dashboard';
+import { ChevronUp } from 'lucide-react';
+import { Button } from "@/components/ui/button";
 
 interface CycleSummaryDialogProps {
   isOpen: boolean;
@@ -14,6 +16,8 @@ const CycleSummaryDialog: React.FC<CycleSummaryDialogProps> = ({
   onClose,
   localities
 }) => {
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  
   // Calcular somas totais do ciclo
   const cycleTotal = localities.reduce((acc, locality) => ({
     totalProperties: acc.totalProperties + locality.totalProperties,
@@ -61,45 +65,72 @@ const CycleSummaryDialog: React.FC<CycleSummaryDialogProps> = ({
     e: 0,
   });
 
+  const scrollToTop = () => {
+    if (scrollAreaRef.current) {
+      scrollAreaRef.current.scrollTop = 0;
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
-        <DialogHeader>
+        <DialogHeader className="sticky top-0 bg-background z-10 pb-4 border-b">
           <DialogTitle>Resumo do Ciclo</DialogTitle>
+          <DialogDescription>
+            Dados consolidados de {localities.length} localidades
+          </DialogDescription>
         </DialogHeader>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
-          <InfoSection title="Informações Quantitativas">
-            <InfoItem label="Total de Imóveis" value={cycleTotal.totalProperties} />
-            <InfoItem label="Inspecionados" value={cycleTotal.inspections} />
-            <InfoItem label="Depósitos Eliminados" value={cycleTotal.depositsEliminated} />
-            <InfoItem label="Depósitos Tratados" value={cycleTotal.depositsTreated} />
-          </InfoSection>
+        
+        <div 
+          ref={scrollAreaRef}
+          className="flex-1 overflow-y-auto py-4 pr-2"
+          style={{ maxHeight: 'calc(80vh - 80px)' }}
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
+            <InfoSection title="Informações Quantitativas">
+              <InfoItem label="Total de Imóveis" value={cycleTotal.totalProperties} />
+              <InfoItem label="Inspecionados" value={cycleTotal.inspections} />
+              <InfoItem label="Depósitos Eliminados" value={cycleTotal.depositsEliminated} />
+              <InfoItem label="Depósitos Tratados" value={cycleTotal.depositsTreated} />
+            </InfoSection>
 
-          <InfoSection title="Tipos de Imóveis">
-            <InfoItem label="Residências" value={cycleTotal.qt_residencias} />
-            <InfoItem label="Comércios" value={cycleTotal.qt_comercio} />
-            <InfoItem label="Terrenos Baldios" value={cycleTotal.qt_terreno_baldio} />
-            <InfoItem label="Pontos Estratégicos" value={cycleTotal.qt_pe} />
-            <InfoItem label="Outros" value={cycleTotal.qt_outros} />
-          </InfoSection>
+            <InfoSection title="Tipos de Imóveis">
+              <InfoItem label="Residências" value={cycleTotal.qt_residencias} />
+              <InfoItem label="Comércios" value={cycleTotal.qt_comercio} />
+              <InfoItem label="Terrenos Baldios" value={cycleTotal.qt_terreno_baldio} />
+              <InfoItem label="Pontos Estratégicos" value={cycleTotal.qt_pe} />
+              <InfoItem label="Outros" value={cycleTotal.qt_outros} />
+            </InfoSection>
 
-          <InfoSection title="Tratamentos">
-            <InfoItem label="Tratamento Focal" value={cycleTotal.tratamento_focal} />
-            <InfoItem label="Tratamento Perifocal" value={cycleTotal.tratamento_perifocal} />
-            <InfoItem label="Amostras Coletadas" value={cycleTotal.amostras_coletadas} />
-            <InfoItem label="Fechadas" value={cycleTotal.fechadas} />
-            <InfoItem label="Recuperadas" value={cycleTotal.recuperadas} />
-          </InfoSection>
+            <InfoSection title="Tratamentos">
+              <InfoItem label="Tratamento Focal" value={cycleTotal.tratamento_focal} />
+              <InfoItem label="Tratamento Perifocal" value={cycleTotal.tratamento_perifocal} />
+              <InfoItem label="Amostras Coletadas" value={cycleTotal.amostras_coletadas} />
+              <InfoItem label="Fechadas" value={cycleTotal.fechadas} />
+              <InfoItem label="Recuperadas" value={cycleTotal.recuperadas} />
+            </InfoSection>
 
-          <InfoSection title="Depósitos">
-            <InfoItem label="A1" value={cycleTotal.a1} />
-            <InfoItem label="A2" value={cycleTotal.a2} />
-            <InfoItem label="B" value={cycleTotal.b} />
-            <InfoItem label="C" value={cycleTotal.c} />
-            <InfoItem label="D1" value={cycleTotal.d1} />
-            <InfoItem label="D2" value={cycleTotal.d2} />
-            <InfoItem label="E" value={cycleTotal.e} />
-          </InfoSection>
+            <InfoSection title="Depósitos">
+              <InfoItem label="A1" value={cycleTotal.a1} />
+              <InfoItem label="A2" value={cycleTotal.a2} />
+              <InfoItem label="B" value={cycleTotal.b} />
+              <InfoItem label="C" value={cycleTotal.c} />
+              <InfoItem label="D1" value={cycleTotal.d1} />
+              <InfoItem label="D2" value={cycleTotal.d2} />
+              <InfoItem label="E" value={cycleTotal.e} />
+            </InfoSection>
+          </div>
+        </div>
+        
+        <div className="sticky bottom-4 right-4 flex justify-end px-4 pt-2 border-t bg-background">
+          <Button
+            variant="secondary"
+            size="icon"
+            className="rounded-full shadow-lg"
+            onClick={scrollToTop}
+          >
+            <ChevronUp className="h-4 w-4" />
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
