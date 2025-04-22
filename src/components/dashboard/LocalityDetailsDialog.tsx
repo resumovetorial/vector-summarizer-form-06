@@ -4,7 +4,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { LocalityData } from '@/types/dashboard';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { ChevronUp } from 'lucide-react';
+import { Button } from "@/components/ui/button";
 
 interface LocalityDetailsDialogProps {
   isOpen: boolean;
@@ -27,13 +29,18 @@ const LocalityDetailsDialog: React.FC<LocalityDetailsDialogProps> = ({
     }
   };
 
+  const scrollToTop = () => {
+    const scrollContainer = document.querySelector('.scroll-content');
+    scrollContainer?.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-        <DialogHeader>
+        <DialogHeader className="relative z-10">
           <DialogTitle>Detalhes da Localidade: {locality.locality}</DialogTitle>
         </DialogHeader>
-        <ScrollArea className="flex-1">
+        <ScrollArea className="flex-1 relative scroll-content">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
             <InfoSection title="Informações Gerais">
               <InfoItem label="Município" value={locality.municipality} />
@@ -91,6 +98,17 @@ const LocalityDetailsDialog: React.FC<LocalityDetailsDialogProps> = ({
               <InfoItem label="Total Técnicos de Saúde" value={locality.total_tec_saude} />
               <InfoItem label="Total Dias Trabalhados" value={locality.total_dias_trabalhados} />
             </InfoSection>
+          </div>
+          <ScrollBar />
+          <div className="sticky bottom-4 right-4 flex justify-end px-4">
+            <Button
+              variant="secondary"
+              size="icon"
+              className="rounded-full shadow-lg"
+              onClick={scrollToTop}
+            >
+              <ChevronUp className="h-4 w-4" />
+            </Button>
           </div>
         </ScrollArea>
       </DialogContent>
