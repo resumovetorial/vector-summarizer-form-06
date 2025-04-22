@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -29,10 +30,10 @@ const CycleLocalityTableRow: React.FC<CycleLocalityTableRowProps> = ({ locality 
         <TableCell className="text-right">{locality.recuperadas}</TableCell>
         <TableCell>
           <Button
-            variant="ghost"
+            variant="default"
             size="sm"
             onClick={() => setShowDetails(true)}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 w-full"
           >
             <FileText className="h-4 w-4" />
             Detalhes
