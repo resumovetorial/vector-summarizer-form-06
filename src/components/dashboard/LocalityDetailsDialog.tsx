@@ -29,7 +29,7 @@ const LocalityDetailsDialog: React.FC<LocalityDetailsDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle>Detalhes da Localidade: {locality.locality}</DialogTitle>
         </DialogHeader>
@@ -46,6 +46,13 @@ const LocalityDetailsDialog: React.FC<LocalityDetailsDialogProps> = ({
             </InfoSection>
 
             <InfoSection title="Quantitativos">
+              <InfoItem label="Total de Imóveis" value={locality.totalProperties} />
+              <InfoItem label="Inspecionados" value={locality.inspections} />
+              <InfoItem label="Depósitos Eliminados" value={locality.depositsEliminated} />
+              <InfoItem label="Depósitos Tratados" value={locality.depositsTreated} />
+            </InfoSection>
+
+            <InfoSection title="Tipos de Imóveis">
               <InfoItem label="Residências" value={locality.qt_residencias} />
               <InfoItem label="Comércios" value={locality.qt_comercio} />
               <InfoItem label="Terrenos Baldios" value={locality.qt_terreno_baldio} />
