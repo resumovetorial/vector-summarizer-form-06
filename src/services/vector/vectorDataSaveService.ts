@@ -101,9 +101,9 @@ export const updateVectorDataInSupabase = async (formData: FormData): Promise<bo
       updated_at: new Date().toISOString() // Convert Date to ISO string format
     };
     
-    // Remover campos vazios ou indefinidos para evitar substituições indesejadas
+    // Remover campos vazios, indefinidos ou nulos para evitar substituições indesejadas
     Object.keys(dataToUpdate).forEach(key => {
-      if (dataToUpdate[key] === undefined || dataToUpdate[key] === '') {
+      if (dataToUpdate[key] === undefined || dataToUpdate[key] === '' || dataToUpdate[key] === null) {
         delete dataToUpdate[key];
       }
     });
@@ -123,16 +123,16 @@ export const updateVectorDataInSupabase = async (formData: FormData): Promise<bo
     }
     
     console.log('Dados atualizados com sucesso no Supabase:', data);
+    
+    // Forçar uma pequena pausa para garantir que as operações sejam completadas
+    await new Promise(resolve => setTimeout(resolve, 800));
+    
     toast.success('Dados atualizados com sucesso no banco de dados');
-    
-    // Força uma pequena pausa para garantir que a operação seja completada no banco
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
     return true;
     
   } catch (error: any) {
     console.error('Erro na operação de atualização do Supabase:', error);
-    toast.error(`Erro ao atualizar os dados. Verifique sua conexão e tente novamente. ${error.message}`);
+    toast.error(`Erro ao atualizar os dados. Verifique sua conexão e tente novamente.`);
     return false;
   }
 };

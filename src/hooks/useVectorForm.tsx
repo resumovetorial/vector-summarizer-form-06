@@ -5,6 +5,7 @@ import { FormData } from '@/types/vectorForm';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { validateFormStep1, validateFormStep2 } from '@/utils/formValidation';
 import { calculateTotalProperties } from '@/utils/formCalculations';
+import { toast } from 'sonner';
 
 export const useVectorForm = () => {
   const navigate = useNavigate();
@@ -123,12 +124,16 @@ export const useVectorForm = () => {
     try {
       console.log("Enviando formulário com dados:", formData);
       
-      // Verificar se estamos no modo de edição
-      if (editMode) {
+      // Garantir que o ID é preservado durante a edição
+      if (editMode && formData.recordId) {
         console.log("Modo de edição ativo para o registro:", formData.recordId);
       }
       
-      const result = await processVectorData(formData);
+      // Garantir que os valores numéricos são convertidos
+      const preparedData = { ...formData };
+      
+      // Processar os dados do formulário
+      const result = await processVectorData(preparedData);
       
       if (result) {
         setVectorData(result.vectorData);
@@ -137,14 +142,23 @@ export const useVectorForm = () => {
         
         // Se estiver no modo de edição, redirecionar para o dashboard após salvar
         if (editMode) {
+          // Exibir toast de sucesso
+          toast.success('Dados atualizados com sucesso! Você será redirecionado em instantes...', {
+            duration: 3000
+          });
+          
+          // Atraso para garantir que o toast seja exibido antes do redirecionamento
           setTimeout(() => {
             navigate('/dashboard', { state: { refreshData: true } });
           }, 2000);
         }
+      } else {
+        toast.error('Falha ao processar os dados. Por favor, tente novamente.');
       }
     } catch (error) {
       console.error('Erro ao processar dados:', error);
       setErrors({ form: 'Erro ao processar dados. Verifique os campos e tente novamente.' });
+      toast.error('Erro ao processar dados. Verifique os campos e tente novamente.');
     } finally {
       setIsLoading(false);
     }

@@ -5,11 +5,12 @@ import { useLocalitySelection } from '@/hooks/useLocalitySelection';
 import DashboardContainer from '@/components/dashboard/DashboardContainer';
 import { useRealtimeUpdates } from '@/hooks/useRealtimeUpdates';
 import { toast } from 'sonner';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
   const [view, setView] = useState<'week' | 'cycle'>('week');
   const location = useLocation();
+  const navigate = useNavigate();
   const shouldRefresh = location.state?.refreshData;
   
   const {
@@ -33,6 +34,7 @@ const Dashboard = () => {
   useEffect(() => {
     if (shouldRefresh) {
       console.log("Retornando da edição, atualizando dados...");
+      toast.info("Atualizando dados após edição...");
       refreshData();
       // Limpar state para evitar múltiplas atualizações
       window.history.replaceState({}, document.title);
@@ -93,8 +95,7 @@ const Dashboard = () => {
         console.log("Dados convertidos para atualização:", updatedData);
         updateDashboardData(updatedData);
         
-        // Forçar atualização adicional após intervalo
-        setTimeout(() => refreshData(), 2000);
+        toast.success("Dados atualizados com sucesso!");
       } catch (error) {
         console.error("Erro ao processar atualização em tempo real:", error);
         toast.error("Erro ao atualizar dados. Atualizando manualmente...");

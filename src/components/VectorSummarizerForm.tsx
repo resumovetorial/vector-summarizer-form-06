@@ -13,11 +13,12 @@ import { useVectorForm } from '@/hooks/useVectorForm';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { FormData } from '@/types/vectorForm';
 import { toast } from 'sonner';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
 const VectorSummarizerForm: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const editMode = location.state?.editMode;
+  const editMode = location.state?.editMode || false;
   const vectorDataToEdit = location.state?.vectorDataToEdit as FormData | undefined;
   
   const {
@@ -50,7 +51,7 @@ const VectorSummarizerForm: React.FC = () => {
       // Certifica-se de que todos os campos numéricos estão no formato correto
       const processedData = { ...vectorDataToEdit };
       
-      // Converter todos os campos numéricos para string
+      // Converter campos para o formato correto
       Object.keys(processedData).forEach(key => {
         if (typeof processedData[key] === 'number') {
           processedData[key] = processedData[key].toString();
@@ -58,7 +59,11 @@ const VectorSummarizerForm: React.FC = () => {
       });
       
       setFormData(processedData);
-      toast.info("Dados carregados para edição");
+      // Usar toast.info uma única vez para evitar múltiplos alertas
+      toast.info("Dados carregados para edição", {
+        id: "edit-data-loaded", // ID único para evitar duplicação
+        duration: 3000 // Duração em ms
+      });
     }
   }, [editMode, vectorDataToEdit, setFormData]);
   
@@ -72,25 +77,28 @@ const VectorSummarizerForm: React.FC = () => {
     <div className="w-full max-w-4xl mx-auto">
       <form onSubmit={handleSubmit} className="glass-card rounded-xl p-6 sm:p-8">
         {editMode && (
-          <div className="mb-4 px-4 py-2 bg-blue-100 text-blue-800 rounded-md">
-            <p className="text-center font-medium">Modo de edição ativo</p>
-            <p className="text-center text-sm">
-              Você está editando dados da localidade {vectorDataToEdit?.locality}
-              {vectorDataToEdit?.recordId && (
-                <span className="text-xs block">ID: {vectorDataToEdit.recordId}</span>
-              )}
-            </p>
-            <div className="mt-2 text-center">
-              <Button 
-                type="button" 
-                variant="outline" 
-                size="sm" 
-                onClick={handleCancel}
-              >
-                Cancelar edição
-              </Button>
-            </div>
-          </div>
+          <Alert variant="default" className="mb-4 bg-blue-50 border-blue-200">
+            <AlertTitle className="text-blue-800 font-medium">Modo de edição ativo</AlertTitle>
+            <AlertDescription className="text-blue-700">
+              <p>
+                Você está editando dados da localidade {vectorDataToEdit?.locality}
+                {vectorDataToEdit?.recordId && (
+                  <span className="text-xs block mt-1">ID: {vectorDataToEdit.recordId}</span>
+                )}
+              </p>
+              <div className="mt-2">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleCancel}
+                  className="bg-white hover:bg-gray-100"
+                >
+                  Cancelar edição
+                </Button>
+              </div>
+            </AlertDescription>
+          </Alert>
         )}
         
         <StepIndicator currentStep={currentStep} totalSteps={5} />
