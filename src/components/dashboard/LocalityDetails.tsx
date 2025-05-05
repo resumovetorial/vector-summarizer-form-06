@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { PenLine, RefreshCw } from 'lucide-react';
+import { PenLine, Loader } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { LocalityData } from '@/types/dashboard';
 import { format } from 'date-fns';
@@ -124,7 +124,7 @@ const LocalityDetails: React.FC<LocalityDetailsProps> = ({ data, refreshData }) 
             disabled={isEditing || isLoading}
           >
             {isLoading ? (
-              <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+              <Loader className="h-4 w-4 mr-2 animate-spin" />
             ) : (
               <PenLine className="h-4 w-4 mr-2" />
             )}

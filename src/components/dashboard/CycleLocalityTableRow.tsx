@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { FileText, PenLine } from "lucide-react";
+import { FileText, PenLine, Loader } from "lucide-react";
 import { LocalityData } from '@/types/dashboard';
 import LocalityDetailsDialog from './LocalityDetailsDialog';
 import { useNavigate } from 'react-router-dom';
@@ -47,8 +47,8 @@ const CycleLocalityTableRow: React.FC<CycleLocalityTableRowProps> = ({ locality 
         cycle: freshData.cycle || locality.cycle,
         epidemiologicalWeek: freshData.epidemiological_week || locality.epidemiologicalWeek,
         workModality: freshData.work_modality || locality.workModality,
-        startDate: new Date(freshData.start_date || locality.startDate),
-        endDate: new Date(freshData.end_date || locality.endDate),
+        startDate: freshData.start_date ? new Date(freshData.start_date) : new Date(locality.startDate),
+        endDate: freshData.end_date ? new Date(freshData.end_date) : new Date(locality.endDate),
         qt_residencias: (freshData.qt_residencias !== null ? freshData.qt_residencias : (locality.qt_residencias || 0)).toString(),
         qt_comercio: (freshData.qt_comercio !== null ? freshData.qt_comercio : (locality.qt_comercio || 0)).toString(),
         qt_terreno_baldio: (freshData.qt_terreno_baldio !== null ? freshData.qt_terreno_baldio : (locality.qt_terreno_baldio || 0)).toString(),
@@ -126,7 +126,11 @@ const CycleLocalityTableRow: React.FC<CycleLocalityTableRowProps> = ({ locality 
             disabled={isEditing}
             className="flex items-center justify-center gap-1 bg-amber-600 hover:bg-amber-700 text-white"
           >
-            <PenLine className="h-3.5 w-3.5" />
+            {isEditing ? (
+              <Loader className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <PenLine className="h-3.5 w-3.5" />
+            )}
             {isEditing ? "Carregando..." : "Editar"}
           </Button>
         </TableCell>

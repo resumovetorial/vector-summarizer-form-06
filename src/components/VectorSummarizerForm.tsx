@@ -10,12 +10,13 @@ import DepositsInspectionStep from './DepositsInspectionStep';
 import TreatedDepositsStep from './TreatedDepositsStep';
 import SubmitButton from './SubmitButton';
 import { useVectorForm } from '@/hooks/useVectorForm';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { FormData } from '@/types/vectorForm';
 import { toast } from 'sonner';
 
 const VectorSummarizerForm: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const editMode = location.state?.editMode;
   const vectorDataToEdit = location.state?.vectorDataToEdit as FormData | undefined;
   
@@ -39,16 +40,33 @@ const VectorSummarizerForm: React.FC = () => {
   // Load edit data when available
   useEffect(() => {
     if (editMode && vectorDataToEdit) {
-      console.log("Loading data for editing:", vectorDataToEdit);
-      setFormData(vectorDataToEdit);
-      toast.info("Dados carregados para edição");
+      console.log("Carregando dados para edição:", vectorDataToEdit);
       
       // Log the recordId to verify it was properly loaded
       if (vectorDataToEdit.recordId) {
-        console.log("Editing record with ID:", vectorDataToEdit.recordId);
+        console.log("Editando registro com ID:", vectorDataToEdit.recordId);
       }
+      
+      // Certifica-se de que todos os campos numéricos estão no formato correto
+      const processedData = { ...vectorDataToEdit };
+      
+      // Converter todos os campos numéricos para string
+      Object.keys(processedData).forEach(key => {
+        if (typeof processedData[key] === 'number') {
+          processedData[key] = processedData[key].toString();
+        }
+      });
+      
+      setFormData(processedData);
+      toast.info("Dados carregados para edição");
     }
   }, [editMode, vectorDataToEdit, setFormData]);
+  
+  const handleCancel = () => {
+    if (window.confirm("Deseja cancelar a edição? Alterações não salvas serão perdidas.")) {
+      navigate('/dashboard');
+    }
+  };
   
   return (
     <div className="w-full max-w-4xl mx-auto">
@@ -62,6 +80,16 @@ const VectorSummarizerForm: React.FC = () => {
                 <span className="text-xs block">ID: {vectorDataToEdit.recordId}</span>
               )}
             </p>
+            <div className="mt-2 text-center">
+              <Button 
+                type="button" 
+                variant="outline" 
+                size="sm" 
+                onClick={handleCancel}
+              >
+                Cancelar edição
+              </Button>
+            </div>
           </div>
         )}
         

@@ -5,9 +5,12 @@ import { useLocalitySelection } from '@/hooks/useLocalitySelection';
 import DashboardContainer from '@/components/dashboard/DashboardContainer';
 import { useRealtimeUpdates } from '@/hooks/useRealtimeUpdates';
 import { toast } from 'sonner';
+import { useLocation } from 'react-router-dom';
 
 const Dashboard = () => {
   const [view, setView] = useState<'week' | 'cycle'>('week');
+  const location = useLocation();
+  const shouldRefresh = location.state?.refreshData;
   
   const {
     isLoading,
@@ -25,6 +28,16 @@ const Dashboard = () => {
     handleLocalityChange,
     resetLocalitySelection
   } = useLocalitySelection(dashboardData);
+
+  // Verificar se devemos atualizar os dados ao retornar de uma edição
+  useEffect(() => {
+    if (shouldRefresh) {
+      console.log("Retornando da edição, atualizando dados...");
+      refreshData();
+      // Limpar state para evitar múltiplas atualizações
+      window.history.replaceState({}, document.title);
+    }
+  }, [shouldRefresh, refreshData]);
 
   // Configurar atualizações em tempo real
   useRealtimeUpdates((payload) => {

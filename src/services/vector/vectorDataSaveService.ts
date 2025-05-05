@@ -91,7 +91,7 @@ export const updateVectorDataInSupabase = async (formData: FormData): Promise<bo
     
     console.log("Dados preparados para atualização:", updateData);
     
-    // Get current user for updating supervisor field
+    // Get current user for updating supervisor field if not provided
     const { data: { user } } = await supabase.auth.getUser();
 
     // Create a new object with all updateData properties plus supervisor
@@ -100,6 +100,15 @@ export const updateVectorDataInSupabase = async (formData: FormData): Promise<bo
       supervisor: formData.nome_supervisor || user?.id || null,
       updated_at: new Date().toISOString() // Convert Date to ISO string format
     };
+    
+    // Remover campos vazios ou indefinidos para evitar substituições indesejadas
+    Object.keys(dataToUpdate).forEach(key => {
+      if (dataToUpdate[key] === undefined || dataToUpdate[key] === '') {
+        delete dataToUpdate[key];
+      }
+    });
+
+    console.log("Dados finais para atualização:", dataToUpdate);
     
     // Update data in Supabase
     const { data, error } = await supabase
@@ -123,7 +132,7 @@ export const updateVectorDataInSupabase = async (formData: FormData): Promise<bo
     
   } catch (error: any) {
     console.error('Erro na operação de atualização do Supabase:', error);
-    toast.error(`Erro ao atualizar os dados. Verifique sua conexão e tente novamente.`);
+    toast.error(`Erro ao atualizar os dados. Verifique sua conexão e tente novamente. ${error.message}`);
     return false;
   }
 };
