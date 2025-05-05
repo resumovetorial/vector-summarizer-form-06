@@ -40,6 +40,15 @@ export const validateStep = (step: number, formData: FormData): ValidationErrors
   return errors;
 };
 
+// Adicionar as funções específicas que estão sendo importadas
+export const validateFormStep1 = (formData: FormData): ValidationErrors => {
+  return validateStep(1, formData);
+};
+
+export const validateFormStep2 = (formData: FormData): ValidationErrors => {
+  return validateStep(2, formData);
+};
+
 export const validateForm = (formData: FormData): ValidationErrors => {
   const errors: ValidationErrors = {};
   

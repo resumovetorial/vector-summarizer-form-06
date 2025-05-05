@@ -9,7 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 interface ResultDisplayProps {
   visible: boolean;
   vectorData: any | null;
-  summary: string;
+  summary: any; // Alterado de 'string' para 'any' para evitar erros de tipo
   className?: string;
 }
 
@@ -58,14 +58,14 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({
                   variant="ghost" 
                   size="sm" 
                   className="h-8 px-2"
-                  onClick={() => copyToClipboard(summary, "Resumo")}
+                  onClick={() => copyToClipboard(summary.toString(), "Resumo")}
                 >
                   <ClipboardCopy className="h-3.5 w-3.5 mr-1" />
                   <span className="text-xs">Copiar</span>
                 </Button>
               </div>
               <div className="bg-muted/50 rounded-lg p-4 text-sm">
-                {summary}
+                {typeof summary === 'string' ? summary : JSON.stringify(summary, null, 2)}
               </div>
             </div>
           )}

@@ -12,3 +12,8 @@ export const calculateTotalQuantity = (formData: FormData): string => {
   
   return total.toString();
 };
+
+// Adicionar a função que está sendo importada
+export const calculateTotalProperties = (formData: FormData): string => {
+  return calculateTotalQuantity(formData);
+};
