@@ -1,9 +1,10 @@
 
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { LocalityData } from '@/types/dashboard';
-import { ChevronUp } from 'lucide-react';
+import { ChevronUp, Filter } from 'lucide-react';
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface CycleSummaryDialogProps {
   isOpen: boolean;
@@ -17,9 +18,18 @@ const CycleSummaryDialog: React.FC<CycleSummaryDialogProps> = ({
   localities
 }) => {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const [filterCycle, setFilterCycle] = useState<string>("all");
+  
+  // Get unique cycles from localities
+  const uniqueCycles = ["all", ...Array.from(new Set(localities.map(loc => loc.cycle)))].sort();
+  
+  // Filter localities based on selected cycle
+  const filteredLocalities = filterCycle === "all" 
+    ? localities 
+    : localities.filter(loc => loc.cycle === filterCycle);
   
   // Calcular somas totais do ciclo
-  const cycleTotal = localities.reduce((acc, locality) => ({
+  const cycleTotal = filteredLocalities.reduce((acc, locality) => ({
     totalProperties: acc.totalProperties + locality.totalProperties,
     inspections: acc.inspections + locality.inspections,
     depositsEliminated: acc.depositsEliminated + locality.depositsEliminated,
@@ -77,8 +87,25 @@ const CycleSummaryDialog: React.FC<CycleSummaryDialogProps> = ({
         <DialogHeader className="sticky top-0 bg-background z-10 pb-4 border-b">
           <DialogTitle>Resumo do Ciclo</DialogTitle>
           <DialogDescription>
-            Dados consolidados de {localities.length} localidades
+            Dados consolidados de {filteredLocalities.length} localidades
           </DialogDescription>
+          
+          <div className="mt-4 flex items-center gap-2">
+            <Filter className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm font-medium">Filtrar por ciclo:</span>
+            <Select value={filterCycle} onValueChange={setFilterCycle}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Selecione o ciclo" />
+              </SelectTrigger>
+              <SelectContent>
+                {uniqueCycles.map(cycle => (
+                  <SelectItem key={cycle} value={cycle}>
+                    {cycle === "all" ? "Todos os ciclos" : `Ciclo ${cycle}`}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </DialogHeader>
         
         <div 
