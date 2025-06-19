@@ -68,7 +68,8 @@ export const useUserFormSubmit = ({
       console.log("Localidades selecionadas:", formData.localities);
       
       if (isEditMode && initialUser) {
-        const updatedUser = await updateExistingUser(initialUser, formData, accessLevelIdNum);
+        // Pass the string version of accessLevel instead of the parsed number
+        const updatedUser = await updateExistingUser(initialUser, formData, formData.accessLevel);
         if (updatedUser) {
           // Update users in the local state
           const updatedUsers = users.map(user => {
