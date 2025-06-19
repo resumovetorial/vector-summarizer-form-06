@@ -9,7 +9,6 @@ import UserEditDialog from './UserEditDialog';
 import UserAccessDialog from './UserAccessDialog';
 import UserManagementActions from './UserManagementActions';
 import { useUsers } from '@/hooks/users';
-import { useRealtimeUpdates } from '@/hooks/useRealtimeUpdates';
 import { supabase } from '@/integrations/supabase/client';
 
 const UserManagement: React.FC = () => {
@@ -21,6 +20,7 @@ const UserManagement: React.FC = () => {
   
   // Auto-refresh users on mount
   useEffect(() => {
+    console.log("UserManagement: Iniciando carregamento de usuários");
     refreshUsers();
     
     // Setup realtime subscription for profiles table changes
@@ -87,8 +87,12 @@ const UserManagement: React.FC = () => {
   };
 
   const handleDialogClose = () => {
+    console.log("UserManagement: Fechando dialog de adição");
     setIsAddDialogOpen(false);
-    refreshUsers();
+    // Refresh the user list to show the new user
+    setTimeout(() => {
+      refreshUsers();
+    }, 500);
   };
 
   const handleEditDialogClose = () => {
@@ -103,22 +107,27 @@ const UserManagement: React.FC = () => {
     refreshUsers();
   };
 
+  const handleAddUserClick = () => {
+    console.log("UserManagement: Abrindo dialog para adicionar usuário");
+    console.log("Access levels disponíveis:", accessLevels);
+    
+    if (accessLevels.length === 0) {
+      toast.error("Nenhum nível de acesso encontrado. Cadastre níveis de acesso primeiro na aba 'Níveis de Acesso'.");
+      return;
+    }
+    
+    setIsAddDialogOpen(true);
+  };
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Gerenciar Usuários</CardTitle>
         <UserManagementActions 
           isAddDialogOpen={isAddDialogOpen}
-          setIsAddDialogOpen={setIsAddDialogOpen}
+          setIsAddDialogOpen={handleAddUserClick}
           isLoading={isLoading}
           onRefresh={refreshUsers}
-        />
-        <UserAddDialog 
-          isOpen={isAddDialogOpen}
-          setIsOpen={handleDialogClose}
-          users={users}
-          setUsers={setUsers}
-          accessLevels={accessLevels}
         />
       </CardHeader>
       <CardContent>
@@ -130,6 +139,14 @@ const UserManagement: React.FC = () => {
           onConfigureAccess={handleConfigureAccess}
         />
       </CardContent>
+
+      <UserAddDialog 
+        isOpen={isAddDialogOpen}
+        setIsOpen={handleDialogClose}
+        users={users}
+        setUsers={setUsers}
+        accessLevels={accessLevels}
+      />
 
       <UserEditDialog 
         isOpen={isEditDialogOpen}

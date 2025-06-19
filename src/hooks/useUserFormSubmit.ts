@@ -51,22 +51,6 @@ export const useUserFormSubmit = ({
     setIsLoading(true);
     
     try {
-      // Parse the access level ID to a number
-      const accessLevelIdNum = parseInt(formData.accessLevel);
-      
-      // Find the actual access level object by ID
-      const selectedAccessLevel = accessLevels.find(level => level.id === accessLevelIdNum);
-      
-      if (!selectedAccessLevel) {
-        throw new Error("Nível de acesso selecionado não é válido");
-      }
-      
-      console.log("Usuário selecionado:", initialUser);
-      console.log("Nível de acesso selecionado:", selectedAccessLevel);
-      console.log("ID do nível de acesso no formulário:", accessLevelIdNum);
-      console.log("Dados do formulário:", formData);
-      console.log("Localidades selecionadas:", formData.localities);
-      
       if (isEditMode && initialUser) {
         // Pass the string version of accessLevel instead of the parsed number
         const updatedUser = await updateExistingUser(initialUser, formData, formData.accessLevel);
@@ -86,6 +70,13 @@ export const useUserFormSubmit = ({
       } else {
         try {
           console.log("Criando novo usuário...");
+          // Parse the access level ID to a number for the createNewUser function
+          const accessLevelIdNum = parseInt(formData.accessLevel);
+          
+          if (isNaN(accessLevelIdNum)) {
+            throw new Error("Nível de acesso inválido");
+          }
+          
           const { userId, newUser } = await createNewUser(formData, accessLevelIdNum, users);
           
           console.log("Usuário criado, atualizando estado:", newUser);

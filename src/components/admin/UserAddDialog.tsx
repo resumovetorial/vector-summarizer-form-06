@@ -42,9 +42,17 @@ const UserAddDialog: React.FC<UserAddDialogProps> = ({
     users,
     setUsers,
     accessLevels,
-    onSuccess: () => setIsOpen(false),
+    onSuccess: () => {
+      console.log("Usuário adicionado com sucesso, fechando dialog");
+      setIsOpen(false);
+    },
     isEditMode: false
   });
+
+  const handleCancel = () => {
+    console.log("Cancelando adição de usuário");
+    setIsOpen(false);
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -81,7 +89,7 @@ const UserAddDialog: React.FC<UserAddDialogProps> = ({
             selectedLocalities={formLocalities}
             setSelectedLocalities={setFormLocalities}
             accessLevels={accessLevels}
-            onCancel={() => setIsOpen(false)}
+            onCancel={handleCancel}
             onSubmit={handleSubmit}
             submitLabel="Adicionar Usuário"
             isLoading={isLoading}
