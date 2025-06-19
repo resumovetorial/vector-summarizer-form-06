@@ -16,7 +16,7 @@ export const updateExistingUser = async (
     active: boolean;
     localities: string[];
   },
-  accessLevelIdNum: number
+  accessLevelId: string // Mudança: agora recebe string UUID em vez de number
 ): Promise<User | null> => {
   if (!initialUser.supabaseId) {
     toast.error("ID de usuário inválido para atualização");
@@ -28,33 +28,26 @@ export const updateExistingUser = async (
     let accessLevelUuid: string | null = null;
     
     try {
-      // Primeira tentativa: buscar o nível de acesso pelo ID numérico
+      // Buscar o nível de acesso pelo nome ou ID
       const { data: accessLevel, error: accessLevelError } = await supabase
         .from('access_levels')
         .select('id')
-        .eq('id', accessLevelIdNum)
+        .or(`id.eq.${accessLevelId},name.eq.${formData.accessLevel}`)
         .single();
       
       if (!accessLevelError && accessLevel) {
         accessLevelUuid = accessLevel.id;
-        console.log('Access level found by ID:', accessLevelUuid);
+        console.log('Access level found:', accessLevelUuid);
       } else {
-        // Segunda tentativa: listar todos os níveis e procurar pelo ID numérico
+        // Fallback: buscar todos os níveis e pegar o primeiro
         const { data: allLevels, error: allLevelsError } = await supabase
           .from('access_levels')
           .select('id, name')
           .order('created_at', { ascending: true });
         
         if (!allLevelsError && allLevels && allLevels.length > 0) {
-          // Pegar o nível correspondente à posição do array (assumindo que os IDs são sequenciais)
-          // ou o primeiro nível se não for possível encontrar
-          const targetIndex = accessLevelIdNum - 1;
-          const targetLevel = targetIndex >= 0 && targetIndex < allLevels.length 
-            ? allLevels[targetIndex] 
-            : allLevels[0];
-          
-          accessLevelUuid = targetLevel.id;
-          console.log(`Using access level by position: ${targetLevel.name} (${accessLevelUuid})`);
+          accessLevelUuid = allLevels[0].id;
+          console.log(`Using first available access level: ${accessLevelUuid}`);
         } else {
           console.warn('No access levels found, using null');
         }
@@ -148,13 +141,15 @@ export const updateExistingUser = async (
       }
     }
     
-    // Return updated user
+    // Return updated user - convertendo accessLevel de volta para number para compatibilidade
+    const accessLevelIdNumber = parseInt(accessLevelId) || 1;
+    
     return {
       ...initialUser,
       name: formData.name,
       email: formData.email,
       role: formData.role,
-      accessLevelId: accessLevelIdNum,
+      accessLevelId: accessLevelIdNumber,
       active: formData.active,
       assignedLocalities: formData.localities
     };
