@@ -1,7 +1,7 @@
 
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { AuthUser } from '@/types/auth';
 import { determineAccessLevel, createDemoSession } from '@/utils/authHelpers';
 

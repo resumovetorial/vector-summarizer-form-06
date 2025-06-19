@@ -1,5 +1,4 @@
-
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 
 /**
  * Busca as localidades atribuídas a todos os usuários

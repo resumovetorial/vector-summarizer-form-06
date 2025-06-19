@@ -1,5 +1,4 @@
-
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 
 /**
  * Busca os emails dos usuários através da API de autenticação do Supabase

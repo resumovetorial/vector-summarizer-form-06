@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/select';
 import { MapPin } from 'lucide-react';
 import { getLocalities } from '@/services/localitiesService';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 interface LocalitySelectorProps {

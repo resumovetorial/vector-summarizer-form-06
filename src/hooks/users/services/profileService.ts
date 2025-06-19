@@ -1,5 +1,5 @@
 
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { User, AccessLevel } from '@/types/admin';
 import { toast } from 'sonner';
 
