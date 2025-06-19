@@ -56,7 +56,7 @@ export const saveVectorDataToSupabase = async (formData: FormData): Promise<bool
     
   } catch (error: any) {
     console.error('Erro na operação do Supabase:', error);
-    toast.error(`Erro ao salvar os dados. Verifique sua conexão e tente novamente.`);
+    toast.error(`Erro ao salvar os dados: ${error.message}`);
     return false;
   }
 };
@@ -98,10 +98,10 @@ export const updateVectorDataInSupabase = async (formData: FormData): Promise<bo
     const dataToUpdate = {
       ...updateData,
       supervisor: formData.nome_supervisor || user?.id || null,
-      updated_at: new Date().toISOString() // Convert Date to ISO string format
+      updated_at: new Date().toISOString()
     };
     
-    // Remover campos vazios, indefinidos ou nulos para evitar substituições indesejadas
+    // Remove empty, undefined or null fields to avoid unwanted replacements
     Object.keys(dataToUpdate).forEach(key => {
       if (dataToUpdate[key] === undefined || dataToUpdate[key] === '' || dataToUpdate[key] === null) {
         delete dataToUpdate[key];
@@ -124,20 +124,20 @@ export const updateVectorDataInSupabase = async (formData: FormData): Promise<bo
     
     console.log('Dados atualizados com sucesso no Supabase:', data);
     
-    // Forçar uma pequena pausa para garantir que as operações sejam completadas
-    await new Promise(resolve => setTimeout(resolve, 800));
+    // Force a small pause to ensure operations are completed
+    await new Promise(resolve => setTimeout(resolve, 500));
     
-    toast.success('Dados atualizados com sucesso no banco de dados');
+    toast.success('Dados atualizados com sucesso!');
     return true;
     
   } catch (error: any) {
     console.error('Erro na operação de atualização do Supabase:', error);
-    toast.error(`Erro ao atualizar os dados. Verifique sua conexão e tente novamente.`);
+    toast.error(`Erro ao atualizar os dados: ${error.message}`);
     return false;
   }
 };
 
-// Função para buscar dados de um registro específico por ID
+// Function to fetch data for a specific record by ID
 export const fetchVectorDataById = async (recordId: string) => {
   try {
     console.log("Buscando registro com ID:", recordId);

@@ -1,5 +1,5 @@
 
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 /**
@@ -69,6 +69,7 @@ export const findOrCreateLocality = async (localityName: string): Promise<string
   
   if (localityId === null) {
     console.error("Could not obtain or create locality ID after multiple attempts");
+    toast.error("Erro ao processar localidade");
   }
   
   return localityId;

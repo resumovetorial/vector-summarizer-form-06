@@ -10,7 +10,7 @@ import UserAccessDialog from './UserAccessDialog';
 import UserManagementActions from './UserManagementActions';
 import { useUsers } from '@/hooks/users';
 import { useRealtimeUpdates } from '@/hooks/useRealtimeUpdates';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 
 const UserManagement: React.FC = () => {
   const { users, setUsers, accessLevels, isLoading, handleDeleteUser, refreshUsers } = useUsers();
