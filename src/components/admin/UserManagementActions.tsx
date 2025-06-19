@@ -5,7 +5,7 @@ import { PlusCircle, RefreshCw } from 'lucide-react';
 
 interface UserManagementActionsProps {
   isAddDialogOpen: boolean;
-  setIsAddDialogOpen: (() => void) | ((isOpen: boolean) => void);
+  setIsAddDialogOpen: () => void;
   isLoading: boolean;
   onRefresh?: () => void;
 }
@@ -16,18 +16,6 @@ const UserManagementActions: React.FC<UserManagementActionsProps> = ({
   isLoading,
   onRefresh
 }) => {
-  const handleAddUserClick = () => {
-    if (typeof setIsAddDialogOpen === 'function') {
-      if (setIsAddDialogOpen.length === 0) {
-        // It's a function with no parameters
-        (setIsAddDialogOpen as () => void)();
-      } else {
-        // It's a function that expects a boolean parameter
-        (setIsAddDialogOpen as (isOpen: boolean) => void)(true);
-      }
-    }
-  };
-
   return (
     <div className="flex space-x-2">
       {onRefresh && (
@@ -43,8 +31,8 @@ const UserManagementActions: React.FC<UserManagementActionsProps> = ({
       )}
       <Button 
         size="sm" 
-        onClick={handleAddUserClick}
-        disabled={isLoading || isAddDialogOpen}
+        onClick={setIsAddDialogOpen}
+        disabled={isLoading}
       >
         <PlusCircle className="h-4 w-4 mr-2" />
         Adicionar Usuário

@@ -86,6 +86,18 @@ const UserManagement: React.FC = () => {
     }
   };
 
+  const handleAddUserClick = () => {
+    console.log("UserManagement: Abrindo dialog para adicionar usuário");
+    console.log("Access levels disponíveis:", accessLevels);
+    
+    if (accessLevels.length === 0) {
+      toast.error("Nenhum nível de acesso encontrado. Cadastre níveis de acesso primeiro na aba 'Níveis de Acesso'.");
+      return;
+    }
+    
+    setIsAddDialogOpen(true);
+  };
+
   const handleDialogClose = () => {
     console.log("UserManagement: Fechando dialog de adição");
     setIsAddDialogOpen(false);
@@ -105,18 +117,6 @@ const UserManagement: React.FC = () => {
     setIsAccessDialogOpen(false);
     setSelectedUser(null);
     refreshUsers();
-  };
-
-  const handleAddUserClick = () => {
-    console.log("UserManagement: Abrindo dialog para adicionar usuário");
-    console.log("Access levels disponíveis:", accessLevels);
-    
-    if (accessLevels.length === 0) {
-      toast.error("Nenhum nível de acesso encontrado. Cadastre níveis de acesso primeiro na aba 'Níveis de Acesso'.");
-      return;
-    }
-    
-    setIsAddDialogOpen(true);
   };
 
   return (
